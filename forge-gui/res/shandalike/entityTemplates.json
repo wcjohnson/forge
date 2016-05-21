@@ -1,0 +1,11 @@
+{
+	"trash": {
+		"type": "MobilePawn",
+		"spriteAsset": "reaper.sprite.json",
+		"behaviors": [
+			{
+				"script": "encounter"
+			}
+		]
+	}
+}

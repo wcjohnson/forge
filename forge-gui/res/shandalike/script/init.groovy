@@ -1,0 +1,2 @@
+
+println "Scripting engine initializing."
