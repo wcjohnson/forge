@@ -144,6 +144,8 @@ public class CardShop {
 		            	itemsToAdd.add(item, qty);
 		            	// Add the gold from the shop inventory
 			            CardShop.this.gold += value;
+			            // Rmoeve the card from the shop inventory
+			            CardShop.this.inventory.remove((PaperCard)item, qty);
 		            }
 		        }
 
