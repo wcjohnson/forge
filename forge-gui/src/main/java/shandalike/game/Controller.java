@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.GL20;
 
 import shandalike.IGameEventListener;
 import shandalike.Model;
-import shandalike.data.entity.town.Town;
 import shandalike.data.world.MapState;
 import shandalike.mtg.Duel;
 

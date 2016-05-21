@@ -1,10 +1,7 @@
 package shandalike.game;
 
 import java.util.Collection;
-import java.util.List;
-
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.utils.Align;
 

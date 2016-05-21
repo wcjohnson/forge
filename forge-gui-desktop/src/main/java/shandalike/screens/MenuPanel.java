@@ -1,7 +1,6 @@
 package shandalike.screens;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;

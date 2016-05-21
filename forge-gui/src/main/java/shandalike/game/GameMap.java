@@ -1,14 +1,11 @@
 package shandalike.game;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMapTile;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.utils.Align;
-
 import shandalike.Model;
 import shandalike.data.entity.Entity;
 import shandalike.data.entity.Pawn;

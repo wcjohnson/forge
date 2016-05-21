@@ -1,18 +1,12 @@
 package shandalike.screens;
 
 import java.awt.Container;
-import java.awt.Font;
-
-import javax.swing.SwingConstants;
-
 import forge.UiCommand;
 import forge.screens.home.LblHeader;
-import forge.toolbox.FLabel;
 import forge.toolbox.FScrollPane;
 import net.miginfocom.swing.MigLayout;
 import shandalike.IGameEventListener;
 import shandalike.Model;
-import shandalike.data.entity.town.Town;
 import shandalike.mtg.Duel;
 
 /**

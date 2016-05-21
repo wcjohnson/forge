@@ -119,9 +119,6 @@ public final class CEditorShandalikeCardShop extends ACEditorBase<InventoryItem,
     private String CCAddLabel = new String();
     private String CDTabLabel = new String();
     private String CDRemLabel = new String();
-    private String prevRem4Label = null;
-    private String prevRem4Tooltip = null;
-    private Runnable prevRem4Cmd = null;
 
     /**
      * Child controller for quest card shop UI.
@@ -268,10 +265,6 @@ public final class CEditorShandalikeCardShop extends ACEditorBase<InventoryItem,
         this.getBtnAddBasicLands().setVisible(false);
 
         VProbabilities.SINGLETON_INSTANCE.getTabLabel().setVisible(false);
-
-        prevRem4Label = this.getBtnRemove4().getText();
-        prevRem4Tooltip = this.getBtnRemove4().getToolTipText();
-        prevRem4Cmd = this.getBtnRemove4().getCommand();
 
         VCurrentDeck.SINGLETON_INSTANCE.getPnlHeader().setVisible(false);
 

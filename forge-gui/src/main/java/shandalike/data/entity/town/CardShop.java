@@ -3,7 +3,6 @@ package shandalike.data.entity.town;
 import java.util.Map.Entry;
 
 import forge.card.MagicColor;
-import forge.card.MagicColor.Color;
 import forge.deck.CardPool;
 import forge.item.InventoryItem;
 import forge.item.PaperCard;

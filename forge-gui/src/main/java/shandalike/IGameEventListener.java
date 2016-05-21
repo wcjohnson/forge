@@ -1,6 +1,5 @@
 package shandalike;
 
-import shandalike.data.entity.town.Town;
 import shandalike.mtg.Duel;
 
 /**

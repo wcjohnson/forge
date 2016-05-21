@@ -3,7 +3,6 @@ package shandalike.screens;
 import java.awt.Canvas;
 import java.awt.Container;
 import java.awt.EventQueue;
-import java.util.Objects;
 import java.util.Stack;
 
 import javax.swing.JPanel;

@@ -2,7 +2,6 @@ package shandalike.screens;
 
 import java.awt.Container;
 
-import forge.screens.home.LblHeader;
 import forge.toolbox.FScrollPane;
 import net.miginfocom.swing.MigLayout;
 import shandalike.UIModel;
@@ -12,9 +11,7 @@ import shandalike.UIModel;
  * @author wcj
  */
 public class MenuScreen implements IPanel {
-	/////////////////////////////// Controls
-	private final LblHeader lblTitle = new LblHeader("");
-    final FScrollPane scrCustom = new FScrollPane(false);
+	final FScrollPane scrCustom = new FScrollPane(false);
     private final MenuPanel menuPanel = new MenuPanel();
     
     public MenuScreen() {

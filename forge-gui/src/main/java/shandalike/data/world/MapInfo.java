@@ -1,8 +1,6 @@
 package shandalike.data.world;
 
 import java.io.File;
-import java.util.Map;
-
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapProperties;
@@ -15,7 +13,6 @@ import com.badlogic.gdx.math.Vector2;
 import forge.properties.ForgeConstants;
 import shandalike.Model;
 import shandalike.data.JSON;
-import shandalike.data.effects.Effect;
 import shandalike.data.entity.CollidablePawn;
 import shandalike.data.entity.Entity;
 import shandalike.data.entity.Pawn;
@@ -94,6 +91,7 @@ public class MapInfo {
 		System.out.println("[Shandalike] Initializing map id " + mapState.id + " from mapInfo id " + id);
 		
 		// Add the player pawn entity
+		@SuppressWarnings("unused")
 		Pawn playerPawn = mapState.addEntity("_player", PlayerPawn.class);
 		mapState.playerPawnId = "_player";
 		

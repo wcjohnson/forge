@@ -5,11 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 
 import forge.FThreads;
@@ -21,7 +18,6 @@ import forge.game.GameRules;
 import forge.game.GameType;
 import forge.game.card.Card;
 import forge.game.card.CardCollectionView;
-import forge.game.card.CardPredicates;
 import forge.game.player.Player;
 import forge.game.player.RegisteredPlayer;
 import forge.game.zone.ZoneType;
@@ -37,14 +33,12 @@ import forge.quest.QuestEventChallenge;
 import forge.quest.QuestUtil;
 import forge.quest.io.QuestChallengeReader;
 import forge.quest.io.QuestDuelReader;
-import forge.util.Aggregates;
 import forge.util.FileSection;
 import forge.util.FileUtil;
 import groovy.lang.GroovyObject;
 import shandalike.UIModel;
 import shandalike.Model;
 import shandalike.data.entity.Entity;
-import shandalike.mtg.Duel.GameResult;
 
 /**
  * Interface to conduct duels in Forge and handle results.
