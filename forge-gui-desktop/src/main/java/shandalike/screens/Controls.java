@@ -3,11 +3,16 @@ package shandalike.screens;
 import javax.swing.JPanel;
 
 import forge.UiCommand;
+import forge.assets.FSkinProp;
 import forge.gui.framework.FScreen;
 import forge.toolbox.FLabel;
+import forge.toolbox.FSkin;
 import forge.view.FView;
 import net.miginfocom.swing.MigLayout;
 import shandalike.Model;
+import shandalike.UIModel;
+import shandalike.Util;
+import shandalike.data.Adventure;
 
 public class Controls extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -18,7 +23,10 @@ public class Controls extends JPanel {
 	final FLabel btnCharacter = new FLabel.ButtonBuilder().text("Character").build();
 	final FLabel btnJournal = new FLabel.ButtonBuilder().text("Journal").build();
 	final FLabel btnMap = new FLabel.ButtonBuilder().text("Map").build();
-	final FLabel btnReload = new FLabel.ButtonBuilder().text("!Flush").build();
+	final FLabel btnReload = new FLabel.ButtonBuilder().text("!Cheat").build();
+	
+	final FLabel txtGold = new FLabel.Builder().icon(FSkin.getIcon(FSkinProp.ICO_QUEST_COINSTACK)).text("Gold").build();
+	final FLabel txtFood = new FLabel.Builder().icon(FSkin.getIcon(FSkinProp.ICO_QUEST_ELIXIR)).text("Food").build();
 	
 	@SuppressWarnings("serial")
 	final UiCommand doMap = new UiCommand(){
@@ -46,14 +54,79 @@ public class Controls extends JPanel {
 		}
 	};
 		
-	public void setCommands() {
-		
-		
+	
+	@SuppressWarnings("serial")
+	public void openLoadScreen() {
+		UIModel m = new UIModel();
+		m.addPanel("Load", "Select slot to load.", null);
+		for(int i=0; i<shandalike.Constants.NUM_SAVE_SLOTS; i++) {
+			Adventure.SaveSlotInfo ssi = Model.adventure.getSaveSlotInfo(i);
+			if(ssi == null) {
+				m.addButton("Slot #" + i + " (empty!)", null);
+			} else {
+				final int fi = i;
+				m.addButton(ssi.name + " (" + ssi.timestamp + ")", new UiCommand(){
+					@Override
+					public void run() {
+						Util.popUI();
+						Model.adventure.load(fi);
+					}
+				});
+			}
+		}
+		m.addButton("Cancel", new UiCommand(){
+			@Override
+			public void run() {
+				Util.popUI();
+			}
+		});
+		Util.pushUI(m);
 	}
 	
-	public void openLoad() {
-		
+	@SuppressWarnings("serial")
+	public void openSaveScreen() {
+		UIModel m = new UIModel();
+		m.addPanel("Save", "Select slot to save.", null);
+		for(int i=1; i<shandalike.Constants.NUM_SAVE_SLOTS; i++) {
+			final int fi = i;
+			Adventure.SaveSlotInfo ssi = Model.adventure.getSaveSlotInfo(i);
+			UiCommand cmd = new UiCommand(){
+				@Override
+				public void run() {
+					Util.popUI();
+					Model.adventure.save(fi);
+				}
+			};
+			if(ssi == null) {
+				m.addButton("Slot #" + i + " (empty!)", cmd);
+			} else {
+				m.addButton(ssi.name + " (" + ssi.timestamp + ")", cmd);
+			}
+		}
+		m.addButton("Cancel", new UiCommand(){
+			@Override
+			public void run() {
+				Util.popUI();
+			}
+		});
+		Util.pushUI(m);
 	}
+	
+	@SuppressWarnings("serial")
+	final UiCommand doLoad = new UiCommand() {
+		@Override
+		public void run() {
+			openLoadScreen();
+		}
+	};
+	
+	@SuppressWarnings("serial")
+	final UiCommand doSave = new UiCommand() {
+		@Override
+		public void run() {
+			openSaveScreen();
+		}
+	};
 	
 	public Controls() {
 		super(new MigLayout("insets 5px"));
@@ -66,14 +139,14 @@ public class Controls extends JPanel {
 		buttonGrid.add(btnMap, "w 100");
 		btnMap.setCommand(doMap);
 		buttonGrid.add(btnSave, "w 100");
+		btnSave.setCommand(doSave);
 		buttonGrid.add(btnLoad, "w 100");
+		btnLoad.setCommand(doLoad);
 		buttonGrid.add(btnQuit, "w 100");
 		btnQuit.setCommand(doQuit);
 		buttonGrid.add(btnReload, "w 100");
 		btnReload.setCommand(doReload);
-		
-		setCommands();
-		
+				
 		add(buttonGrid);
 	}
 	

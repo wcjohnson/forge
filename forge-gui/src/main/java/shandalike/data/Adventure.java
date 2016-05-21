@@ -1,6 +1,9 @@
 package shandalike.data;
 
 import java.io.File;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +22,12 @@ public class Adventure {
     static {
         //ensure save directory exists if this class is used
         FileUtil.ensureDirectoryExists(Constants.USER_SHANDALIKE_SAVE_DIR);
+    }
+    
+    public static class SaveSlotInfo {
+    	public String name;
+    	public int index;
+    	public String timestamp;
     }
     
     // Summary data
@@ -122,6 +131,7 @@ public class Adventure {
 		gt.sync(gt.wallTime(), getWorldState().gameTime);
 		// Enter world
 		world.willEnter();
+		Model.gameController.loadGame();
 		summary.mostRecentLoadSlot = slot;
 		return true;
 	}
@@ -157,5 +167,23 @@ public class Adventure {
 
 	public Player getPlayer() {
 		return player;
+	}
+
+	public SaveSlotInfo getSaveSlotInfo(int i) {
+		if(this.summary == null) {
+			throw new IllegalArgumentException("must load summary before loading slot");
+		}
+		String advPath = getAdventureBasePath();
+		File f = new File(advPath + "slot" + i + ".json");
+		if(!f.isFile()) return null;
+		SaveSlotInfo ssi = new SaveSlotInfo();
+		if(i == 0) ssi.name = "AutoSave"; else ssi.name = "Slot #" + i;
+		ssi.index = i;
+		// Make timestamp
+		Date date = new Date(f.lastModified());
+		Format format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		ssi.timestamp = format.format(date);
+		
+		return ssi;
 	}
 }

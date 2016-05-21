@@ -50,7 +50,8 @@ public class Controller implements ApplicationListener, IGameEventListener {
 
 	}
 	
-	public void loadActiveAdventure() {
+	public void loadGame() {
+		Model.gameEvent("reload", null, null);
 		Model.playerDidChangeMap();
 	}
 

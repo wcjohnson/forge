@@ -291,8 +291,13 @@ public enum Root implements IVTopLevelUI, ICDoc, IGameEventListener {
 
 	@Override
 	public void gameEvent(String event, Object arg1, Object arg2) {
-		// TODO Auto-generated method stub
 		switch(event) {
+		case "reload": {
+			// Clear view stack
+			while(!viewStack.isEmpty()) popPanel(viewStack.peek());
+			break;
+		}
+		
 		case "pushView": {
 			UIModel model = (UIModel)arg1;
 			MenuScreen view = new MenuScreen();

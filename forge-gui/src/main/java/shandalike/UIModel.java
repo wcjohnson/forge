@@ -96,6 +96,13 @@ public class UIModel {
 		widgets.add(btn);
 	}
 	
+	public void addButton(String text, UiCommand cmd) {
+		Button btn = new Button();
+		btn.callback.command = cmd;
+		btn.text = text;
+		widgets.add(btn);
+	}
+	
 	public void addPanel(String title, String text, GroovyObject context, Object... buttons) {
 		Panel pnl = new Panel();
 		pnl.title = title; pnl.leftText = text;

@@ -146,6 +146,7 @@ public class MapState {
 	 * him from double-zoning.
 	 */
 	public void suppressPlayerCollision() {
+		System.out.println("[Shandalike] suppressPlayerCollision() -- running on mapId " + this.id + " mapInfoId " + this.getMapInfo().id );
 		Rectangle r = new Rectangle();
 		this.getPlayerPawn().getCollisionRectangle(this.getMapInfo().getPixelsPerUnit(), r);
 		for(CollidablePawn p: this.collisionQuery(r)) {
@@ -176,6 +177,7 @@ public class MapState {
 	public void reenterTown() {
 		if(this.inTownId == null) return;
 		Town t = (Town) this.getEntity(this.inTownId);
+		System.out.println("[Shandalike] Restoring user's inTown status for town id" + this.inTownId);
 		// Simulate a collideWithPlayerEvent on the town. This will cause the entry script to run.
 		t.handleEvent("collideWithPlayer", getPlayerPawn(), null);
 	}

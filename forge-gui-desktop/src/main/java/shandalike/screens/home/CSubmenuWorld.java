@@ -48,8 +48,7 @@ public enum CSubmenuWorld implements ICDoc {
         	public void run() {
         		// Load the selected worldstate and fully hydrate it
         		Adventure adv = CSubmenuWorld.this.view.getWorldLister().getSelectedAdventure();
-        		Model.setActiveAdventure(adv);
-        		Model.gameController.loadActiveAdventure();		
+        		Model.setActiveAdventure(adv);		
         		// Show the Shandalike map
         		ShandalikeUIUtil.showMap();
         	}

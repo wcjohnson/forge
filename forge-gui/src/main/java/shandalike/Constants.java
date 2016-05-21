@@ -10,4 +10,5 @@ public final class Constants {
     public static final String GLOBAL_SHANDALIKE_DIR = ForgeConstants.RES_DIR + "shandalike" + ForgeConstants.PATH_SEPARATOR;
     public static final String GLOBAL_SHANDALIKE_WORLDS_DIR = GLOBAL_SHANDALIKE_DIR + "world" + ForgeConstants.PATH_SEPARATOR;
     public static final String[] DIFFICULTY_LEVEL_NAME = { "Apprentice", "Magician", "Sorcerer", "Wizard" };
+	public static final int NUM_SAVE_SLOTS = 5;
 }
