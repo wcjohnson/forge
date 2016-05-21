@@ -4,6 +4,8 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import javax.swing.SwingUtilities;
+
 import org.w3c.dom.Element;
 
 import forge.GuiBase;
@@ -208,7 +210,17 @@ public abstract class Achievement {
             if (sharedDesc != null) {
                 desc = sharedDesc + " " + desc;
             }
-            GuiBase.getInterface().showImageDialog(image, displayName + " (" + type + ")\n" + desc, "Achievement Earned");
+            //// Shandalike
+            // Forge core bug fix: This can cause an AWTTreeLock deadlock if not run in the EDT.
+            final String fType = type, fDesc = desc;
+            SwingUtilities.invokeLater(new Runnable(){
+				@Override
+				public void run() {
+					GuiBase.getInterface().showImageDialog(image, displayName + " (" + fType + ")\n" + fDesc, "Achievement Earned");		
+				}
+            
+            });
+            //// End Shandalike
         }
         return value;
     }
