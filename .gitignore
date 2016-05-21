@@ -3,3 +3,5 @@
 target
 forge.profile.properties
 forge-gui/res/shandalike/asset/unsorted
+org.eclipse.m2e.core.prefs
+org.eclipse.core.resources.prefs
