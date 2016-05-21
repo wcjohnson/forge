@@ -48,6 +48,9 @@ public enum DeckFormat {
     //               Main board: allowed size             SB: restriction   Max distinct non basic cards
     Constructed    ( Range.between(60, Integer.MAX_VALUE), Range.between(0, 15), 4),
     QuestDeck      ( Range.between(40, Integer.MAX_VALUE), Range.between(0, 15), 4),
+    // Shandalike -- We apply deck restrictions in the game engine. Use no restrictions here so duel engine doesnt whine.
+    // Why arent deck formats constructible dynamically???
+    Shandalike	   ( Range.between(40, Integer.MAX_VALUE), Range.between(0, Integer.MAX_VALUE), Integer.MAX_VALUE),
     Limited        ( Range.between(40, Integer.MAX_VALUE), null, Integer.MAX_VALUE),
     Commander      ( Range.is(99),                         Range.between(0, 10), 1),
     TinyLeaders    ( Range.is(49),                         Range.between(0, 10), 1, new Predicate<CardRules>() {

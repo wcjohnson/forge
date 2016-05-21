@@ -128,6 +128,12 @@ public final class SResizingUtil {
 
         pnlInsets.setBounds(mainBounds);
         pnlInsets.validate();
+        
+        ///// Shandalike - resize top layer with window...
+        // (Not sure I understand why this is needed... but...)
+        FView.SINGLETON_INSTANCE.getPnlTopLayer().setBounds(mainBounds);
+        FView.SINGLETON_INSTANCE.getPnlTopLayer().validate();
+	///// End Shandalike
 
         final int w = pnlContent.getWidth();
         final int h = pnlContent.getHeight();

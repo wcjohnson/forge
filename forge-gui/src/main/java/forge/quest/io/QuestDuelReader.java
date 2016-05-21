@@ -20,10 +20,14 @@ public class QuestDuelReader extends StorageReaderFolder<QuestEventDuel> {
         super(deckDir0, QuestEvent.FN_GET_NAME);
         // TODO Auto-generated constructor stub
     }
-
-    @Override
-    protected QuestEventDuel read(File file) {
+    
+    ///// Shandalike: Refactor the loading process to make it easier to reuse Quest Mode .dck files elsewhere.
+    public static QuestEventDuel readFromFile(File file) {
         final Map<String, List<String>> contents = FileSection.parseSections(FileUtil.readFile(file));
+        return readFromContents(contents);
+    }
+    
+    public static QuestEventDuel readFromContents(Map<String, List<String>> contents) {
         final QuestEventDuel qc = new QuestEventDuel();
 
         // Common properties
@@ -42,6 +46,12 @@ public class QuestDuelReader extends StorageReaderFolder<QuestEventDuel> {
         qc.setEventDeck(DeckSerializer.fromSections(contents));
         return qc;
     }
+
+    @Override
+    protected QuestEventDuel read(File file) {
+    	return readFromFile(file);
+    }
+    //// End shandalike
 
     @Override
     protected FilenameFilter getFileFilter() { 

@@ -15,6 +15,8 @@ public enum GameType {
     Gauntlet        (DeckFormat.Constructed, false, true, true, "Gauntlet", ""),
     Tournament      (DeckFormat.Constructed, false, true, true, "Tournament", ""),
     Quest           (DeckFormat.QuestDeck, true, true, false, "Quest", ""),
+    // Shandalike
+    Shandalike		(DeckFormat.Shandalike, true, true, false, "Shandalike", ""),
     QuestDraft      (DeckFormat.Limited, true, true, true, "Quest Draft", ""),
     PlanarConquest  (DeckFormat.PlanarConquest, true, false, false, "Planar Conquest", ""),
     Constructed     (DeckFormat.Constructed, false, true, true, "Constructed", ""),

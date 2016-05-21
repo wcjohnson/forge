@@ -34,6 +34,7 @@ import forge.screens.home.settings.VSubmenuReleaseNotes;
 import forge.screens.workshop.views.VCardDesigner;
 import forge.screens.workshop.views.VCardScript;
 import forge.screens.workshop.views.VWorkshopCatalog;
+import shandalike.screens.home.VSubmenuWorld;
 
 /**
  * These are the identifiers for tabs found in the drag layout.
@@ -77,6 +78,8 @@ public enum EDocID {
     HOME_WINSTON (VSubmenuWinston.SINGLETON_INSTANCE),
     HOME_NETWORK (VSubmenuOnlineLobby.SINGLETON_INSTANCE),
     HOME_RELEASE_NOTES (VSubmenuReleaseNotes.SINGLETON_INSTANCE),
+    // Shandalike tab
+    HOME_SHANDALIKE_WORLDS (VSubmenuWorld.SINGLETON_INSTANCE),
 
     REPORT_MESSAGE (),
     REPORT_STACK (),

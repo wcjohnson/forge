@@ -1,7 +1,14 @@
 package forge.game;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
+
+import com.google.common.collect.Multimap;
+
+import forge.game.card.Card;
+import forge.game.player.Player;
+import forge.game.player.RegisteredPlayer;
 
 public class GameRules {
     private final GameType gameType;
@@ -11,6 +18,21 @@ public class GameRules {
     private int gamesToWinMatch = 2;
     private boolean playForAnte = false;
     private boolean matchAnteRarity = false;
+    // Shandalike
+    // Allow the game system to specify the ante.
+    public interface AnteDelegate {
+    	public Multimap<Player,Card> getCardsForAnte(List<RegisteredPlayer> registeredPlayers, GameRules rules, Game game);
+    }
+    private AnteDelegate anteDelegate = null;
+    
+    public AnteDelegate getAnteDelegate() {
+		return anteDelegate;
+	}
+
+	public void setAnteDelegate(AnteDelegate anteDelegate) {
+		this.anteDelegate = anteDelegate;
+	}
+	// End shandalike
     private final Set<GameType> appliedVariants = EnumSet.noneOf(GameType.class);
 
     // it's a preference, not rule... but I could hardly find a better place for it

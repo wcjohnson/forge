@@ -203,4 +203,41 @@ public class GameView extends TrackableObject {
     public AnteResult getAnteResult(PlayerView player) {
         return game.getOutcome().anteResult.get(game.getPlayer(player));
     }
+    
+    /////// Shandalike
+    public Player playerForPlayerView(PlayerView player) {
+    	Player targetPlayer = null;
+    	for(Player p: game.getRegisteredPlayers()) {
+    		if(p.getId() == player.getId()) {
+    			targetPlayer = p;
+    		}
+    	}
+    	return targetPlayer;
+    }
+    
+    public Player playerForLobbyPlayer(LobbyPlayer player) {
+    	Player targetPlayer = null;
+    	for(Player p: game.getRegisteredPlayers()) {
+    		if(p.getLobbyPlayer().getName().equals(player.getName())) {
+    			targetPlayer = p;
+    		}
+    	}
+    	return targetPlayer;
+    }
+    
+    public GameOutcome getOutcome() {
+    	return game.getOutcome();
+    }
+    
+    // The above getAnteResult() appears to be broken -- when clearCaches() is called
+    // on the Game object, which happens before the WinLoseController executes, 
+    // it empties the playerCache lookup table that function is using, causing an NPE.
+    // I made a new one that works. But the old one is still in use (and somehow working) in
+    // Quest mode, so I didn't actually want to delete it for fear of causing unwanted side effects.
+    public AnteResult getAnteResultWithoutCrashing(PlayerView player) {
+    	Player targetPlayer = playerForPlayerView(player);
+    	if(targetPlayer == null) return null;
+    	return game.getOutcome().anteResult.get(targetPlayer);
+    }
+    ////// End Shandalike
 }

@@ -50,6 +50,7 @@ import forge.util.FileUtil;
 import forge.util.Localizer;
 import forge.util.storage.IStorage;
 import forge.util.storage.StorageBase;
+import shandalike.Model;
 
 import java.io.File;
 import java.util.HashMap;
@@ -191,6 +192,10 @@ public final class FModel {
 
         //preload AI profiles
         AiProfileUtil.loadAllProfiles(ForgeConstants.AI_PROFILE_DIR);
+        
+        // Shandalike
+        // Delegate initialization of model
+        Model.initialize(progressBar);
     }
 
     public static QuestController getQuest() {

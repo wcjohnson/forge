@@ -53,6 +53,8 @@ import forge.screens.home.quest.DialogChooseSets;
 import forge.screens.match.controllers.CDetailPicture;
 import forge.toolbox.FOptionPane;
 import forge.toolbox.FSkin;
+import shandalike.Model;
+import shandalike.screens.CEditorShandalike;
 
 /**
  * ItemManager for decks
@@ -258,6 +260,12 @@ public final class DeckManager extends ItemManager<DeckProxy> implements IHasGam
             screen = FScreen.DECK_EDITOR_QUEST;
             editorCtrl = new CEditorQuest(FModel.getQuest(), getCDetailPicture());
             break;
+        // Shandalike
+        case Shandalike:
+        	screen = FScreen.DECK_EDITOR_QUEST;
+        	editorCtrl = new CEditorShandalike(Model.adventure.getPlayer().getInventory(), getCDetailPicture());
+        	break;
+        // End shandalike
         case Constructed:
             screen = FScreen.DECK_EDITOR_CONSTRUCTED;
             DeckPreferences.setCurrentDeck(deck.toString());
@@ -311,6 +319,9 @@ public final class DeckManager extends ItemManager<DeckProxy> implements IHasGam
             deck.deleteFromStorage();
             FModel.getQuest().save();
             break;
+        case Shandalike:
+        	deck.deleteFromStorage();
+        	break;
         default:
             throw new UnsupportedOperationException("Delete not implemented for game type = " + gameType.toString());
         }

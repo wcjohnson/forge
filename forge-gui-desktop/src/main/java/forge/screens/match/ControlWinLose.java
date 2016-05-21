@@ -73,7 +73,8 @@ public class ControlWinLose {
         Singletons.getControl().setCurrentScreen(FScreen.HOME_SCREEN);
     }
 
-    private void nextGameAction(final NextGameDecision decision) {
+    // Shandalike: changed visibility to protected
+    protected void nextGameAction(final NextGameDecision decision) {
         SOverlayUtils.hideOverlay();
         saveOptions();
         for (final IGameController controller : matchUI.getOriginalGameControllers()) {

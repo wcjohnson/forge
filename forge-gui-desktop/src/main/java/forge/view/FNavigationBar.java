@@ -170,7 +170,14 @@ public class FNavigationBar extends FTitleBarBase {
             //return to Home screen if selected tab closed
             //TODO: support navigation history and go to previous tab instead
             this.selectedTab = null; //prevent raising onSwitching for tab being closed
-            Singletons.getControl().setCurrentScreen(FScreen.HOME_SCREEN, true);
+            // Shandalike changes
+            // if Shandalike is open, return to shandalike upon closing tab.
+            if( (tab.screen != FScreen.SHANDALIKE) && (getTab(FScreen.SHANDALIKE) != null) ) {
+            	Singletons.getControl().setCurrentScreen(FScreen.SHANDALIKE, true);
+            } else {
+            	Singletons.getControl().setCurrentScreen(FScreen.HOME_SCREEN, true);
+            }
+            // End shandalike changes
         }
         final int index = tabs.indexOf(tab);
         if (index != -1) {
