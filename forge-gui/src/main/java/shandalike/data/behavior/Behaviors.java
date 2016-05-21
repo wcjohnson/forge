@@ -11,7 +11,7 @@ import java.util.List;
  * Note: this is not a true concurrent collection; don't even think about using it on multiple threads.
  * @author wcj
  */
-public class Behaviors implements Iterable<Behavior>, Collection<Behavior> {
+public class Behaviors implements Iterable<Behavior>, Collection<Behavior>, IBehavioral {
 	private class BehIterator implements Iterator<Behavior> {
 		int pos = 0;
 		
@@ -151,5 +151,27 @@ public class Behaviors implements Iterable<Behavior>, Collection<Behavior> {
 		} else {
 			behaviors.clear();
 		}		
+	}
+
+	@Override
+	public void addBehavior(Behavior behavior) {
+		add(behavior);
+	}
+
+	@Override
+	public void removeBehavior(Behavior behavior) {
+		remove(behavior);
+	}
+
+	@Override
+	public Collection<Behavior> getBehaviors() {
+		return this;
+	}
+
+	@Override
+	public void handleEvent(String eventType, Object arg1, Object arg2) {
+		for(Behavior beh: this) {
+			beh.handleEvent(eventType, this, arg1, arg2);
+		}
 	}
 }
