@@ -1,0 +1,37 @@
+{
+	"green_trash_1": {
+		"inherits": "trash",
+		"var": {
+			"duelFile": "G 1 Druid.dck"
+		},
+		"spriteAsset": "enemy_green_1.sprite.json"
+	},
+	"white_trash_1": {
+		"inherits": "trash",
+		"var": {
+			"duelFile": "W 2 Cleric.dck"
+		},
+		"spriteAsset": "enemy_white_1.sprite.json"
+	},
+	"red_trash_1": {
+		"inherits": "trash",
+		"var": {
+			"duelFile": "R 1 Ape Lord.dck"
+		},
+		"spriteAsset": "enemy_red_1.sprite.json"
+	},
+	"blue_trash_1": {
+		"inherits": "trash",
+		"var": {
+			"duelFile": "U 1 Sea Dragon.dck"
+		},
+		"spriteAsset": "enemy_blue_1.sprite.json"
+	},
+	"black_trash_1": {
+		"inherits": "trash",
+		"var": {
+			"duelFile": "B 1 Nether Fiend.dck"
+		},
+		"spriteAsset": "enemy_black_1.sprite.json"
+	}
+}

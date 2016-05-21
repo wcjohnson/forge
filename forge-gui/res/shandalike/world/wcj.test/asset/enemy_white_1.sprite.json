@@ -1,0 +1,44 @@
+{
+	"size": "(32,48)",
+	"origin": "(16,16)",
+	"collisionRect": "[-16,-16,32,32]",
+	"textureAsset": "enemy_white_1.png",
+	"animations": {
+		"stand": {
+			"loop": false,
+			"x": 0, "y": 0, "width": 32, "height": 48,
+			"tileWidth": 32, "tileHeight": 48,
+			"frameDuration": 1.0
+		},
+		"walk": {
+			"loop": true,
+			"x": 0, "y": 0, "width": 128, "height": 48,
+			"tileWidth": 32, "tileHeight": 48,
+			"frameDuration": 0.25
+		},
+		"walk_down": {
+			"loop": true,
+			"x": 0, "y": 0, "width": 128, "height": 48,
+			"tileWidth": 32, "tileHeight": 48,
+			"frameDuration": 0.25
+		},
+		"walk_left": {
+			"loop": true,
+			"x": 0, "y": 48, "width": 128, "height": 48,
+			"tileWidth": 32, "tileHeight": 48,
+			"frameDuration": 0.25
+		},
+		"walk_right": {
+			"loop": true,
+			"x": 0, "y": 96, "width": 128, "height": 48,
+			"tileWidth": 32, "tileHeight": 48,
+			"frameDuration": 0.25
+		},
+		"walk_up": {
+			"loop": true,
+			"x": 0, "y": 144, "width": 128, "height": 48,
+			"tileWidth": 32, "tileHeight": 48,
+			"frameDuration": 0.25
+		}
+	}
+}

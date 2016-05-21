@@ -1,0 +1,617 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" nextobjectid="116">
+ <properties>
+  <property name="onEnter" value="enterDungeon"/>
+  <property name="onLeave" value="exitDungeon"/>
+  <property name="snapToTiles" type="bool" value="true"/>
+ </properties>
+ <tileset firstgid="1" name="dungeon" tilewidth="32" tileheight="32" tilecount="126" columns="21">
+  <image source="dungeon_tiles.png" width="672" height="208"/>
+  <terraintypes>
+   <terrain name="water" tile="-1"/>
+   <terrain name="floor" tile="-1"/>
+  </terraintypes>
+  <tile id="0" terrain=",,,1"/>
+  <tile id="1" terrain=",,1,1"/>
+  <tile id="2" terrain=",,1,1"/>
+  <tile id="3" terrain=",,1,1"/>
+  <tile id="4" terrain=",,1,"/>
+  <tile id="12" terrain="1,1,1,0"/>
+  <tile id="13" terrain="1,1,0,0"/>
+  <tile id="14" terrain="1,1,0,1"/>
+  <tile id="21" terrain=",1,,1"/>
+  <tile id="22" terrain="1,1,1,1"/>
+  <tile id="23" terrain="1,1,1,1"/>
+  <tile id="24" terrain="1,1,1,1"/>
+  <tile id="25" terrain="1,,1,"/>
+  <tile id="33" terrain="1,0,1,0"/>
+  <tile id="34" terrain="0,0,0,0"/>
+  <tile id="35" terrain="0,1,0,1"/>
+  <tile id="42" terrain=",1,,1"/>
+  <tile id="43" terrain="1,1,1,1"/>
+  <tile id="44" terrain="1,1,1,1"/>
+  <tile id="45" terrain="1,1,1,1"/>
+  <tile id="46" terrain="1,,1,"/>
+  <tile id="54" terrain="1,0,1,1"/>
+  <tile id="55" terrain="0,0,1,1"/>
+  <tile id="56" terrain="0,1,1,1"/>
+  <tile id="63" terrain=",1,,1"/>
+  <tile id="64" terrain="1,1,1,1"/>
+  <tile id="65" terrain="1,1,1,1"/>
+  <tile id="66" terrain="1,1,1,1"/>
+  <tile id="67" terrain="1,,1,"/>
+  <tile id="84" terrain=",1,,"/>
+  <tile id="85" terrain="1,1,,"/>
+  <tile id="86" terrain="1,1,,"/>
+  <tile id="87" terrain="1,1,,"/>
+  <tile id="88" terrain="1,,,"/>
+ </tileset>
+ <layer name="Tile Layer 1" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJztXLl24zAM5A9sXDppE5ex201Km822u///MWu+cJ4YRQTBwzqoKeY5tmkdGHIAAlDejDFvBEEQBEEQBEEQBEEQBEEQBDED/nr8C16XvqY9g3ysC+CAfKwD4OAP+VgNTnfYO15XcC3EFx838rEaOD6eyYcaHzPwcSEfaltdH2wrro88W7Waux8RfHrOfwtjlrbDWtBq7uI47+bLd9s7zncc73jxuPrvr/5zN/7ix5WevzcuW8WiWGe/7njKwKHi/D3G0e6e3hvxcSw4Tk0sXHrOtSCm7W5eS9qu0fxSXmv0cstxG9b2zdvN2eAYvD/71/dg3Evw2c2Px3djza/hw1bw8ejY8JGQ9DtH96c0/+T5m1pnKZuWas7W+Whlj6nfYH04TrCWEFtJx8bvSvTy058r9tulbTsnH2NtwnHCdXZQHBv+PIyTLwGfN/NdK53OhnH0s//cmp+x9BbXTYlPhO3DeYm5OuYopScYk9LLg9HH0weTXpdrRYkfDue04+Xs73/Mq8ZXn4xuP5gTF2/drzwVcDjWpqeJ42hsncOHdt5sOQ4ugfZ+Nb4JcRnXRx0fGtto+dAeK4cPSz4mx0l5XYzR6pBWV/dWj8zRGORvj/5v6zmCvWC7lnuIXvmQ9mHaPYsUr4bcYs8Q5uVr9u01Ofw1AhqMfdrZDPsu2Cs3Ro752NZ7iB75iNkJtsq939wYtKYOsPU8fMn95saTuTFPLR8tajpbQemePnd9pPiT/FsqR7m0DVvzEdMDyUbPgo1yOQdfFzPEcJfgs6t/RY4SsQJee1o7MT5gIxvYAzla9DQgjrJmiBOmtE9TN5T8WypHubQN5+Ijt6cBcXAJH9L17c1/2IgNc7UgZruaHNQe84mSXrXy86W60tP+Q1snbTWnH7FX6KU/FXkfBzdnnfZY8z2OgY+e0qVSPlrnxnviw9lZ64+nft+iFt/qPnrgo0Y7NHM9lpvM6S/RXEsPMW0LPiQ/Ot7DIYeLWjz6hY7Bd9BH7ON68dNae9ZouSbO1OxHYrX5kjzmllGr5S3qpJL291pncpDqTKV5uFZ8xGKjXvfd0Hlo+M38fJbGmiGuRW+gpvezBR8xm/cSx04hpt2Oj9I8XIv5m+Kjlu8toVafW+QppGvoZV+RYwttvBvzP46P1F4idQ2xGA/ro/VeZa3QxrvQFOd/0G+OZ3zC+o87Fp7pQa0jFQ9LMTPWB3pQ3HnQPwwfhzxPrK6yJWjXB/gY+5mU/9HsH1J6pemF76XulNPnZifGpdaXxt+n/Dn9x/S4khqrtt9d8h+9xrul9sK4WI3VJviQvk9dwx7rflq9mpqnGr3SrA/Jn+8tf5XTJ12yPsbHn4qZJb3qMV8iQROTSD0IqXx7+D3eI5+O3HvMh+1Nr7SQ9CrFxziWjeXbY3zsqS83B7F6rU3woX3eNjZm63uKOaHx56l4dW8++9F8SPGANt6lj2gHSU+0fOwthloKGn/8iH4sotzWjKHm5UOTT7TkYzY+NPUP6tV8fFgFH/Tn7ZDqi9f2qNTUfInBlmcz1G9RM72a4X8yaf/fD+quyGvhGTf0JXH96JDqBU31r2B9pGqyS99nD9DmS2xiDNGOD836oB7Nx4dmP7inGvnSfNT0MxDtofHF9NcEQRAEQRAEQRAEQRAEQfSG/zLBbUk=
+  </data>
+ </layer>
+ <layer name="Tile Layer 2" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJztwTEBAAAAwqD1T+1lC6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAbnEAAAQ==
+  </data>
+ </layer>
+ <layer name="collision" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJztmEluwzAMAP2q/P9pPfTQwKjFVTJFzQBBgWi1JqToXhcAAAAAAAAAAAAAAABU4PP1gff53P7Cu+CjFvioBT70rLhr8aFnxVnhQ0/WWX2Ej7bP6WT6WD2+o8tsH1IMjGInsmYXZvhYtf7OPqK5Xcr5+LAxY8/48JMdH9f17MNSO53q4wnPM418jPpLc0VqgS41dLYPa+0088xO9KHNYda5onnV+kxViPiQ2qw+NGtq9rm7D2uu1d7d+FhD5hnO9nGCE3zUwnOG0bvXklfxMe43ap/xDtHRR/Q3balXpX149v69VgcsecEy333MjHeIjvVVRs6/z2cZgw8ZfNSkgg9t/GbWCVXx3AXWM9L4iHCKj+ic0hrf7cTHL5IP6Rw0tQH3h57MM8RHnHsc/Pe9Z67799680sWHJ8fM8hGhk49If3zk4rmPn8Z71syiow/PWG+NOmrz1KpdatoVPjLY/Zy1vBUflnjx7m9HZvuI7qGrD+9vc5ST8eEn47xGbfiwMSM+rgsf2USfFx+5aJ83Gl/eGLPMr1mrOhYfGetY9+Ct+3bF6sMTH9L8xMcfHh+W8bN9dGMnHydQzYd1/m7goxarfUh3Pj50d2OmD2kNy/ynsio+tOuezlMcraivuta2M5jtA2zgoxZSPsFHLfBRC3zUAh+1wEct8LGWp/dtzbv3dWvTzgXPaM/I+n+rSL+TIT72gvujFvioBT5qgY9aaO5i7msAAAAAAAAAAADoyA8IG8J9
+  </data>
+ </layer>
+ <objectgroup name="meta_obj">
+  <object id="1" name="exit" x="1504" y="544" width="32" height="32">
+   <properties>
+    <property name="action" value="trigger"/>
+    <property name="script" value="trigger_exitMap"/>
+   </properties>
+  </object>
+  <object id="2" name="start" x="1504" y="608" width="32" height="32">
+   <properties>
+    <property name="action" value="start"/>
+   </properties>
+  </object>
+  <object id="24" name="reward" x="704" y="1056" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="26" name="reward" x="512" y="896" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="27" name="reward" x="704" y="704" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="28" name="reward" x="2208" y="800" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="29" name="reward" x="2048" y="1152" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="30" name="reward" x="2176" y="1408" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="31" name="reward" x="2400" y="1632" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="32" name="reward" x="2624" y="1408" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="33" name="reward" x="1920" y="1504" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="34" name="reward" x="1568" y="1696" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="35" name="reward" x="2080" y="2208" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="36" name="reward" x="2432" y="1952" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="37" name="reward" x="1696" y="2176" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="38" name="reward" x="2112" y="2560" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="39" name="reward" x="1856" y="2720" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="40" name="reward" x="1568" y="2720" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="41" name="reward" x="1312" y="2560" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="42" name="reward" x="1312" y="2304" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="43" name="reward" x="1120" y="2208" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="44" name="reward" x="800" y="2144" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="45" name="reward" x="608" y="1824" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="46" name="reward" x="1024" y="1824" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonReward"/>
+   </properties>
+  </object>
+  <object id="47" name="encounter" x="1504" y="768" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="48" name="encounter" x="1728" y="768" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="49" name="encounter" x="1728" y="992" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="50" name="encounter" x="1728" y="1248" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="51" name="encounter" x="1920" y="1248" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="52" name="encounter" x="2048" y="992" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="53" name="encounter" x="2208" y="992" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="54" name="encounter" x="2400" y="992" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="55" name="encounter" x="2400" y="1120" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="56" name="encounter" x="2400" y="1280" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="57" name="encounter" x="2400" y="1408" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="58" name="encounter" x="2400" y="1568" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="59" name="encounter" x="2560" y="1408" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="60" name="encounter" x="2240" y="1408" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="61" name="encounter" x="1280" y="768" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="62" name="encounter" x="1280" y="960" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="63" name="encounter" x="1440" y="960" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="64" name="encounter" x="1536" y="1216" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="65" name="encounter" x="1440" y="1216" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="66" name="encounter" x="1536" y="1440" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="67" name="encounter" x="1312" y="1440" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="68" name="encounter" x="1728" y="1440" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="69" name="encounter" x="1728" y="1696" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="70" name="encounter" x="1632" y="1696" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="71" name="encounter" x="1856" y="1696" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="72" name="encounter" x="2080" y="1696" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="73" name="encounter" x="2080" y="1952" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="74" name="encounter" x="2080" y="2144" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="75" name="encounter" x="2368" y="1952" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="76" name="encounter" x="1760" y="2176" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="77" name="encounter" x="1856" y="2176" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="78" name="encounter" x="1856" y="2560" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="79" name="encounter" x="2048" y="2560" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="80" name="encounter" x="1856" y="2656" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="81" name="encounter" x="1568" y="2560" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="82" name="encounter" x="1376" y="2560" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="83" name="encounter" x="1568" y="2656" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="84" name="encounter" x="1568" y="1952" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="85" name="encounter" x="1312" y="1952" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="86" name="encounter" x="1568" y="2112" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="87" name="encounter" x="1568" y="2336" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="88" name="encounter" x="1312" y="2080" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="89" name="encounter" x="1312" y="2240" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="90" name="encounter" x="1120" y="1952" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="91" name="encounter" x="1120" y="2144" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="92" name="encounter" x="1312" y="1728" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="93" name="encounter" x="1312" y="1568" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="94" name="encounter" x="1280" y="1056" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="95" name="encounter" x="1120" y="1056" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="96" name="encounter" x="1120" y="896" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="97" name="encounter" x="992" y="896" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="98" name="encounter" x="864" y="896" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="99" name="encounter" x="704" y="896" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="100" name="encounter" x="576" y="896" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="101" name="encounter" x="704" y="992" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="102" name="encounter" x="704" y="768" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="103" name="encounter" x="1120" y="1280" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="104" name="encounter" x="960" y="1280" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="105" name="encounter" x="1120" y="1408" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="106" name="encounter" x="1120" y="1600" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="107" name="encounter" x="992" y="1600" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="108" name="encounter" x="800" y="1600" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="109" name="encounter" x="800" y="1728" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="110" name="encounter" x="800" y="1824" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="111" name="encounter" x="672" y="1824" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="112" name="encounter" x="960" y="1824" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="113" name="encounter" x="800" y="1952" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+  <object id="114" name="encounter" x="800" y="2048" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="dungeonEncounter"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>

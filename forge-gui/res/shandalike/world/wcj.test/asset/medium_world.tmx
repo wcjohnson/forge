@@ -1,0 +1,1409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="500" tilewidth="32" tileheight="32" nextobjectid="143">
+ <properties>
+  <property name="onFirstEnter" value="spawnPlayerInRandomTown"/>
+ </properties>
+ <tileset firstgid="1" name="mtgterrain" tilewidth="32" tileheight="32" tilecount="1024" columns="32">
+  <image source="mtgterrain.png" width="1024" height="1024"/>
+  <terraintypes>
+   <terrain name="desert" tile="-1"/>
+   <terrain name="mountain" tile="-1"/>
+   <terrain name="swamp" tile="-1"/>
+   <terrain name="forest" tile="-1"/>
+   <terrain name="plains" tile="-1"/>
+   <terrain name="island" tile="-1"/>
+   <terrain name="water" tile="-1"/>
+  </terraintypes>
+  <tile id="0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="1" terrain="0,0,0,">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="2" terrain="0,0,,0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="6">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="7" terrain="1,1,1,">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="8" terrain="1,1,,1">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="12">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="13" terrain="2,2,2,">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="14" terrain="2,2,,2">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="28" terrain="6,6,6,"/>
+  <tile id="29" terrain="6,6,,6"/>
+  <tile id="32">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="33" terrain="0,,0,0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="34" terrain=",0,0,0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="38">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="39" terrain="1,,1,1">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="40" terrain=",1,1,1">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="44">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="45" terrain="2,,2,2">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="46" terrain=",2,2,2">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="60" terrain="6,,6,6"/>
+  <tile id="61" terrain=",6,6,6"/>
+  <tile id="64" terrain=",,,0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="65" terrain=",,0,0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="66" terrain=",,0,">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="70" terrain=",,,1">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="71" terrain=",,1,1">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="72" terrain=",,1,">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="76" terrain=",,,2">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="77" terrain=",,2,2">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="78" terrain=",,2,">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="91" terrain=",,,6"/>
+  <tile id="92" terrain=",,6,6"/>
+  <tile id="93" terrain=",,6,"/>
+  <tile id="96" terrain=",0,,0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="97" terrain="0,0,0,0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="98" terrain="0,,0,">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="102" terrain=",1,,1">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="103" terrain="1,1,1,1">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="104" terrain="1,,1,">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="108" terrain=",2,,2">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="109" terrain="2,2,2,2">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="110" terrain="2,,2,">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="123" terrain=",6,,6"/>
+  <tile id="124" terrain="6,6,6,6"/>
+  <tile id="125" terrain="6,,6,"/>
+  <tile id="128" terrain=",0,,">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="129" terrain="0,0,,">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="130" terrain="0,,,">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="134" terrain=",1,,">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="135" terrain="1,1,,">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="136" terrain="1,,,">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="140" terrain=",2,,">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="141" terrain="2,2,,">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="142" terrain="2,,,">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="155" terrain=",6,,"/>
+  <tile id="156" terrain="6,6,,"/>
+  <tile id="157" terrain="6,,,"/>
+  <tile id="160" terrain="0,0,0,0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="161" terrain="0,0,0,0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="162" terrain="0,0,0,0">
+   <properties>
+    <property name="terrainColor" value="colorless"/>
+   </properties>
+  </tile>
+  <tile id="166" terrain="1,1,1,1">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="167" terrain="1,1,1,1">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="168" terrain="1,1,1,1">
+   <properties>
+    <property name="terrainColor" value="red"/>
+   </properties>
+  </tile>
+  <tile id="172" terrain="2,2,2,2">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="173" terrain="2,2,2,2">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="174" terrain="2,2,2,2">
+   <properties>
+    <property name="terrainColor" value="black"/>
+   </properties>
+  </tile>
+  <tile id="187" terrain="6,6,6,6"/>
+  <tile id="188" terrain="6,6,6,6"/>
+  <tile id="189" terrain="6,6,6,6"/>
+  <tile id="192">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="193" terrain="3,3,3,">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="194" terrain="3,3,,3">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="216">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="217" terrain="4,4,4,">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="218" terrain="4,4,,4">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="219">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="220" terrain="5,5,5,">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="221" terrain="5,5,,5">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="224">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="225" terrain="3,,3,3">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="226" terrain=",3,3,3">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="248">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="249" terrain="4,,4,4">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="250" terrain=",4,4,4">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="251">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="252" terrain="5,,5,5">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="253" terrain=",5,5,5">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="256" terrain=",,,3">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="257" terrain=",,3,3">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="258" terrain=",,3,">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="280" terrain=",,,4">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="281" terrain=",,4,4">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="282" terrain=",,4,">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="283" terrain=",,,5">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="284" terrain=",,5,5">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="285" terrain=",,5,">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="288" terrain=",3,,3">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="289" terrain="3,3,3,3">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="290" terrain="3,,3,">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="312" terrain=",4,,4">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="313" terrain="4,4,4,4">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="314" terrain="4,,4,">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="315" terrain=",5,,5">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="316" terrain="5,5,5,5">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="317" terrain="5,,5,">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="320" terrain=",3,,">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="321" terrain="3,3,,">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="322" terrain="3,,,">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="344" terrain=",4,,">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="345" terrain="4,4,,">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="346" terrain="4,,,">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="347" terrain=",5,,">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="348" terrain="5,5,,">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="349" terrain="5,,,">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="352" terrain="3,3,3,3">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="353" terrain="3,3,3,3">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="354" terrain="3,3,3,3">
+   <properties>
+    <property name="terrainColor" value="green"/>
+   </properties>
+  </tile>
+  <tile id="376" terrain="4,4,4,4">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="377" terrain="4,4,4,4">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="378" terrain="4,4,4,4">
+   <properties>
+    <property name="terrainColor" value="white"/>
+   </properties>
+  </tile>
+  <tile id="379" terrain="5,5,5,5">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="380" terrain="5,5,5,5">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+  <tile id="381" terrain="5,5,5,5">
+   <properties>
+    <property name="terrainColor" value="blue"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="collision" width="500" height="500">
+  <data encoding="base64" compression="zlib">
+   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
+  </data>
+ </layer>
+ <layer name="water" width="500" height="500">
+  <data encoding="base64" compression="zlib">
+   eJzt2WtuHNm1hFHPf0ySxnZ90TBgd+tRPFFkRGauBRiIHwY2lUXlJ7K//etf//r+7//9+Pf/vtm2bdu2fcndvm/btm3bdr7b923btm3bznf7vm3btm3b+W7ft23btm073+37tm3btm3nu33ftm3btu18t+/btm3btp3v9n3btm3btvPdvm/btm3bdr7b923btm3bznf7vm3btm3b+W7ft23btm073+37tm3btm3nu33ftm3btu18t+/btm3btp3v9n3btm3btvPdvm/btm3bdr7b923btm3bznf7vm3btm3b+W7ft23btm073+37tm3btm3nu33ftm3btu18t+/btm3btp3v9n3btm3btvPdvm/btm3bdr7b923btm3bznf7vm3btm3b+W7ft23btm073+37tm3btm3nu33ftl/dv9P+2mzbttu7fd/e3VfVfm532B+x8jXb9tN3+769se9q4dleYb/Dyp/Ftp+62/ftr91PtfL8F/ZnWvkz2vYTd/u+/efN+6x8pk/4/ln4s9v2k3b7vv3rzef5in6+8v//u6s3/Gfaf49s+ym7fd/+8zuez/Huz+5dFr6Gz9T++2Xbd93t+/b13sd3tvRvrrt/z7T/rtn23Xb7vv11fYAru8rfzYX3if3M3b5v6zl8xGf/fbzK1/mRd0j7/Wbr+RM2cO4K/45e+nfHynvP1vO7beB5vrrhJ9rvRlvPr7IB7qD9LrX1vLUBnmDhffvE3b5/9w3wdO338FN2+/4dNwD/a+X9fOfdvn+XDcCvrbyr77zb96++AXjNynv7rrt9/4obgI9beYffdbfvX20DcK79Dr/zbt+/0gYgt/A+v+Nu37/KBuB9Vt7td9rt+1fYALxf+91+t92+v74B+DwL7/m77Pb95Q3A11h45199t++vbgC+1sr7/6q7fX91A/D1Ft7/V93t+4sbgI72+//Ku31/cQPQ0X7/X3m3769tALoWWnDF3b6/tAHYsNKFK+32/aUNwI6FLlxpt+8vbQC2tLtwpd2+v7IB2LTQiCvs9v2VDcC2lV6s7vb9lQ3AvoVerO72/YUNwHWstGNtt+8vbACuZaEda7t9f2EDcD3tdqzt9v32BuDa2h1Z2e37zQ3A9a00pb3b9/UcgNRCU9q7fb+1AbiPdlMWdvt+YwNwPwt90XO/Ywcg0+5Le7fv+x07AO+y0Bo99zM5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bPmKleep7cCalXejnuvP76w8w99tgKb2O1DPNedX2s/qyb8HAa5l5R2o55rz39rP52n/bgKubeW9p+d6/v/az+Qpzxm4l4V33cJu39eZvyw8k8/aAJ+l/X5b2u37T+95+zl81Qb4mZV31B12+/6Te77wHJ72zIGuhXfRXXf7/lPbsvIcvnrDgiu9K+5i4f1z992+/7SeL/zZ2xtafA9/vYV3zlN2+35zf5WVP+/ahq/i36dfb+U986Tdvn/Xnqz8GZc3fDbfzx3td8tTd/v+wn6n9p/lahs+g+/nnpV3yxN3+/7KTrW//itveJeF7+d3vE+uauX5P3W37y/tj1r4mu+yIbHwPfz0f6uuPPMn7/b9xf077a/t7hs+auH79onf2+3naeu5vb/5mKc+z4Xv1St1fuXPa+u5/bzNryXP9sra35O2vbzb9237dzv16q11i8/2My1879n21Xb7vm2/sj9i5Wv+z04sfP22bV9jt+/b9tP2n6x8nbZtX2u379u2bdu2ne/2fdu2bdu2892+b9u2bdt2vtv3bdu2bdvOd/u+bdu2bdv5bt+3bdu2bTvf7fu2bdu2bee7fd+2bdu27Xy379u2bdu2ne/2fdu2bdu2892+b9u2bdt2vtv3bdu2bdvOd/u+bdu2bdv5bt+3bdu2bTvf7fu2bdu2bee7fd+2bdu27Xy379u2bdu2ne/2fdu2bdu2892+b9u2bdt2vtv3bdu2bdvOd/u+bdu2bdv5bt+3bdu2bTvf7fu2bdu2bee7fd+2bdu27Xy379u2bdu2ne/2fdu2bdu2892+b9u2bdt2vtv3bdu2bdvOd/u+bdu2bdv5bt+3bdu2bTvf7fu2bdu2bee7fd+2bdu27Xy379u2bdu2ne/2fdu2bdu2892+b9u2bdt2vtv3bdu2bdvOd/u+bdu2bdv5/j/CxiXY
+  </data>
+ </layer>
+ <layer name="terrain_1" width="500" height="500">
+  <data encoding="base64" compression="zlib">
+   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
+  </data>
+ </layer>
+ <layer name="terrain_2" width="500" height="500">
+  <data encoding="base64" compression="zlib">
+   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
+  </data>
+ </layer>
+ <layer name="terrain_3" width="500" height="500">
+  <data encoding="base64" compression="zlib">
+   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
+  </data>
+ </layer>
+ <objectgroup name="meta_obj">
+  <object id="1" name="RandomTown" x="7616" y="7840" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="2" name="badguy" x="7552" y="7968" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="entity">{
+  &quot;type&quot;: &quot;MobilePawn&quot;,
+  &quot;chasePlayer&quot;: false,
+  &quot;behaviors&quot;: [
+    { 
+      &quot;script&quot;: &quot;encounter&quot;,
+      &quot;var&quot;: {
+        &quot;duelFile&quot;: &quot;Druid 1.dck&quot;
+      }
+    }
+  ],
+  &quot;spriteAsset&quot;: &quot;reaper.sprite.json&quot;
+}</property>
+   </properties>
+  </object>
+  <object id="3" name="dungeon" x="7680" y="7936" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="entity"> {
+  &quot;type&quot;: &quot;PointOfInterest&quot;,
+  &quot;label&quot;: &quot;Dungeon&quot;,
+  &quot;showOnMinimap&quot;: false,
+  &quot;labelOnMinimap&quot;: false,
+  &quot;labelOnMap&quot;: true,
+  &quot;collisionEffect&quot;: {
+    &quot;effect&quot;: &quot;enterMap&quot;,
+    &quot;mapId&quot;: &quot;dungeon&quot;,
+    &quot;mapInfoId&quot;: &quot;dungeon&quot;
+  },
+  &quot;spriteAsset&quot;: &quot;cave.sprite.json&quot;
+}</property>
+   </properties>
+  </object>
+  <object id="4" name="RandomTown" x="8384" y="8288" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="5" name="RandomTown" x="6976" y="7488" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="6" name="RandomTown" x="6880" y="8608" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="8" name="RandomTown" x="9216" y="9024" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="9" name="RandomTown" x="7648" y="9280" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="10" name="RandomTown" x="6080" y="9472" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="11" name="RandomTown" x="6432" y="7936" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="12" name="RandomTown" x="5856" y="7232" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="14" name="RandomTown" x="7616" y="6880" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="15" name="RandomTown" x="8000" y="5824" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="16" name="RandomTown" x="8640" y="6816" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="17" name="RandomTown" x="9248" y="7584" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="18" name="RandomTown" x="9888" y="8288" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="20" name="RandomTown" x="9408" y="5792" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="21" name="RandomTown" x="10208" y="9152" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="22" name="RandomTown" x="8512" y="9792" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="24" name="RandomTown" x="5408" y="8416" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="25" name="RandomTown" x="5024" y="7680" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="26" name="RandomTown" x="5568" y="6304" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="27" name="RandomTown" x="6912" y="6368" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="28" name="RandomTown" x="6400" y="5568" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="29" name="RandomTown" x="5920" y="5216" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="30" name="RandomTown" x="6688" y="4928" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="31" name="RandomTown" x="7232" y="4512" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="32" name="RandomTown" x="7456" y="5120" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="34" name="RandomTown" x="8704" y="4480" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="35" name="RandomTown" x="8800" y="5088" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="37" name="RandomTown" x="10464" y="4544" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="38" name="RandomTown" x="10464" y="5120" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="40" name="RandomTown" x="12064" y="4928" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="41" name="RandomTown" x="11488" y="5664" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="42" name="RandomTown" x="12512" y="5728" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="43" name="RandomTown" x="11680" y="6752" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="44" name="RandomTown" x="13920" y="5632" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="45" name="RandomTown" x="12992" y="6464" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="46" name="RandomTown" x="14016" y="6880" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="47" name="RandomTown" x="13024" y="7488" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="48" name="RandomTown" x="11872" y="7808" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="49" name="RandomTown" x="13856" y="8576" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="51" name="RandomTown" x="11552" y="9312" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="52" name="RandomTown" x="13632" y="9696" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="53" name="RandomTown" x="12480" y="9984" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="54" name="RandomTown" x="11712" y="10784" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="55" name="RandomTown" x="10432" y="10560" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="57" name="RandomTown" x="9504" y="10144" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="58" name="RandomTown" x="8704" y="10816" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="59" name="RandomTown" x="7776" y="10464" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="60" name="RandomTown" x="10624" y="7296" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="61" name="RandomTown" x="11008" y="8384" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="62" name="RandomTown" x="10176" y="6336" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="63" name="RandomTown" x="5120" y="1472" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="64" name="RandomTown" x="6016" y="1568" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="65" name="RandomTown" x="7264" y="1792" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="66" name="RandomTown" x="8480" y="1792" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="67" name="RandomTown" x="9696" y="1856" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="68" name="RandomTown" x="10816" y="1888" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="69" name="RandomTown" x="11936" y="2016" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="70" name="RandomTown" x="12800" y="2208" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="71" name="RandomTown" x="13376" y="2848" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="72" name="RandomTown" x="13248" y="3712" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="73" name="RandomTown" x="12448" y="3904" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="74" name="RandomTown" x="11168" y="3808" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="75" name="RandomTown" x="10496" y="3808" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="76" name="RandomTown" x="9248" y="3712" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="77" name="RandomTown" x="8320" y="3776" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="78" name="RandomTown" x="7264" y="3776" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="79" name="RandomTown" x="6336" y="3744" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="80" name="RandomTown" x="5696" y="3104" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="81" name="RandomTown" x="5280" y="2176" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="82" name="RandomTown" x="6688" y="2528" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="83" name="RandomTown" x="8192" y="2592" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="84" name="RandomTown" x="9184" y="2624" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="85" name="RandomTown" x="10560" y="2720" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="86" name="RandomTown" x="11584" y="2880" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="87" name="RandomTown" x="12480" y="2944" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="88" name="RandomTown" x="4160" y="12064" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="89" name="RandomTown" x="4896" y="11840" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="90" name="RandomTown" x="6048" y="11616" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="91" name="RandomTown" x="7296" y="11520" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="92" name="RandomTown" x="8960" y="11712" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="93" name="RandomTown" x="10176" y="11744" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="94" name="RandomTown" x="11328" y="11648" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="95" name="RandomTown" x="12352" y="11616" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="96" name="RandomTown" x="13600" y="11520" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="97" name="RandomTown" x="13920" y="12160" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="98" name="RandomTown" x="13920" y="13120" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="99" name="RandomTown" x="13216" y="13792" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="100" name="RandomTown" x="12256" y="14080" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="101" name="RandomTown" x="11072" y="14080" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="102" name="RandomTown" x="9664" y="14016" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="103" name="RandomTown" x="8960" y="14240" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="104" name="RandomTown" x="7424" y="14240" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="105" name="RandomTown" x="6240" y="14144" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="106" name="RandomTown" x="5056" y="13792" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="107" name="RandomTown" x="4288" y="13120" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="108" name="RandomTown" x="6016" y="12864" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="109" name="RandomTown" x="7840" y="12832" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="110" name="RandomTown" x="9184" y="12832" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="111" name="RandomTown" x="10528" y="12800" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="112" name="RandomTown" x="12032" y="12800" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="113" name="RandomTown" x="3680" y="1728" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="114" name="RandomTown" x="2656" y="2368" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="115" name="RandomTown" x="3872" y="2432" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="116" name="RandomTown" x="1984" y="3232" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="117" name="RandomTown" x="2976" y="3328" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="118" name="RandomTown" x="4224" y="3392" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="119" name="RandomTown" x="1984" y="4384" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="120" name="RandomTown" x="3456" y="4896" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="121" name="RandomTown" x="4640" y="5120" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="122" name="RandomTown" x="3680" y="6528" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="123" name="RandomTown" x="2016" y="6432" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="124" name="RandomTown" x="2976" y="5728" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="125" name="RandomTown" x="1984" y="7456" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="126" name="RandomTown" x="3584" y="7616" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="127" name="RandomTown" x="2048" y="8480" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="128" name="RandomTown" x="3520" y="8896" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="129" name="RandomTown" x="1952" y="9632" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="130" name="RandomTown" x="3232" y="10080" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="131" name="RandomTown" x="4736" y="10656" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="132" name="RandomTown" x="3136" y="11264" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="133" name="RandomTown" x="2144" y="10944" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="134" name="RandomTown" x="2240" y="12288" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="135" name="RandomTown" x="2400" y="13472" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="136" name="RandomTown" x="6048" y="10560" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="137" name="RandomTown" x="4352" y="9696" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomTown"/>
+   </properties>
+  </object>
+  <object id="140" name="trash_spawner" x="7616" y="8096" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="entity">{
+  &quot;type&quot;: &quot;Timer&quot;,
+  &quot;period&quot;: 10.0,
+  &quot;script&quot;: &quot;spawnTrash&quot;
+}</property>
+   </properties>
+  </object>
+  <object id="141" name="dungeon_spawner" x="7616" y="8224" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="script" value="spawnRandomDungeons"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>

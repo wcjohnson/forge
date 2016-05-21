@@ -1,0 +1,116 @@
+{
+	"name":"Test World",
+	"formatSpec": {
+		"sets": ["2ED", "ATQ", "ARN", "LEG", "DRK", "4ED"],
+		"bans": [
+			"Chaos Orb", "Falling Star"
+		],
+		"rarityValues": {
+			"Mythic Rare": 960,
+			"Rare": 120,
+			"Uncommon": 40,
+			"Common": 13
+		},
+		"cardValues": {
+			"Black Lotus": 50000,
+			"Mox Sapphire": 40000,
+			"Mox Emerald": 20000,
+			"Mox Jet": 30000,
+			"Mox Pearl": 30000,
+			"Mox Ruby": 15000,
+			"Ancestral Recall": 40000,
+			"Time Walk": 25000,
+			"Timetwister": 20000,
+			"Contract from Below": 50000,
+			"Strip Mine": 1200,
+			"Fastbond": 5000,
+			"Black Vise": 1000,
+			"The Rack": 1000,
+			"Mana Drain": 5000,
+			"Swords to Plowshares": 1000,
+			"Balance": 10000,
+			"Channel": 8000,
+			"Demonic Tutor": 10000,
+			"Library of Alexandria": 20000,
+			"Mishra's Workshop": 5000,
+			"Time Vault": 15000,
+			"Sol Ring": 30000,
+			"Wheel of Fortune": 12000,
+			"Serra Angel": 1000,
+			"Hypnotic Specter": 900,
+			"Shivan Dragon": 1000,
+			"Braingeyser": 4500,
+			"Regrowth": 8000,
+			"Howling Mine": 800,
+			"Underground Sea": 1000,
+			"Tropical Island": 1000,
+			"Tundra": 1000,
+			"Volcanic Island": 1000,
+			"Bayou": 1000,
+			"Scrubland": 1000,
+			"Badlands": 1000,
+			"Savannah": 1000,
+			"Plateau": 1000,
+			"Taiga": 1000,
+			"Land Tax": 2000,
+			"Mishra's Factory": 500,
+			"Mind Twist": 10000
+		}
+	},
+	"rewardOnly": [
+		"Black Lotus", "Mox Sapphire", "Mox Emerald", "Mox Jet", "Mox Pearl", "Mox Ruby",
+		"Ancestral Recall", "Time Walk", "Timetwister", "Contract from Below", "Fastbond",
+		"Mana Drain", "Balance", "Channel", "Demonic Tutor", "Library of Alexandria",
+		"Time Vault", "Sol Ring", "Wheel of Fortune", "Braingeyser"
+	],
+	"difficulties": [
+		{
+			"startingCurrency": { "gold": 400, "food": 25 },
+			"startingAmulets": 3,
+			"buyRatio": 1.0, "sellRatio": 0.5,
+			"startingPool": {
+				"mythic": 0, "rare": 10, "uncommon": 20, "common": 60, "basic": 25,
+				"valueCap": 480,
+				"mix": {
+					"onColorMonocolored": 4, "onColor": 2, "offColor": 1, "colorless": 2
+				}
+			}
+		},
+		{
+			"startingCurrency": { "gold": 300, "food": 20 },
+			"startingAmulets": 2,
+			"buyRatio": 1.0, "sellRatio": 0.33,
+			"startingPool": {
+				"mythic": 0, "rare": 10, "uncommon": 20, "common": 60, "basic": 25,
+				"valueCap": 360,
+				"mix": {
+					"onColorMonocolored": 4, "onColor": 1, "offColor": 1, "colorless": 2
+				}
+			}
+		},
+		{
+			"startingCurrency": { "gold": 200, "food": 15 },
+			"startingAmulets": 1,
+			"buyRatio": 1.1, "sellRatio": 0.25,
+			"startingPool": {
+				"mythic": 0, "rare": 10, "uncommon": 20, "common": 60, "basic": 25,
+				"valueCap": 240,
+				"mix": {
+					"onColorMonocolored": 3, "onColor": 1, "offColor": 2, "colorless": 1
+				}
+			}
+		},
+		{
+			"startingCurrency": { "gold": 100, "food": 10 },
+			"startingAmulets": 0,
+			"buyRatio": 1.25, "sellRatio": 0.15,
+			"startingPool": {
+				"mythic": 0, "rare": 10, "uncommon": 20, "common": 60, "basic": 25,
+				"valueCap": 120,
+				"mix": {
+					"onColorMonocolored": 2, "onColor": 1, "offColor": 3, "colorless": 1
+				}
+			}
+		}
+	]
+}
