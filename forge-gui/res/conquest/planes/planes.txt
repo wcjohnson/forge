@@ -1,0 +1,16 @@
+Name:Alara|RegionSize:9|Desc:
+Name:Dominaria|RegionSize:9|Unreachable:True|Desc:
+Name:Innistrad|RegionSize:6|Unreachable:True|Desc:
+Name:Kaladesh|RegionSize:6|Unreachable:True|Desc:
+Name:Kamigawa|RegionSize:6|Unreachable:True|Desc:
+Name:Lorwyn-Shadowmoor|RegionSize:6|Unreachable:True|Desc:
+Name:Mercadia|RegionSize:6|Unreachable:True|Desc:
+Name:Mirrodin|RegionSize:9|Unreachable:True|Desc:
+Name:Rath|RegionSize:6|Unreachable:True|Desc:
+Name:Ravnica|RegionSize:9|Desc:
+Name:Regatha|RegionSize:6|Unreachable:True|Desc:
+Name:Shandalar|RegionSize:9|Unreachable:True|Desc:
+Name:Tarkir|RegionSize:9|Desc:
+Name:Theros|RegionSize:9|Desc:
+Name:Ulgrotha|RegionSize:6|Unreachable:True|Desc:
+Name:Zendikar|RegionSize:9|Desc:
