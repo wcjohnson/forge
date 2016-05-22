@@ -28,6 +28,7 @@ import forge.deck.DeckBase;
 import forge.gui.framework.DragCell;
 import forge.gui.framework.FScreen;
 import forge.item.InventoryItem;
+import forge.item.PaperCard;
 import forge.itemmanager.ColumnDef;
 import forge.itemmanager.ItemManagerConfig;
 import forge.itemmanager.SpellShopManager;
@@ -94,7 +95,25 @@ public final class CEditorShandalikeCardShop extends ACEditorBase<InventoryItem,
             return model.getQtyOwned(from.getKey());
         }
     };
+    // Deck quantity comparison
+    private Map<PaperCard, Integer> decksUsingMyCards;
+    private final Function<Entry<InventoryItem, Integer>, Comparable<?>> fnDeckCompare = new Function<Entry<InventoryItem, Integer>, Comparable<?>>() {
+        @Override
+        public Comparable<?> apply(final Entry<InventoryItem, Integer> from) {
+            final Integer iValue = decksUsingMyCards.get(from.getKey());
+            return iValue == null ? Integer.valueOf(0) : iValue;
+        }
+    };
+
+    private final Function<Entry<? extends InventoryItem, Integer>, Object> fnDeckGet = new Function<Entry<? extends InventoryItem, Integer>, Object>() {
+        @Override
+        public Object apply(final Entry<? extends InventoryItem, Integer> from) {
+            final Integer iValue = decksUsingMyCards.get(from.getKey());
+            return iValue == null ? "" : iValue.toString();
+        }
+    };
 	
+    ///////////////////////////////////////// UI elts
     private final FLabel creditsLabel = new FLabel.Builder()
             .icon(FSkin.getIcon(FSkinProp.ICO_QUEST_COINSTACK))
             .fontSize(15).build();
@@ -234,6 +253,8 @@ public final class CEditorShandalikeCardShop extends ACEditorBase<InventoryItem,
      */
     @Override
     public void update() {
+    	decksUsingMyCards = Model.getPlayer().getInventory().countDecksForEachCard();
+    	
         final Map<ColumnDef, ItemTableColumn> colOverridesCatalog = new HashMap<ColumnDef, ItemTableColumn>();
         final Map<ColumnDef, ItemTableColumn> colOverridesDeck = new HashMap<ColumnDef, ItemTableColumn>();
 
@@ -242,7 +263,7 @@ public final class CEditorShandalikeCardShop extends ACEditorBase<InventoryItem,
         ItemTableColumn.addColOverride(ItemManagerConfig.SPELL_SHOP, colOverridesCatalog, ColumnDef.OWNED, fnOwnedCompare, fnOwnedGet);
         ItemTableColumn.addColOverride(ItemManagerConfig.QUEST_INVENTORY, colOverridesDeck, ColumnDef.PRICE, fnPriceCompare, fnPriceSellGet);
         ItemTableColumn.addColOverride(ItemManagerConfig.QUEST_INVENTORY, colOverridesDeck, ColumnDef.NEW, Model.adventure.getPlayer().getInventory().fnNewCompare, Model.adventure.getPlayer().getInventory().fnNewGet);
-        ItemTableColumn.addColOverride(ItemManagerConfig.QUEST_INVENTORY, colOverridesDeck, ColumnDef.DECKS, fnOwnedCompare, fnOwnedGet);
+        ItemTableColumn.addColOverride(ItemManagerConfig.QUEST_INVENTORY, colOverridesDeck, ColumnDef.DECKS, fnDeckCompare, fnDeckGet);
 
         // Setup with current column set
         this.getCatalogManager().setup(ItemManagerConfig.SPELL_SHOP, colOverridesCatalog);

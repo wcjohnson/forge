@@ -164,6 +164,21 @@ public class Inventory {
 		return decks.get(activeDeckName);
 	}
 	
+	/**
+	 * @return Map describing the number of Shandalike decks each card appears in.
+	 */
+    public Map<PaperCard, Integer> countDecksForEachCard() {
+        final Map<PaperCard, Integer> result = new HashMap<PaperCard, Integer>();
+        for (final Deck deck : this.decks.values()) {
+            for (final Entry<PaperCard, Integer> e : deck.getMain()) {
+                final PaperCard card = e.getKey();
+                final Integer amount = result.get(card);
+                result.put(card, Integer.valueOf(amount == null ? 1 : 1 + amount.intValue()));
+            }
+        }
+        return result;
+    }
+	
 	//////////////////////
 	// IStorage implementation to interface with Forge's deck editing
 	public class DeckStorage extends StorageBase<Deck> {

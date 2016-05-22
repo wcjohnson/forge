@@ -134,19 +134,6 @@ public final class CEditorShandalike extends ACEditorBase<PaperCard, Deck> {
         });
     }
 
-    // fills number of decks using each card
-    private Map<PaperCard, Integer> countDecksForEachCard() {
-        final Map<PaperCard, Integer> result = new HashMap<PaperCard, Integer>();
-        for (final Deck deck : inventory.decks.values()) {
-            for (final Entry<PaperCard, Integer> e : deck.getMain()) {
-                final PaperCard card = e.getKey();
-                final Integer amount = result.get(card);
-                result.put(card, Integer.valueOf(amount == null ? 1 : 1 + amount.intValue()));
-            }
-        }
-        return result;
-    }
-
     //=========== Overridden from ACEditorBase
 
     @Override
@@ -247,7 +234,7 @@ public final class CEditorShandalike extends ACEditorBase<PaperCard, Deck> {
     @SuppressWarnings("serial")
     @Override
     public void update() {
-        this.decksUsingMyCards = this.countDecksForEachCard();
+        this.decksUsingMyCards = this.inventory.countDecksForEachCard(); 
 
         final Map<ColumnDef, ItemTableColumn> colOverridesCatalog = new HashMap<ColumnDef, ItemTableColumn>();
         final Map<ColumnDef, ItemTableColumn> colOverridesDeck = new HashMap<ColumnDef, ItemTableColumn>();
