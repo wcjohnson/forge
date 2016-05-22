@@ -160,7 +160,8 @@ public class MenuPanel extends JPanel implements HierarchyListener, UIModel.Chan
 	   if(e.getChangeFlags() == HierarchyEvent.DISPLAYABILITY_CHANGED) {       
 	        //do the required action upon close
 	       if(!this.isDisplayable()) {
-	    	   if(model != null) model.unlisten(this);
+	    	   System.out.println("[Shandalike] MenuPanel removed from hierarchy");
+	    	   this.setModel(null);
 	       }
 	   }	
 	}

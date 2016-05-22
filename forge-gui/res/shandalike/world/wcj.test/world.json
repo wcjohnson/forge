@@ -55,7 +55,9 @@
 			"Land Tax": 2000,
 			"Mishra's Factory": 500,
 			"Mind Twist": 10000,
-			"Control Magic": 500
+			"Control Magic": 500,
+			"Llanowar Elves": 30,
+			"Birds of Paradise": 300
 		}
 	},
 	"rewardOnly": [
@@ -66,7 +68,7 @@
 	],
 	"difficulties": [
 		{
-			"startingCurrency": { "gold": 400, "food": 25 },
+			"startingCurrency": { "gold": 400, "food": 24 },
 			"startingAmulets": 3,
 			"buyRatio": 1.0, "sellRatio": 0.5,
 			"startingPool": {
@@ -78,7 +80,7 @@
 			}
 		},
 		{
-			"startingCurrency": { "gold": 300, "food": 20 },
+			"startingCurrency": { "gold": 300, "food": 24 },
 			"startingAmulets": 2,
 			"buyRatio": 1.0, "sellRatio": 0.33,
 			"startingPool": {
@@ -90,7 +92,7 @@
 			}
 		},
 		{
-			"startingCurrency": { "gold": 200, "food": 15 },
+			"startingCurrency": { "gold": 200, "food": 24 },
 			"startingAmulets": 1,
 			"buyRatio": 1.1, "sellRatio": 0.25,
 			"startingPool": {
@@ -102,7 +104,7 @@
 			}
 		},
 		{
-			"startingCurrency": { "gold": 100, "food": 10 },
+			"startingCurrency": { "gold": 100, "food": 24 },
 			"startingAmulets": 0,
 			"buyRatio": 1.25, "sellRatio": 0.15,
 			"startingPool": {

@@ -28,7 +28,7 @@ void doRewardCards(Entity playerPawn, rewardCards, boolean showUI) {
 	}
 	// Show the user some UI indicating that he got the card.
 	if(showUI) {
-		ui = new UIModel()
+		def ui = new UIModel()
 		ui.addPanel("Reward!", "If you survive the dungeon, you will get:", this)
 		ui.addCards("These Cards:", "", resolvedCards)
 		ui.addButton("Return", this, "clickedReturn", null, null)

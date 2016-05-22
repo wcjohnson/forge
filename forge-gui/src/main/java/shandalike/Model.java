@@ -62,6 +62,7 @@ public final class Model {
 		if(adventure == null) return;
 		// Autoload most recent save.
 		adventure.load(adventure.summary.mostRecentSaveSlot);
+		adventures.put(adventure.getName(), adventure);
 		// Save adventure pref.
 		prefs.setPref(Pref.CURRENT_WORLD, aw.getName());
 		prefs.save();
@@ -112,9 +113,6 @@ public final class Model {
 
 	public static void closeAdventure() {
 		if(adventure == null) return;
-		// Autosave
-		adventure.save(0);
-		adventures.put(adventure.getName(), adventure);
 		Model.activeDuel = null;
 		setActiveAdventure(null);
 	}

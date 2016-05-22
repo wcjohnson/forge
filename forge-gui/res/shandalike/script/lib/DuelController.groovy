@@ -50,7 +50,7 @@ class DuelController {
 	}
 
 	def buildBasicsMenu() {
-		duel.menu.addPanel("You are dueling ${duel.getOpponentName()}", "You will begin with ${duel.playerStart.getFinalLife()} life. ${duel.getOpponentName()} will begin with ${duel.aiStart.getFinalLife()} life.", this)
+		duel.menu.addPanel("You are dueling ${duel.getOpponentName()}", "", this)
 	}
 
 	def buildBribeMenu() {
