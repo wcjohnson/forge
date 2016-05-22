@@ -18,6 +18,7 @@ import forge.item.InventoryItem;
 import forge.item.PaperCard;
 import forge.util.storage.IStorage;
 import forge.util.storage.StorageBase;
+import shandalike.Model;
 import shandalike.data.World;
 import shandalike.mtg.RandomPool;
 
@@ -44,6 +45,7 @@ public class Inventory {
 	public void addCard(final PaperCard card, int qty) {
 		cardPool.add(card, qty);
 		newCards.add(card, qty);
+		Model.gameEvent("playerInventoryChanged", null, null);
 	}
 	
 	/**
@@ -72,6 +74,8 @@ public class Inventory {
             
             deck.getMain().remove(card, nToRemoveFromThisDeck);
 		}
+		
+		Model.gameEvent("playerInventoryChanged", null, null);
 	}
 	
 	/**
@@ -109,11 +113,13 @@ public class Inventory {
 		long x = getCurrency(currencyType);
 		if(x < amt) return false;
 		currency.put(currencyType, x - amt);
+		Model.gameEvent("playerInventoryChanged", null, null);
 		return true;
 	}
 	
 	public void addCurrency(String currencyType, long amt) {
 		currency.put(currencyType, getCurrency(currencyType) + amt);
+		Model.gameEvent("playerInventoryChanged", null, null);
 	}
 	
 	public static Inventory createInitialInventory(World world, int difficultyLevel, Color primaryColor) {
@@ -146,6 +152,7 @@ public class Inventory {
 	public void setActiveDeckName(String name) {
 		System.out.println("[Shandalike] setActiveDeck: " + name);
 		// XXX: check that deck exists
+		Model.gameEvent("playerInventoryChanged", null, null);
 		activeDeckName = name;
 	}
 	
