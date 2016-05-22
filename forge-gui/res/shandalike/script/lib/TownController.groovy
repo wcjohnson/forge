@@ -3,6 +3,7 @@ import shandalike.data.entity.town.Town
 import shandalike.Model
 import shandalike.UIModel
 import shandalike.Util
+import shandalike.data.behavior.Behavior
 
 class TownController {
 	Town town
@@ -40,6 +41,7 @@ class TownController {
 		buildCardShopMenu()
 		buildEditDecksMenu()
 		buildBuyFoodMenu()
+		buildQuestMenu()
 		buildLeaveTownMenu()
 	}
 
@@ -66,7 +68,33 @@ class TownController {
 		townMenu.addButton("Buy Food (${foodPrice} Gold for ${foodQty} food)", this, "doBuyFood", null, null)
 	}
 
+	void buildQuestMenu() {
+		townMenu.addButton("Quests", this, "doQuests", null, null)
+	}
+
 	/////////////////// Callbacks
+	void doQuests(arg1, arg2) {
+		def questUI = new UIModel()
+		Util.runScript("journalScreen", "buildObjectivesUI", questUI, true)
+		questUI.addPanel("New Quest", "Travel to somewhere and do something", this,
+			["Accept", "doAcceptQuest", null] as Object[]
+		)
+		questUI.addButton("Back to Town", this, "doExitSubscreen", null, null)
+		Util.pushUI(questUI)
+	}
+
+	void doExitSubscreen(arg1, arg2) {
+		Util.popUI()
+	}
+
+	void doAcceptQuest(arg1, arg2) {
+		Behavior beh = new Behavior()
+		beh.script = "objective_travel"
+		beh.setVar("destinationName", "Shitville")
+		Util.getPlayer().getObjectives().addBehavior(beh)
+		Util.popUI()
+	}
+
 	void doBuyFood(arg1, arg2) {
 		if(Util.getPlayerInventory().takeCurrency("gold", foodPrice)) {
 			Util.getPlayerInventory().addCurrency("food", foodQty)

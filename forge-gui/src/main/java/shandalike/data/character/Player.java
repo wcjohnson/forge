@@ -10,14 +10,22 @@ public class Player extends Chara {
 	/**
 	 * Quest objectives
 	 */
-	public Behaviors objectives;
+	public Behaviors objectives = new Behaviors();
 	/**
 	 * Journal entries (dungeon clues etc)
 	 */
-	public Behaviors journalEntries;
+	public Behaviors journalEntries = new Behaviors();
 	
 	public Player() {
 		super();
+	}
+	
+	public Behaviors getObjectives() {
+		return objectives;
+	}
+	
+	public Behaviors getJournalEntries() {
+		return journalEntries;
 	}
 
 	public Inventory getInventory() {

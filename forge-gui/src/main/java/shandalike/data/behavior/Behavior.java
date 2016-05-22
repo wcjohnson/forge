@@ -38,6 +38,10 @@ public class Behavior implements IScriptingVars {
 		Model.script.runScriptedBehavior(script, eventName, this, behavioral, arg1, arg2);
 	}
 	
+	public Object runScript(String eventName, IBehavioral behavioral, Object arg1, Object arg2) {
+		return Model.script.pcall(script, eventName, new Object[]{this, behavioral, arg1, arg2});
+	}
+	
 	public boolean isHidden() {
 		try {
 			return (boolean)Model.script.pcall(script, "isHidden", this);

@@ -39,6 +39,14 @@ public class Controls extends JPanel implements IGameEventListener {
 	};
 	
 	@SuppressWarnings("serial")
+	final UiCommand doJournal = new UiCommand(){
+		@Override
+		public void run() {
+			Model.script.pcall("journalScreen", "openScreen", null);
+		}
+	};
+	
+	@SuppressWarnings("serial")
 	final UiCommand doQuit = new UiCommand(){
 		@Override
 		public void run() {
@@ -129,6 +137,7 @@ public class Controls extends JPanel implements IGameEventListener {
 		buttonGrid.setOpaque(false);
 		buttonGrid.add(btnCharacter, "w 100");
 		buttonGrid.add(btnJournal, "w 100");
+		btnJournal.setCommand(doJournal);
 		buttonGrid.add(btnSave, "w 100");
 		btnSave.setCommand(doSave);
 		buttonGrid.add(btnLoad, "w 100");

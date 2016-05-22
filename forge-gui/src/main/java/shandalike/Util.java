@@ -149,12 +149,12 @@ public class Util {
 		return Model.adventure.getWorld().getFormat();
 	}
 	
-	public static void runScript(String scriptName, String method, Object arg) {
-		Model.script.pcall(scriptName, method, arg);
+	public static Object runScript(String scriptName, String method, Object arg) {
+		return Model.script.pcall(scriptName, method, arg);
 	}
 	
-	public static void runScript(String scriptName, String method, Object... args) {
-		Model.script.pcall(scriptName, method, args);
+	public static Object runScript(String scriptName, String method, Object... args) {
+		return Model.script.pcall(scriptName, method, args);
 	}
 	
 	/**
@@ -180,4 +180,5 @@ public class Util {
 		}
 		Model.script.pcall("gameOverScreen", "openScreen", null);
 	}
+
 }

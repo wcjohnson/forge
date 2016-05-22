@@ -117,6 +117,10 @@ public class UIModel {
 		widgets.add(pnl);
 	}
 	
+	public void addHeading(String title) {
+		addPanel(title, null, null);
+	}
+	
 	public void addCards(String title, String text, List<IPaperCard> cards) {
 		Cards pnl = new Cards();
 		pnl.title = title; pnl.leftText = text;
