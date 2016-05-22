@@ -30,6 +30,12 @@ public class Adventure {
     	public String timestamp;
     }
     
+    public static class Disposition {
+    	public boolean didWin = false;
+    	public boolean didLose = false;
+    	public String reason = "";
+    }
+    
     // Summary data
     public AdventureSummary summary;
 	// Player character state
@@ -38,6 +44,8 @@ public class Adventure {
 	Map<String, WorldState> worldStates;
 	// Reference to the active world
 	transient World world;
+	/** Disposition - is this adventure over? why? */
+	public Disposition disposition = null;
 	
 	public Adventure() {
 		worldStates = new HashMap<String,WorldState>();
@@ -73,6 +81,17 @@ public class Adventure {
 					summary.status = "Wandering";
 				}
 			}
+		}
+		// Get disposition
+		if(this.disposition != null) {
+			if(this.disposition.didWin) {
+				summary.status = "Victory! "; 
+			} else if (this.disposition.didLose) {
+				summary.status = "Defeat! ";
+			} else {
+				summary.status = "Game Over! ";
+			}
+			summary.status += this.disposition.reason;
 		}
 	}
 
@@ -124,6 +143,8 @@ public class Adventure {
 		this.summary = nextAdv.summary;
 		this.player = nextAdv.player;
 		this.worldStates = nextAdv.worldStates;
+		this.disposition = nextAdv.disposition;
+		
 		world = Model.worlds.get(summary.worldId);
 		world.hydrate();
 		// Restore game time.

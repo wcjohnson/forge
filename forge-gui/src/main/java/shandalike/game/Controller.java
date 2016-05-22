@@ -53,6 +53,10 @@ public class Controller implements ApplicationListener, IGameEventListener {
 	public void loadGame() {
 		Model.gameEvent("reload", null, null);
 		Model.playerDidChangeMap();
+		// If game is disposed, show Game OVer screen.
+		if(Model.adventure.disposition != null) {
+			Model.script.pcall("gameOverScreen", "openScreen", null);
+		}
 	}
 
 	@Override
@@ -104,7 +108,6 @@ public class Controller implements ApplicationListener, IGameEventListener {
 		renderState.gameTime = gameTime.getGameTime();
 		renderState.dt = Gdx.graphics.getDeltaTime();
 		renderState.gameTimeController = gameTime;
-		renderState.debugRendering = true; // XXX
 		if(pauseRendering) { return; }
 		
 		gameMap.render(renderState);

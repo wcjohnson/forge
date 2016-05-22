@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="500" tilewidth="32" tileheight="32" nextobjectid="143">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="500" tilewidth="32" tileheight="32" nextobjectid="144">
  <properties>
   <property name="onFirstEnter" value="spawnPlayerInRandomTown"/>
  </properties>
@@ -601,42 +601,6 @@
    <properties>
     <property name="action" value="init"/>
     <property name="script" value="spawnRandomTown"/>
-   </properties>
-  </object>
-  <object id="2" name="badguy" x="7552" y="7968" width="32" height="32">
-   <properties>
-    <property name="action" value="init"/>
-    <property name="entity">{
-  &quot;type&quot;: &quot;MobilePawn&quot;,
-  &quot;chasePlayer&quot;: false,
-  &quot;behaviors&quot;: [
-    { 
-      &quot;script&quot;: &quot;encounter&quot;,
-      &quot;var&quot;: {
-        &quot;duelFile&quot;: &quot;Druid 1.dck&quot;
-      }
-    }
-  ],
-  &quot;spriteAsset&quot;: &quot;reaper.sprite.json&quot;
-}</property>
-   </properties>
-  </object>
-  <object id="3" name="dungeon" x="7680" y="7936" width="32" height="32">
-   <properties>
-    <property name="action" value="init"/>
-    <property name="entity"> {
-  &quot;type&quot;: &quot;PointOfInterest&quot;,
-  &quot;label&quot;: &quot;Dungeon&quot;,
-  &quot;showOnMinimap&quot;: false,
-  &quot;labelOnMinimap&quot;: false,
-  &quot;labelOnMap&quot;: true,
-  &quot;collisionEffect&quot;: {
-    &quot;effect&quot;: &quot;enterMap&quot;,
-    &quot;mapId&quot;: &quot;dungeon&quot;,
-    &quot;mapInfoId&quot;: &quot;dungeon&quot;
-  },
-  &quot;spriteAsset&quot;: &quot;cave.sprite.json&quot;
-}</property>
    </properties>
   </object>
   <object id="4" name="RandomTown" x="8384" y="8288" width="32" height="32">
@@ -1403,6 +1367,16 @@
    <properties>
     <property name="action" value="init"/>
     <property name="script" value="spawnRandomDungeons"/>
+   </properties>
+  </object>
+  <object id="143" name="food_eater" x="7232" y="8096" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="entity">{
+  &quot;type&quot;: &quot;Timer&quot;,
+  &quot;period&quot;: 20.0,
+  &quot;script&quot;: &quot;eatFood&quot;
+}</property>
    </properties>
   </object>
  </objectgroup>

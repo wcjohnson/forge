@@ -1,11 +1,20 @@
 package shandalike.data.character;
 
 import shandalike.Model;
+import shandalike.data.behavior.Behaviors;
 import shandalike.data.entity.Pawn;
 import shandalike.data.world.MapState;
 
 public class Player extends Chara {
 	public Inventory inventory;
+	/**
+	 * Quest objectives
+	 */
+	public Behaviors objectives;
+	/**
+	 * Journal entries (dungeon clues etc)
+	 */
+	public Behaviors journalEntries;
 	
 	public Player() {
 		super();

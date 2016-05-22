@@ -9,39 +9,32 @@ import forge.toolbox.FLabel;
 import forge.toolbox.FSkin;
 import forge.view.FView;
 import net.miginfocom.swing.MigLayout;
+import shandalike.IGameEventListener;
 import shandalike.Model;
 import shandalike.UIModel;
 import shandalike.Util;
 import shandalike.data.Adventure;
+import shandalike.mtg.Duel;
 
-public class Controls extends JPanel {
+public class Controls extends JPanel implements IGameEventListener {
 	private static final long serialVersionUID = 1L;
 	
+	final JPanel buttonGrid = new JPanel(new MigLayout("insets 0, flowy, wrap 2"));
 	final FLabel btnSave = new FLabel.ButtonBuilder().text("Save").build();
 	final FLabel btnLoad = new FLabel.ButtonBuilder().text("Load").build();
 	final FLabel btnQuit = new FLabel.ButtonBuilder().text("Quit").build();
 	final FLabel btnCharacter = new FLabel.ButtonBuilder().text("Character").build();
 	final FLabel btnJournal = new FLabel.ButtonBuilder().text("Journal").build();
-	final FLabel btnMap = new FLabel.ButtonBuilder().text("Map").build();
 	final FLabel btnReload = new FLabel.ButtonBuilder().text("!Cheat").build();
 	
 	final FLabel txtGold = new FLabel.Builder().icon(FSkin.getIcon(FSkinProp.ICO_QUEST_COINSTACK)).text("Gold").build();
 	final FLabel txtFood = new FLabel.Builder().icon(FSkin.getIcon(FSkinProp.ICO_QUEST_ELIXIR)).text("Food").build();
-	
-	@SuppressWarnings("serial")
-	final UiCommand doMap = new UiCommand(){
-		@Override
-		public void run() {
-			Model.gameController.toggleMapZoom();
-		}
-	};
-	
+		
 	@SuppressWarnings("serial")
 	final UiCommand doReload = new UiCommand(){
 		@Override
 		public void run() {
-			System.out.println("[Shandalike] Flushing scripts");
-			Model.script.flushScripts();
+			Model.script.pcall("cheatScreen", "openScreen", null);
 		}
 	};
 	
@@ -50,7 +43,8 @@ public class Controls extends JPanel {
 		@Override
 		public void run() {
 			System.out.println("[Shandalike] Autosave and quit");
-			FView.SINGLETON_INSTANCE.getNavigationBar().closeTab(FScreen.SHANDALIKE);
+			Model.adventure.save(0);
+			Util.closeShandalike();
 		}
 	};
 		
@@ -132,12 +126,9 @@ public class Controls extends JPanel {
 		super(new MigLayout("insets 5px"));
 		setOpaque(false);
 
-		JPanel buttonGrid = new JPanel(new MigLayout("insets 0, flowy, wrap 2"));
 		buttonGrid.setOpaque(false);
 		buttonGrid.add(btnCharacter, "w 100");
 		buttonGrid.add(btnJournal, "w 100");
-		buttonGrid.add(btnMap, "w 100");
-		btnMap.setCommand(doMap);
 		buttonGrid.add(btnSave, "w 100");
 		btnSave.setCommand(doSave);
 		buttonGrid.add(btnLoad, "w 100");
@@ -146,8 +137,69 @@ public class Controls extends JPanel {
 		btnQuit.setCommand(doQuit);
 		buttonGrid.add(btnReload, "w 100");
 		btnReload.setCommand(doReload);
+		
+		JPanel statusGrid = new JPanel(new MigLayout("insets 0, flowy, wrap 2"));
+		statusGrid.setOpaque(false);
+		statusGrid.add(txtGold, "w 150");
+		statusGrid.add(txtFood, "w 150");
 				
 		add(buttonGrid);
+		add(statusGrid);
+		Model.listeners.add(this);
 	}
 	
+	public void update() {
+		if(Model.adventure != null) {
+			if(!Model.adventure.summary.isCheatEnabled && btnReload.getParent() != null) {
+				buttonGrid.remove(btnReload);
+				buttonGrid.revalidate();
+			}
+			if(Model.adventure.summary.isIronMan && btnSave.getParent() != null) {
+				buttonGrid.remove(btnSave);
+				buttonGrid.remove(btnLoad);
+				buttonGrid.revalidate();
+			}
+			if(Model.adventure.getPlayer() != null) {
+				txtGold.setText("Gold: " + Model.adventure.getPlayer().getInventory().getCurrency("gold"));
+				txtFood.setText("Food: " + Model.adventure.getPlayer().getInventory().getCurrency("food"));
+			}
+		}
+	}
+
+	@Override
+	public void duelWillStart(Duel duel) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void playerDidChangeMap() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void duelWillCancel(Duel duel) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void gameEvent(String event, Object arg1, Object arg2) {
+		switch(event) {
+		case "playerInventoryChanged":
+		case "reload":
+		{
+			System.out.println("[Shandalike] Controls: playerInventoryChanged");
+			update();
+			break;
+		}
+		
+		case "openLoadScreen":
+		{
+			openLoadScreen();
+			break;
+		}
+		}	
+	}
 }

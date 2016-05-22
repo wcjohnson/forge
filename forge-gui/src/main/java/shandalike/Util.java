@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import forge.card.MagicColor;
+import shandalike.data.Adventure;
 import shandalike.data.World;
 import shandalike.data.character.Inventory;
 import shandalike.data.character.Player;
@@ -154,5 +155,29 @@ public class Util {
 	
 	public static void runScript(String scriptName, String method, Object... args) {
 		Model.script.pcall(scriptName, method, args);
+	}
+	
+	/**
+	 * Close the Shandalike tab on the main Forge screen.
+	 */
+	public static void closeShandalike() {
+		Model.gameEvent("closeShandalike", null, null);
+	}
+	
+	/**
+	 * Invoke game over for user.
+	 * @param didWin
+	 * @param didLose
+	 * @param reason
+	 */
+	public static void gameOver(boolean didWin, boolean didLose, String reason) {
+		Model.adventure.disposition = new Adventure.Disposition();
+		Model.adventure.disposition.didLose = didLose;
+		Model.adventure.disposition.didWin = didWin;
+		if(reason != null) Model.adventure.disposition.reason = reason;
+		if(Model.adventure.summary.isIronMan) {
+			Model.adventure.save(0);
+		}
+		Model.script.pcall("gameOverScreen", "openScreen", null);
 	}
 }

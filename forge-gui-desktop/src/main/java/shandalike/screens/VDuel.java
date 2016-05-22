@@ -39,8 +39,13 @@ public enum VDuel implements IPanel, IGameEventListener {
 	
     //////////////////////////////// Lifecycle
 	public void update() {
-		menuPanel.setModel(duel.menu);
+		System.out.println("[Shandalike] VDuel.update()");
 		scrCustom.scrollToTop();
+		menuPanel.setModel(duel.menu);
+		scrCustom.revalidate();
+		scrCustom.repaint();
+//		scrCustom.getParent().revalidate();
+//		scrCustom.getParent().repaint();
 	}
 	
 	@Override
