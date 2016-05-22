@@ -7,6 +7,8 @@ import shandalike.Util
 class TownController {
 	Town town
 	UIModel townMenu
+	long foodPrice
+	long foodQty = 20
 
 	TownController(Town ts) {
 		this.town = ts
@@ -37,6 +39,7 @@ class TownController {
 		buildTownTitle()
 		buildCardShopMenu()
 		buildEditDecksMenu()
+		buildBuyFoodMenu()
 		buildLeaveTownMenu()
 	}
 
@@ -58,7 +61,18 @@ class TownController {
 		townMenu.addButton("Leave Town", this, "tryLeaveTown", null, null)
 	}
 
+	void buildBuyFoodMenu() {
+		foodPrice = (long)( Util.getDifficultySpec().buyRatio * 33.0f )
+		townMenu.addButton("Buy Food (${foodPrice} Gold for ${foodQty} food)", this, "doBuyFood", null, null)
+	}
+
 	/////////////////// Callbacks
+	void doBuyFood(arg1, arg2) {
+		if(Util.getPlayerInventory().takeCurrency("gold", foodPrice)) {
+			Util.getPlayerInventory().addCurrency("food", foodQty)
+		}
+	}
+
 	void openCardShop(arg1, arg2) {
 		if(town.cardShop != null) {
 			// Instruct the core to open the card shop tab with the town's shop model
