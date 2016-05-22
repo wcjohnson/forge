@@ -260,6 +260,7 @@ public class Duel implements GameRules.AnteDelegate {
 		}
 		if(lostCards != null) {
 			Model.adventure.getPlayer().getInventory().removeAllCards(lostCards);
+			Model.adventure.getPlayer().getInventory().lostCards.addAllFlat(lostCards);
 			result.cardsWon.addAll(wonCards);
 		}
 	}

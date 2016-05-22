@@ -25,9 +25,11 @@ import shandalike.mtg.RandomPool;
 public class Inventory {
 	// Amount of currency Player is carrying.
 	private Map<String, Long> currency;
-	// Player's card inventory
+	/** Player's card inventory */
 	final public CardPool cardPool = new CardPool();
 	final CardPool newCards = new CardPool();
+	/** Cards player has lost to game mechanics -- maybe they can buy them back later! */
+	final public CardPool lostCards = new CardPool();
 	// Player's deck collection
 	public Map<String, Deck> decks;
 	// Player's currently active deck
