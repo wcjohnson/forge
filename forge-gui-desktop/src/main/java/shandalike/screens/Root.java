@@ -112,7 +112,7 @@ public enum Root implements IVTopLevelUI, ICDoc, IGameEventListener {
     	canvas = gl.getCanvas();
     	EventQueue.invokeLater(new Runnable() {
     		@Override public void run() {
-    			rootView.add(canvas, "w 100%!, h 1px!");
+    			rootView.add(canvas, "w 1px!, h 1px!");
     			// ... then defer until after GDX initializes, which happens when it's added to the frame...
     			// It's weird that this is necessary, but I couldn't get it to work without it.
     			EventQueue.invokeLater(new Runnable() {
@@ -150,7 +150,7 @@ public enum Root implements IVTopLevelUI, ICDoc, IGameEventListener {
 	private void showContainer() {
 		System.out.println("[Shandalike] showContainer()");
 		MigLayout layout = (MigLayout)rootView.getLayout();
-		layout.setComponentConstraints(canvas, "w 100%!, h 1px!");
+		layout.setComponentConstraints(canvas, "w 1px!, h 1px!");
 		layout.setComponentConstraints(subView, "w 100%!, h 100%-51px!");
 		canvas.setVisible(false);
 		rootView.revalidate();
@@ -164,6 +164,7 @@ public enum Root implements IVTopLevelUI, ICDoc, IGameEventListener {
 	 */
 	@Override
 	public void populate() {
+		System.out.println("[Shandalike] Root.populate()");
 		// Make the top-layer view visible.
     	rootView.setVisible(true);
     	isActive = true;
@@ -328,6 +329,12 @@ public enum Root implements IVTopLevelUI, ICDoc, IGameEventListener {
 		
 		case "showMessageBox": {
 			SOptionPane.showMessageDialog((String)arg1, (String)arg2);
+			break;
+		}
+		
+		case "closeShandalike": {
+			while(!viewStack.isEmpty()) popPanel(viewStack.peek());
+			FView.SINGLETON_INSTANCE.getNavigationBar().closeTab(FScreen.SHANDALIKE);
 			break;
 		}
 			
