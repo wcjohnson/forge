@@ -75,7 +75,7 @@ class TownController {
 	/////////////////// Callbacks
 	void doQuests(arg1, arg2) {
 		def questUI = new UIModel()
-		Util.runScript("journalScreen", "buildObjectivesUI", questUI, true)
+		Util.runScript("journalScreen", "buildObjectivesUI", [questUI, true, false] as Object[])
 		questUI.addPanel("New Quest", "Travel to somewhere and do something", this,
 			["Accept", "doAcceptQuest", null] as Object[]
 		)

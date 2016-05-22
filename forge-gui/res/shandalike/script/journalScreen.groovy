@@ -16,16 +16,16 @@ void doAbandon(objective, arg2) {
 	rebuildUI()
 }
 
-void buildObjectivesUI(UIModel uim, boolean canComplete) {
+void buildObjectivesUI(UIModel uim, boolean canComplete, boolean canAbandon) {
 	def objectives = Util.getPlayer().getObjectives()
 	objectives.each {
 		String title = (String)it.runScript("getTitle", objectives, null, null)
 		String description = (String)it.runScript("getDescription", objectives, null, null)
-		boolean canAbandon = (boolean)it.runScript("canAbandon", objectives, null, null)
+		boolean is Abandon = (boolean)it.runScript("canAbandon", objectives, null, null)
 		boolean isComplete = (boolean)it.runScript("isComplete", objectives, null, null)
 		if(canComplete && isComplete) {
 			uim.addPanel(title, description, this, ["Complete", "doComplete", it] as Object[])
-		} else if(canAbandon) {
+		} else if(canAbandon && isAbandon) {
 			uim.addPanel(title, description, this, ["Abandon", "doAbandon", it] as Object[])
 		} else {
 			uim.addPanel(title, description, this)
@@ -35,7 +35,7 @@ void buildObjectivesUI(UIModel uim, boolean canComplete) {
 
 void buildUI() {
 	ui.addHeading("Objectives")
-	buildObjectivesUI(ui, false)
+	buildObjectivesUI(ui, false, true)
 	ui.addHeading("Journal")
 	ui.addButton("Go Back", this, "doBack", null, null)
 }
