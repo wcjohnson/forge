@@ -93,7 +93,9 @@ public enum Root implements IVTopLevelUI, ICDoc, IGameEventListener {
     	System.out.println("[Shandalike] Root.instantiate");
     	// Instantiate game canvas.
     	LwjglApplicationConfiguration.disableAudio = true;
-    	gl = new LwjglCanvas(new Controller());
+    	LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+    	config.vSyncEnabled = true;
+    	gl = new LwjglCanvas(new Controller(), config);
     	// Configure the top layer panel
     	rootView = FView.SINGLETON_INSTANCE.getPnlTopLayer();
     	// This panel has to start invisible so we don't overshadow Forge's main UI.
