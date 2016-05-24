@@ -20,24 +20,6 @@ public class UIModel {
 		public void onMenuModelChanged();
 	}
 	
-	@SuppressWarnings("serial")
-	public static class Callback implements UiCommand {
-		GroovyObject target = null;
-		String method;
-		Object arg1 = null, arg2 = null;
-		UiCommand command = null;
-
-		@Override
-		public void run() {
-			if(target != null) {
-				Object[] args = { arg1, arg2 };
-				Model.script.pcall(target, method, args);
-			} else if (command != null) {
-				command.run();
-			}
-		}
-	}
-	
 	public interface Widget {
 		public String getWidgetType();
 	}
@@ -88,17 +70,14 @@ public class UIModel {
 	
 	public void addButton(String text, GroovyObject context, String method, Object arg1, Object arg2) {
 		Button btn = new Button();
-		btn.callback.target = context;
-		btn.callback.method = method;
-		btn.callback.arg1 = arg1;
-		btn.callback.arg2 = arg2;
+		btn.callback = new Callback.ScriptObject(context, method, arg1, arg2);
 		btn.text = text;
 		widgets.add(btn);
 	}
 	
 	public void addButton(String text, UiCommand cmd) {
 		Button btn = new Button();
-		btn.callback.command = cmd;
+		btn.callback = new Callback.Command(cmd);
 		btn.text = text;
 		widgets.add(btn);
 	}
@@ -108,10 +87,8 @@ public class UIModel {
 		pnl.title = title; pnl.leftText = text;
 		for(int i=0; i<buttons.length; i+=3) {
 			Button btn = new Button();
-			btn.callback.target = context;
+			btn.callback = new Callback.ScriptObject(context, (String)buttons[i+1], buttons[i+2], null);
 			btn.text = (String)buttons[i];
-			btn.callback.method = (String)buttons[i+1];
-			btn.callback.arg1 = buttons[i+2];
 			pnl.buttons.add(btn);
 		}
 		widgets.add(pnl);

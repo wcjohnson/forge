@@ -19,9 +19,9 @@ void doAbandon(objective, arg2) {
 void buildObjectivesUI(UIModel uim, boolean canComplete, boolean canAbandon) {
 	def objectives = Util.getPlayer().getObjectives()
 	objectives.each {
-		String title = (String)it.runScript("getTitle", objectives, null, null)
-		String description = (String)it.runScript("getDescription", objectives, null, null)
-		boolean is Abandon = (boolean)it.runScript("canAbandon", objectives, null, null)
+		String title = (String)it.runScript("getObjectiveTitle", objectives, null, null)
+		String description = (String)it.runScript("getObjectiveDescription", objectives, null, null)
+		boolean isAbandon = (boolean)it.runScript("canAbandon", objectives, null, null)
 		boolean isComplete = (boolean)it.runScript("isComplete", objectives, null, null)
 		if(canComplete && isComplete) {
 			uim.addPanel(title, description, this, ["Complete", "doComplete", it] as Object[])

@@ -156,10 +156,12 @@ public class Behaviors implements Iterable<Behavior>, Collection<Behavior>, IBeh
 	@Override
 	public void addBehavior(Behavior behavior) {
 		add(behavior);
+		behavior.handleEvent("behaviorDidAdd", this, null, null);
 	}
 
 	@Override
 	public void removeBehavior(Behavior behavior) {
+		behavior.handleEvent("behaviorWillRemove", this, null, null);
 		remove(behavior);
 	}
 

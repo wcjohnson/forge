@@ -1,0 +1,24 @@
+package shandalike.data.reward;
+
+public interface Reward {
+	/**
+	 * Get a textual description of this reward before it has been granted.
+	 */
+	public String getDescription();
+	
+	/**
+	 * Builds internal information for the reward
+	 */
+	public void build();
+	
+	/**
+	 * Returns true if the reward requires player choice.
+	 */
+	public boolean requiresChoice();
+	
+	/**
+	 * Present a screen offering the player choice. Will mutate the state of the reward object
+	 * indicating what the player chose.
+	 */
+	public void choose();
+}

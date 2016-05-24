@@ -29,7 +29,6 @@ public class Player extends Chara {
 	}
 
 	public Inventory getInventory() {
-		// TODO Auto-generated method stub
 		return inventory;
 	}
 	

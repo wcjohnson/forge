@@ -11,7 +11,7 @@ import shandalike.data.entity.thought.Thought;
  * @author wcj
  */
 public class Timer extends Positional {
-	transient float lastRan = 0.0f;
+	float last = 0.0f;
 	float period = 0.0f;
 	String script;
 	
@@ -20,8 +20,8 @@ public class Timer extends Positional {
 		public void think(Entity entity, ThinkState thinkState) {
 			// TODO Auto-generated method stub
 			Timer e = (Timer)entity;
-			if(e.period > 0.0f && (thinkState.gameTime - e.lastRan > e.period)) {
-				e.lastRan = thinkState.gameTime;
+			if(e.period > 0.0f && (thinkState.gameTime - e.last > e.period)) {
+				e.last = thinkState.gameTime;
 				Model.script.pcall(e.script, "timer", e);
 			}
 		}

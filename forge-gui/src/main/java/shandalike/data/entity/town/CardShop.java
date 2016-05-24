@@ -61,7 +61,7 @@ public class CardShop {
 	 * @param parentTown
 	 * @return
 	 */
-	public ShopModel getShopModel(final Town parentTown) {
+	public ShopModel getShopModel() {
 		return new ShopModel() {
 
 			@Override

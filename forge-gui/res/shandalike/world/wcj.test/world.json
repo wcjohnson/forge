@@ -57,7 +57,9 @@
 			"Mind Twist": 10000,
 			"Control Magic": 500,
 			"Llanowar Elves": 30,
-			"Birds of Paradise": 300
+			"Birds of Paradise": 300,
+			"Ivory Tower": 1000,
+			"Killer Bees": 250
 		}
 	},
 	"rewardOnly": [

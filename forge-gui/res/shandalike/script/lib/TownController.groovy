@@ -25,6 +25,7 @@ class TownController {
 		// Perform pre-entry tasks.
 		doCardShopMaintenance()
 		buildTownMenu()
+		Util.getPlayer().handleEvent("playerDidEnterTown", town, townMenu)
 		Util.pushUI(townMenu)
 	}
 
