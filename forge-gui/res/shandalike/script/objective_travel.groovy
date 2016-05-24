@@ -1,5 +1,8 @@
 import shandalike.Util
 import shandalike.data.behavior.Behavior
+import shandalike.data.reward.Reward
+import shandalike.data.reward.CardReward
+import lib.QuestController
 // Assign player to travel to another town.
 
 // Every behavior must implement methodMissing.
@@ -64,7 +67,7 @@ void behaviorWillRemove(behavior, behavioral, arg1, arg2) {
 // Upon addition, add a tracking buff to the player that will trigger
 // when he reaches the destination
 void behaviorDidAdd(behavior, behavioral, arg1, arg2) {
-  println "objective_travel.behaviorAddr"
+  println "objective_travel.behaviorAdd"
   // This script serves a "dual use" as both the objective and tracking buff.
   // Only run this routine when the objective is being added to the objectives.
   if(behavioral == Util.getPlayer().getObjectives()) {
@@ -80,13 +83,27 @@ void behaviorDidAdd(behavior, behavioral, arg1, arg2) {
 }
 
 void playerDidEnterTown(behavior, behavioral, town, townMenu) {
-  String destId = behavior.getVar("destinationId")
+  Behavior obj = QuestController.getObjectiveForTag(behavior.tag)
+  String destId = obj.getVar("destinationId")
   if(town.id.equals(destId)) {
-    behavior.setVar("isComplete", true)
-    townMenu.addButton("Quest Complete! Claim your reward!", this, "doClaimReward", behavior, null)
+    obj.setVar("isComplete", true)
+  }
+}
+
+void townWillBuildMenu(behavior, player, town, townMenu) {
+  Behavior obj = QuestController.getObjectiveForTag(behavior.tag)
+  String destId = obj.getVar("destinationId")
+  if(town.id.equals(destId) && obj.getVar("isComplete")) {
+    townMenu.addButton("Quest Complete! Claim your reward!", this, "doClaimReward", obj, null)
   }
 }
 
 void doClaimReward(behavior, arg2) {
-  
+  // Remove objective from player
+  Behavior.purgeByTag(Util.getPlayer().getObjectives(), behavior.tag);
+  // Give reward
+  CardReward cr = new CardReward()
+  cr.n = 1
+  cr.setDuplicateCard()
+  cr.choose()
 }

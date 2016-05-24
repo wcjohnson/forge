@@ -28,7 +28,7 @@ import shandalike.mtg.ShopModel.TransactionResult;
  * @author wcj
  *
  */
-public class CardReward {
+public class CardReward implements Reward {
 	/** Direct list of card names to be awarded, if present. Overrides other options. */
 	public List<String> cards;
 	/** Number of cards to award. */
@@ -48,7 +48,11 @@ public class CardReward {
 	/** Actual computed reward */
 	public transient List<PaperCard> reward;
 	/** Textual description of reward */
-	public String description;
+	public String description = "unknown reward";
+	
+	public String getDescription() {
+		return description;
+	}
 	
 	/**
 	 * Allow the player to dupe a card from his inventory matching the predicates.
@@ -107,7 +111,11 @@ public class CardReward {
 		}
 	}
 	
-	public void pick() {
+	public boolean requiresChoice() {
+		return (policy.equals("pick"));
+	}
+	
+	public void choose() {
 		if(policy.equals("pick")) {
 			reward = new ArrayList<PaperCard>();
 			Util.openShop(getShopModel());

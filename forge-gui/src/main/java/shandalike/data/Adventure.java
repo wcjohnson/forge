@@ -52,6 +52,7 @@ public class Adventure {
 	}
 
 	public String getName() {
+		if(summary == null) return "";
 		return summary.name;
 	}
 	

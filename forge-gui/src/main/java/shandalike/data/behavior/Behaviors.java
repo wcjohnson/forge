@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.WeakHashMap;
 
 /**
- * Collection of Behaviors that can be safely mutated during iteration. All mutations are carried out
- * after iteration is complete.
+ * Collection of Behaviors that can be safely mutated during iteration. Iterators may see
+ * inconsistent views of the collection.
  * Note: this is not a true concurrent collection; don't even think about using it on multiple threads.
  * @author wcj
  */
@@ -16,18 +17,11 @@ public class Behaviors implements Iterable<Behavior>, Collection<Behavior>, IBeh
 		int pos = 0;
 		
 		public BehIterator() {
-			iterDepth++;
 		}
 		
 		@Override
 		public boolean hasNext() {
-			if(pos < behaviors.size()) {
-				return true;
-			} else {
-				iterDepth--;
-				if(iterDepth == 0) flushUpdates();
-				return false;
-			}
+			return (pos < behaviors.size());
 		}
 
 		@Override
@@ -39,27 +33,15 @@ public class Behaviors implements Iterable<Behavior>, Collection<Behavior>, IBeh
 	}
 	
 	List<Behavior> behaviors = new ArrayList<Behavior>();
-	
-	transient List<Behavior> additions = null;
-	transient List<Object> removals = null;
-	transient int iterDepth = 0;
-	
-	private boolean isIterating() { return (iterDepth > 0); }
-	
-	private void flushUpdates() {
-		if(removals != null && removals.size() > 0) {
-			for(Object removal: removals) behaviors.remove(removal);
-			removals.clear();
-		}
-		if(additions != null && additions.size() > 0) {
-			for(Behavior addition: additions) behaviors.add(addition);
-			additions.clear();
-		}
-	}
+	WeakHashMap<BehIterator,Boolean> outstandingIterators = new WeakHashMap<>();
+		
+	private boolean isIterating() { return (outstandingIterators.size() > 0); }
 
 	@Override
 	public Iterator<Behavior> iterator() {
-		return new BehIterator();
+		BehIterator it = new BehIterator();
+		outstandingIterators.put(it, true);
+		return it;
 	}
 
 	@Override
@@ -89,19 +71,27 @@ public class Behaviors implements Iterable<Behavior>, Collection<Behavior>, IBeh
 
 	@Override
 	public boolean add(Behavior e) {
-		if(isIterating()) {
-			if(additions == null) additions = new ArrayList<Behavior>();
-			return additions.add(e);
-		} else {
-			return behaviors.add(e);
-		}
+//		if(isIterating()) {
+//			if(additions == null) additions = new ArrayList<Behavior>();
+//			return additions.add(e);
+//		} else {
+//			return behaviors.add(e);
+//		}
+		return behaviors.add(e);
 	}
 
 	@Override
 	public boolean remove(Object o) {
 		if(isIterating()) {
-			if(removals == null) removals = new ArrayList<Object>();
-			return removals.add(o);
+			// Locate index of object
+			int idx = behaviors.indexOf(o);
+			if(idx == -1) return false;
+			// Adjust outstanding iterators; if removed object was before their position, decr. it.
+			for(BehIterator it: outstandingIterators.keySet()) {
+				if(idx < it.pos) it.pos--;
+			}
+			behaviors.remove(idx);
+			return true;
 		} else {
 			return behaviors.remove(o);
 		}

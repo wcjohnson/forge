@@ -22,10 +22,13 @@ class TownController {
 	void enter() {
 		// IMPORTANT: ALWAYS delegate to the engine first when leaving/entering towns.
 		town.enter()
+		// Handle script events
+		Util.getPlayer().handleEvent("playerDidEnterTown", town, null)
 		// Perform pre-entry tasks.
 		doCardShopMaintenance()
 		buildTownMenu()
-		Util.getPlayer().handleEvent("playerDidEnterTown", town, townMenu)
+		// Offer scripts the opportunity to enhance the town menu
+		Util.getPlayer().handleEvent("townWillBuildMenu", town, townMenu)
 		Util.pushUI(townMenu)
 	}
 
@@ -44,6 +47,7 @@ class TownController {
 		buildBuyFoodMenu()
 		buildQuestMenu()
 		buildLeaveTownMenu()
+		townMenu.update()
 	}
 
 	void buildTownTitle() {
@@ -89,9 +93,24 @@ class TownController {
 	}
 
 	void doAcceptQuest(arg1, arg2) {
+		// Locate nearest town
+	 	Town nearestTown = null
+		float distance = 9999.0f
+		Util.getActiveMapState().getAllEntities().each {
+			if(it instanceof Town && !it.id.equals(town.id)) {
+				float nextDistance = it.distanceFrom(town)
+				if(nextDistance < distance) {
+					distance = nextDistance
+					nearestTown = it
+				}
+			}
+		}
+		if(nearestTown == null) return
+
 		Behavior beh = new Behavior()
 		beh.script = "objective_travel"
-		beh.setVar("destinationName", "Shitville")
+		beh.setVar("destinationName", nearestTown.getName())
+		beh.setVar("destinationId", nearestTown.id)
 		Util.getPlayer().getObjectives().addBehavior(beh)
 		Util.popUI()
 	}

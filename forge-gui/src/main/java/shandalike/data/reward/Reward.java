@@ -21,4 +21,10 @@ public interface Reward {
 	 * indicating what the player chose.
 	 */
 	public void choose();
+	
+	/**
+	 * Award the reward, finally adding the chosen or randomly determined cards to the
+	 * player inventory.
+	 */
+	public void award();
 }
