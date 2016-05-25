@@ -68,21 +68,23 @@ public class UIModel {
 		for(ChangeListener listener: listeners) listener.onMenuModelChanged();
 	}
 	
-	public void addButton(String text, GroovyObject context, String method, Object arg1, Object arg2) {
+	public Widget addButton(String text, GroovyObject context, String method, Object arg1, Object arg2) {
 		Button btn = new Button();
 		btn.callback = new Callback.ScriptObject(context, method, arg1, arg2);
 		btn.text = text;
 		widgets.add(btn);
+		return btn;
 	}
 	
-	public void addButton(String text, UiCommand cmd) {
+	public Widget addButton(String text, UiCommand cmd) {
 		Button btn = new Button();
 		btn.callback = new Callback.Command(cmd);
 		btn.text = text;
 		widgets.add(btn);
+		return btn;
 	}
 	
-	public void addPanel(String title, String text, GroovyObject context, Object... buttons) {
+	public Widget addPanel(String title, String text, GroovyObject context, Object... buttons) {
 		Panel pnl = new Panel();
 		pnl.title = title; pnl.leftText = text;
 		for(int i=0; i<buttons.length; i+=3) {
@@ -92,20 +94,26 @@ public class UIModel {
 			pnl.buttons.add(btn);
 		}
 		widgets.add(pnl);
+		return pnl;
 	}
 	
-	public void addHeading(String title) {
-		addPanel(title, null, null);
+	public Widget addHeading(String title) {
+		return addPanel(title, null, null);
 	}
 	
-	public void addCards(String title, String text, List<IPaperCard> cards) {
+	public Widget addCards(String title, String text, List<IPaperCard> cards) {
 		Cards pnl = new Cards();
 		pnl.title = title; pnl.leftText = text;
 		pnl.setCardsFromIPaperCard(cards);
 		widgets.add(pnl);
+		return pnl;
 	}
 	
 	public void clear() {
 		widgets.clear();
+	}
+	
+	public void remove(Widget w) {
+		widgets.remove(w);
 	}
 }

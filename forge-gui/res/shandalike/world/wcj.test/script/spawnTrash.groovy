@@ -11,18 +11,10 @@ import groovy.transform.Field
 @Field float x
 @Field float y
 @Field boolean failed
-// The template the trash will be spawned from
-@Field String trashTemplate
 
 // Radius around player that trash is eligible to spawn in
 @Field float spawnRadius = 20.0f
-@Field def trashByColor = [
-	"green": "green_trash_1",
-	"white": "white_trash_1",
-	"red": "red_trash_1",
-	"blue": "blue_trash_1",
-	"black": "black_trash_1"
-]
+
 // The chance of trash from a different terrain appearing instead of terrain-appropriate trash
 @Field float wandererChance = 0.25f
 
@@ -51,37 +43,12 @@ void positionTrash(int tries) {
 	}
 }
 
-String getTrashTemplateForTerrain(String terrain) {
-	return trashByColor[terrain]
-}
-
-void getTrashTemplate() {
-	// Get template we should spawn
-	String terrain = trashTileTerrain
-	// Random chance: terrain varies from the one given
-	if(Util.randomFloat() < wandererChance) {
-		terrain = Util.pick(trashByColor.keySet(), Util.randomInt(trashByColor.keySet().size()))
-	}
-	// Get template from terrain and difficutly level info
-	trashTemplate = getTrashTemplateForTerrain(terrain)
-}
-
 void reifyTrash() {
-	trashTemplate = null
-	getTrashTemplate()
-	if(trashTemplate == null) {
-		println "[Shandalike] No trash template found for terrain " + trashTileTerrain
-		failed = true
-		return
-	}
-	Entity ent = Util.getWorldState().getBaseWorld().entityTemplates.get(trashTemplate)
-	if(ent == null) {
-		println "[Shandalike] Invalid entity template ${trashTemplate}"
-		failed = true
-		return
-	}
-	// Copy the template
-	MobilePawn pawn = (MobilePawn)ent.deepCopy()
+	def encounters = Util.runScript("encounters", "getEncounters")
+	def encounter = encounters.random(trashTileTerrain, wandererChance)
+	if(encounter == null) { failed = true; return }
+	// Make the pawn
+	MobilePawn pawn = encounter
 	pawn.pos.x = x; pawn.pos.y = y
 	pawn.setVar("trash", true)
 	pawn.setVar("despawnAt", Util.getGameTime() + 60.0f)

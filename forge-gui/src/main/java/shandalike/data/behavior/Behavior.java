@@ -23,6 +23,12 @@ public class Behavior implements IScriptingVars {
 	/** Non-unique identifying string for this modifier. */
 	public String tag = null;
 	
+	public Behavior() {}
+	
+	public Behavior(String script) {
+		this.script = script;
+	}
+	
 	/**
 	 * @return The text to be shown to the player as the title of the modifier.
 	 */

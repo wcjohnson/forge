@@ -149,6 +149,10 @@ public class Util {
 		return Model.adventure.getWorld().getFormat();
 	}
 	
+	public static Object runScript(String scriptName, String method) {
+		return Model.script.pcall(scriptName, method, null);
+	}
+	
 	public static Object runScript(String scriptName, String method, Object arg) {
 		return Model.script.pcall(scriptName, method, arg);
 	}
