@@ -43,11 +43,19 @@ public final class Format extends GameFormat {
 	public Map<String,Integer> cardValues;
 	public Map<String,Integer> rarityValues;
 	transient List<PaperCard> allCards = null;
+	public int minCardValue = Integer.MAX_VALUE;
+	public int maxCardValue = 0;
     
     public Format(String name, Spec spec) {
     	super(name, spec.sets, spec.bans);
     	cardValues = spec.cardValues;
     	rarityValues = spec.rarityValues;
+    	// Cache min and max card values
+    	for(PaperCard pc: getAllCards()) {
+    		int val = getCardValue(pc);
+    		if(val > maxCardValue) maxCardValue = val;
+    		if(val < minCardValue) minCardValue = val;
+    	}
     }
     
     public int getRarityValue(String rarityName) {

@@ -1,5 +1,7 @@
 package shandalike.data.reward;
 
+import java.util.ArrayList;
+
 public interface Reward {
 	/**
 	 * Get a textual description of this reward before it has been granted.

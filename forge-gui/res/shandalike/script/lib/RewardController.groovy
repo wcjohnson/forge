@@ -1,29 +1,47 @@
+package lib
+
+import shandalike.Util
+import shandalike.data.reward.Reward
+import shandalike.data.reward.CardReward
+import shandalike.data.reward.CurrencyReward
+
 // Manages reward handouts.
 class RewardController {
-	// Structure specifying the reward.
-	// Fields:
-	// cards[] - List of specific string card names to award.
 
-	def rewardSpec
-	// Card rewards, resolved to Forge PaperCard objects
-	def resolvedCards = []
-	// Currency rewards
-	def currency = [:]
-
-	RewardController(rs) {
-		rewardSpec = rs
-	}
-
-	void process() {
-		if(rewardSpec.cards) {
-			rewardSpec.cards.each {
-				def card = Util.getFormat().getCardByName(it)
-				if(card) {
-					resolvedCards.push(card)
-				}
-			}
+	static Reward fromDescriptor(Map descriptor) {
+		int amt = 0
+		if(descriptor.minAmount) {
+			amt = Util.randomInt(descriptor.maxAmount - descriptor.minAmount) + descriptor.minAmount
+		} else {
+			amt = descriptor.amount
 		}
-	}
 
+		if(descriptor.type.equals("currency")) {
+			return new CurrencyReward(descriptor.currency, amt)
+		}
+
+		if(descriptor.type.equals("card")) {
+			def reward = new CardReward()
+			reward.n = amt
+			String description = "" + amt
+			if(descriptor.duplicate) {
+				reward.setDuplicateCard();
+				description += " duplicate"
+			}
+			if(descriptor.color) {
+				reward.filterColor(descriptor.color)
+				description += " " + descriptor.color
+			}
+			description += " cards"
+			if(descriptor.maxValue) {
+				reward.filterValue(descriptor.minValue, descriptor.maxValue)
+				description += "(max value " + descriptor.maxValue + ")"
+			}
+			reward.description = description
+			return reward
+		}
+
+		return null
+	}
 
 }

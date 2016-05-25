@@ -1,12 +1,27 @@
 import shandalike.Util
+import shandalike.UIModel
 import shandalike.data.behavior.Behavior
 import shandalike.data.reward.Reward
 import shandalike.data.reward.CardReward
 import lib.QuestController
+import lib.RewardController
 // Assign player to travel to another town.
 
 // Every behavior must implement methodMissing.
 def methodMissing(String name, args) { null }
+
+void buildUI(UIModel ui, Behavior obj, String mode) {
+  String dest = obj.getVar("destinationName")
+  String rdesc = obj.getVar("reward")
+  Reward r = RewardController.fromDescriptor(rdesc)
+  if(mode.equals("offer")) {
+    ui.addPanel("New Quest", "Travel to ${dest} and deliver a message.", this, ["Accept", "doAcceptQuest", obj] as Object[])
+  } else if (mode.equals("ongoing")) {
+
+  } else if (mode.equals("complete")) {
+    
+  }
+}
 
 String getObjectiveTitle(behavior, behavioral, arg1, arg2) {
   String dest = behavior.getVar("destinationName")

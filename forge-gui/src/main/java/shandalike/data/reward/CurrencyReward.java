@@ -6,18 +6,16 @@ import java.util.Map.Entry;
 import shandalike.Util;
 
 public class CurrencyReward implements Reward {
+	public String type = "";
+	public long amount = 0;
 	
-	public Map<String,Long> awards;
-
+	public CurrencyReward(String type, long amount) {
+		this.type = type; this.amount = amount;
+	}
+	
 	@Override
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
-		for(Entry<String, Long> kv: awards.entrySet()) {
-			sb.append(kv.getValue());
-			sb.append(" ");
-			sb.append(kv.getKey());
-		}
-		return sb.toString();
+		return type + " " + amount;
 	}
 
 	@Override
@@ -40,9 +38,7 @@ public class CurrencyReward implements Reward {
 
 	@Override
 	public void award() {
-		for(Entry<String, Long> kv: awards.entrySet()) {
-			Util.getPlayerInventory().addCurrency(kv.getKey(), kv.getValue());
-		}
+		Util.getPlayerInventory().addCurrency(type, amount);
 	}
 
 }

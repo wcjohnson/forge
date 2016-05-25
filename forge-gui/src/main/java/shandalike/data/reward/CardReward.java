@@ -7,6 +7,9 @@ import java.util.Map.Entry;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 
+import forge.card.CardRules;
+import forge.card.CardRulesPredicates;
+import forge.card.MagicColor;
 import forge.card.PrintSheet;
 import forge.deck.CardPool;
 import forge.item.InventoryItem;
@@ -17,6 +20,7 @@ import shandalike.Util;
 import shandalike.data.character.Inventory;
 import shandalike.data.entity.town.CardShop;
 import shandalike.data.entity.town.Town;
+import shandalike.mtg.Format;
 import shandalike.mtg.ShopModel;
 import shandalike.mtg.ShopModel.TransactionResult;
 
@@ -41,6 +45,8 @@ public class CardReward implements Reward {
 	 * may only be picked this many times.
 	 */
 	public int dupeQty = 1;
+	/** If this is true the player's inventory is used as the base cardpool */
+	public boolean duplicate = false;
 	/** Predicate to match format cards against to get cardpool. */
 	public transient Predicate<PaperCard> predicate = Predicates.alwaysTrue();
 	/** Cardpool that reward will be drawn from. */
@@ -55,16 +61,47 @@ public class CardReward implements Reward {
 	}
 	
 	/**
+	 * Add a value filter to the reward cards.
+	 * @param min
+	 * @param max
+	 */
+	public void filterValue(final int min, final int max) {
+		final Format format = Util.getFormat();
+		Predicate<PaperCard> valueFilter = new Predicate<PaperCard>() {
+			@Override
+			public boolean apply(PaperCard input) {
+				int val = format.getCardValue(input);
+				return (val >= min && val <= max);
+			}
+		};
+		predicate = Predicates.and(predicate, valueFilter);
+	}
+	
+	public void filterColor(String color) {
+		MagicColor.Color c = Util.colorForName(color);
+		if(c == null) return;
+		Predicate<CardRules> p1;
+		if(color.equals("colorless")) {
+			p1 = CardRulesPredicates.isMonoColor(c.getColormask());
+		} else {
+			p1 = CardRulesPredicates.hasColor(c.getColormask());
+		}
+		final Predicate<CardRules> p2 = p1;
+		Predicate<PaperCard> filter = new Predicate<PaperCard>() {
+			@Override
+			public boolean apply(PaperCard arg0) {
+				return p2.apply(arg0.getRules());
+			}			
+		};
+		predicate = Predicates.and(predicate, filter);
+	}
+	
+	/**
 	 * Allow the player to dupe a card from his inventory matching the predicates.
 	 */
 	public void setDuplicateCard() {
 		policy = "pick";
-		cardPool = new CardPool();
-		for(Entry<PaperCard, Integer> c: Util.getPlayerInventory().cardPool) {
-			if(predicate.apply(c.getKey())) {
-				cardPool.add(c.getKey(), dupeQty);
-			}
-		}
+		duplicate = true;
 	}
 	
 	public void build() {
@@ -81,8 +118,17 @@ public class CardReward implements Reward {
 			}
 			return;
 		}
-		// Generate card pool from format
+		// Generate card pool
 		cardPool = new CardPool();
+		if(duplicate) {
+			for(Entry<PaperCard, Integer> c: Util.getPlayerInventory().cardPool) {
+				if(predicate.apply(c.getKey())) {
+					cardPool.add(c.getKey(), dupeQty);
+				}
+			}
+			return;
+		}
+		// Non-dupe -- pull from format
 		for(PaperCard c: Util.getFormat().getAllCards()) {
 			if(predicate.apply(c)) {
 				if(policy.equals("pick")) {
