@@ -36,6 +36,7 @@ public class MapInfo {
 	public transient TiledMap tileMap;
 	public transient int width, height;
 	public transient int tileWidth;
+	public transient int widthTiles, heightTiles;
 	public transient boolean snapToTiles;
 		
 	/**
@@ -61,6 +62,9 @@ public class MapInfo {
 		width = (int) tileMap.getProperties().get("width");
 		height = (int) tileMap.getProperties().get("height");
 		tileWidth = (int) tileMap.getProperties().get("tilewidth");
+		widthTiles = width/tileWidth;
+		heightTiles = height/tileWidth;
+		
 		snapToTiles = false;
 		String sttProp = (String)tileMap.getProperties().get("snapToTiles");
 		if( sttProp != null && sttProp.equals("true") ) { snapToTiles = true; }
