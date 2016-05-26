@@ -10,6 +10,7 @@ class TownController {
 	UIModel townMenu
 	long foodPrice
 	long foodQty = 20
+	def offeredQuests = []
 
 	TownController(Town ts) {
 		this.town = ts
@@ -80,38 +81,13 @@ class TownController {
 	/////////////////// Callbacks
 	void doQuests(arg1, arg2) {
 		def questUI = new UIModel()
-		Util.runScript("journalScreen", "buildObjectivesUI", [questUI, true, false] as Object[])
-		questUI.addPanel("New Quest", "Travel to somewhere and do something", this,
-			["Accept", "doAcceptQuest", null] as Object[]
-		)
+		def quest = Util.runScript("quests", "getRandomQuest", town)
+		quest.runScript("buildUI", Util.getPlayer(), questUI, "offer")
 		questUI.addButton("Back to Town", this, "doExitSubscreen", null, null)
 		Util.pushUI(questUI)
 	}
 
 	void doExitSubscreen(arg1, arg2) {
-		Util.popUI()
-	}
-
-	void doAcceptQuest(arg1, arg2) {
-		// Locate nearest town
-	 	Town nearestTown = null
-		float distance = 9999.0f
-		Util.getActiveMapState().getAllEntities().each {
-			if(it instanceof Town && !it.id.equals(town.id)) {
-				float nextDistance = it.distanceFrom(town)
-				if(nextDistance < distance) {
-					distance = nextDistance
-					nearestTown = it
-				}
-			}
-		}
-		if(nearestTown == null) return
-
-		Behavior beh = new Behavior()
-		beh.script = "objective_travel"
-		beh.setVar("destinationName", nearestTown.getName())
-		beh.setVar("destinationId", nearestTown.id)
-		Util.getPlayer().getObjectives().addBehavior(beh)
 		Util.popUI()
 	}
 
@@ -124,7 +100,7 @@ class TownController {
 	void openCardShop(arg1, arg2) {
 		if(town.cardShop != null) {
 			// Instruct the core to open the card shop tab with the town's shop model
-			Util.openShop(town.cardShop.getShopModel(town))
+			Util.openShop(town.cardShop.getShopModel())
 		}
 	}
 
@@ -134,7 +110,8 @@ class TownController {
 
 	void tryLeaveTown(arg1, arg2) {
 		// Make sure player has an active, legal deck.
-		if(Util.getPlayer().getInventory().getActiveDeck() == null) {
+		def deck = Util.getPlayerInventory().getActiveDeck()
+		if(deck == null) {
 			Util.showMessageBox("Cannot leave town without an active deck! Choose 'Edit Decks' to build one.", "No Active Deck")
 			return
 		}

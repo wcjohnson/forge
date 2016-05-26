@@ -141,6 +141,7 @@ public enum VDecks implements IPanel {
 	public void panelWasShown() {
 		// TODO Auto-generated method stub
 		update();
+		cmdDeckSelect.run();
 	}
 	
 }

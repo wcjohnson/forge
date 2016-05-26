@@ -37,6 +37,12 @@ public class UIModel {
 		public String title;
 		public String leftText;
 		public List<Button> buttons = new ArrayList<Button>();
+		
+		public void addButton(String text, Callback callback) {
+			Button btn = new Button();
+			btn.callback = callback; btn.text = text;
+			buttons.add(btn);
+		}
 	}
 	public static class Cards implements Widget {
 		@Override
@@ -93,6 +99,13 @@ public class UIModel {
 			btn.text = (String)buttons[i];
 			pnl.buttons.add(btn);
 		}
+		widgets.add(pnl);
+		return pnl;
+	}
+	
+	public Widget addPanel(String title, String text) {
+		Panel pnl = new Panel();
+		pnl.title = title; pnl.leftText = text;
 		widgets.add(pnl);
 		return pnl;
 	}

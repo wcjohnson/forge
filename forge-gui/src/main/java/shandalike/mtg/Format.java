@@ -20,10 +20,13 @@ package shandalike.mtg;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.google.common.base.Predicate;
 
 import forge.card.CardEdition;
+import forge.deck.CardPool;
+import forge.deck.Deck;
 import forge.game.GameFormat;
 import forge.item.PaperCard;
 import forge.model.FModel;
@@ -84,6 +87,22 @@ public final class Format extends GameFormat {
     		if(c.getName().equals(name)) return c;
     	}
     	return null;
+    }
+    
+    /**
+     * Get the average value of a deck.
+     * @param deck
+     * @return
+     */
+    public float getDeckAvgValue(Deck deck) {
+    	CardPool main = deck.getMain();
+    	int sz = main.countAll();
+    	int totalValue = 0;
+    	for(Entry<PaperCard, Integer> c: main) {
+    		totalValue += c.getValue() * getCardValue(c.getKey());
+    	}
+    	if(sz == 0) return 0;
+    	return (float)totalValue / (float)sz;
     }
 
 	/**

@@ -29,6 +29,8 @@ public class Controls extends JPanel implements IGameEventListener {
 	
 	final FLabel txtGold = new FLabel.Builder().icon(FSkin.getIcon(FSkinProp.ICO_QUEST_COINSTACK)).text("Gold").build();
 	final FLabel txtFood = new FLabel.Builder().icon(FSkin.getIcon(FSkinProp.ICO_QUEST_ELIXIR)).text("Food").build();
+	final FLabel txtCards = new FLabel.Builder().icon(FSkin.getIcon(FSkinProp.ICO_DECKLIST)).text("Cards").build();
+	final FLabel txtDecks = new FLabel.Builder().icon(FSkin.getIcon(FSkinProp.ICO_DECKLIST)).text("Deck").build();
 		
 	@SuppressWarnings("serial")
 	final UiCommand doReload = new UiCommand(){
@@ -149,8 +151,11 @@ public class Controls extends JPanel implements IGameEventListener {
 		
 		JPanel statusGrid = new JPanel(new MigLayout("insets 0, flowy, wrap 2"));
 		statusGrid.setOpaque(false);
+		statusGrid.add(txtCards, "w 150");
+		statusGrid.add(txtDecks, "w 150");
 		statusGrid.add(txtGold, "w 150");
 		statusGrid.add(txtFood, "w 150");
+		
 				
 		add(buttonGrid);
 		add(statusGrid);
@@ -169,6 +174,10 @@ public class Controls extends JPanel implements IGameEventListener {
 				buttonGrid.revalidate();
 			}
 			if(Model.adventure.getPlayer() != null) {
+				String deckName = "(none)";
+				if(Util.getPlayerInventory().activeDeckName != null) deckName = Util.getPlayerInventory().activeDeckName;
+				txtCards.setText("Cards: " + Util.getPlayerInventory().cardPool.countAll());
+				txtDecks.setText("Deck: " + deckName + " (" + Util.getPlayerInventory().deckAverageValue + ")");
 				txtGold.setText("Gold: " + Model.adventure.getPlayer().getInventory().getCurrency("gold"));
 				txtFood.setText("Food: " + Model.adventure.getPlayer().getInventory().getCurrency("food"));
 			}

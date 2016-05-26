@@ -60,14 +60,15 @@
 			"Birds of Paradise": 300,
 			"Ivory Tower": 1000,
 			"Killer Bees": 250,
-			"Mana Vault": 5000
+			"Mana Vault": 5000,
+			"Basalt Monolith": 250
 		}
 	},
 	"rewardOnly": [
 		"Black Lotus", "Mox Sapphire", "Mox Emerald", "Mox Jet", "Mox Pearl", "Mox Ruby",
 		"Ancestral Recall", "Time Walk", "Timetwister", "Contract from Below", "Fastbond",
 		"Mana Drain", "Balance", "Channel", "Demonic Tutor", "Library of Alexandria",
-		"Time Vault", "Sol Ring", "Wheel of Fortune", "Braingeyser"
+		"Time Vault", "Sol Ring", "Wheel of Fortune", "Braingeyser", "Mind Twist"
 	],
 	"difficulties": [
 		{

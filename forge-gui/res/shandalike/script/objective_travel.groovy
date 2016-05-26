@@ -1,26 +1,69 @@
+// An Objective requiring the player to travel to another Town, and will be marked
+// complete when the player gets there.
+
 import shandalike.Util
 import shandalike.UIModel
+import shandalike.Callback
 import shandalike.data.behavior.Behavior
+import shandalike.data.behavior.IBehavioral
 import shandalike.data.reward.Reward
 import shandalike.data.reward.CardReward
 import lib.QuestController
 import lib.RewardController
-// Assign player to travel to another town.
+import groovy.transform.Field
+
 
 // Every behavior must implement methodMissing.
 def methodMissing(String name, args) { null }
 
-void buildUI(UIModel ui, Behavior obj, String mode) {
-  String dest = obj.getVar("destinationName")
-  String rdesc = obj.getVar("reward")
-  Reward r = RewardController.fromDescriptor(rdesc)
-  if(mode.equals("offer")) {
-    ui.addPanel("New Quest", "Travel to ${dest} and deliver a message.", this, ["Accept", "doAcceptQuest", obj] as Object[])
-  } else if (mode.equals("ongoing")) {
-
-  } else if (mode.equals("complete")) {
-    
+void buildPanel(String header, String body, String button, String method, obj, ui) {
+  def elt = ui.addPanel(header, body)
+  if(button != null) {
+    Callback cb = new Callback.ScriptObject()
+    cb.target = this; cb.method = method
+    cb.args = [obj, ui, elt] as Object[]
+    elt.addButton(button, cb)
   }
+}
+
+void buildUI(Behavior obj, IBehavioral player, UIModel ui, String mode) {
+  String dest = obj.getVar("destinationName")
+  Map rdesc = obj.getVar("reward")
+  println "rdesc ${rdesc}"
+  Reward r = RewardController.fromDescriptor(rdesc)
+  String rinfo = r.getDescription()
+  String longInfo = "<html>Travel to ${dest} and deliver a message.<br><br><b>Reward:</b><br>\n${rinfo}</html>"
+  if(mode.equals("offer")) {
+    buildPanel("New Quest", longInfo, "Accept", "doAcceptQuest", obj, ui)
+  } else if (mode.equals("ongoing")) {
+    buildPanel("Travel", longInfo, "Abandon", "doAbandonQuest", obj, ui)
+  } else if (mode.equals("complete")) {
+    buildPanel("Quest Complete!", longInfo, "Complete", "doCompleteQuest", obj, ui)
+  }
+}
+
+void doAcceptQuest(obj, ui, elt) {
+  // Add objectives to player
+  Util.getPlayer().getObjectives().addBehavior(obj)
+  ui.remove(elt)
+  ui.update()
+}
+
+void doAbandonQuest(obj, ui, elt) {
+  // Remove objective from player
+  Util.getPlayer().getObjectives().removeBehavior(obj)
+  ui.remove(elt)
+  ui.update()
+}
+
+void doCompleteQuest(obj, ui, elt) {
+  // Remove objective from player
+  Util.getPlayer().getObjectives().removeBehavior(obj)
+  Map rdesc = obj.getVar("reward")
+  Reward r = RewardController.fromDescriptor(rdesc)
+  r.build(); r.choose(); r.award()
+  ui.remove(elt)
+  ui.update()
 }
 
 String getObjectiveTitle(behavior, behavioral, arg1, arg2) {
@@ -65,10 +108,6 @@ boolean isComplete(behavior, behavioral, arg1, arg2) {
   }
 }
 
-void doAbandon(behavior, behavioral, arg1, arg2) {
-  behavioral.removeBehavior(behavior)
-}
-
 // Upon removal, dispell the tracking debuff from the player
 void behaviorWillRemove(behavior, behavioral, arg1, arg2) {
   println "objective_travel.behaviorWillRemove"
@@ -109,16 +148,6 @@ void townWillBuildMenu(behavior, player, town, townMenu) {
   Behavior obj = QuestController.getObjectiveForTag(behavior.tag)
   String destId = obj.getVar("destinationId")
   if(town.id.equals(destId) && obj.getVar("isComplete")) {
-    townMenu.addButton("Quest Complete! Claim your reward!", this, "doClaimReward", obj, null)
+    buildUI(obj, Util.getPlayer().getObjectives(), townMenu, "complete")
   }
-}
-
-void doClaimReward(behavior, arg2) {
-  // Remove objective from player
-  Behavior.purgeByTag(Util.getPlayer().getObjectives(), behavior.tag);
-  // Give reward
-  CardReward cr = new CardReward()
-  cr.n = 1
-  cr.setDuplicateCard()
-  cr.choose()
 }

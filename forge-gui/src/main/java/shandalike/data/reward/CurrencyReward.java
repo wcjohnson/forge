@@ -9,13 +9,13 @@ public class CurrencyReward implements Reward {
 	public String type = "";
 	public long amount = 0;
 	
-	public CurrencyReward(String type, long amount) {
+	public CurrencyReward(String type, int amount) {
 		this.type = type; this.amount = amount;
 	}
 	
 	@Override
 	public String getDescription() {
-		return type + " " + amount;
+		return amount + " " + type;
 	}
 
 	@Override

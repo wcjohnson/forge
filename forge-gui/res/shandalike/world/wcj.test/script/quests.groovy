@@ -11,16 +11,20 @@ Behavior makeTravelQuest(Town town, float searchRadius) {
 	def nearbyTowns = Util.getActiveMapState().getAllEntities().findAll {
 		(it instanceof Town) && !(it.id.equals(town.id)) && (it.distanceFrom(town) < searchRadius)
 	}
-	if(nearbyTowns.size() == 0) return null
+	if(nearbyTowns.size() == 0) {
+		println "quests: No nearby towns within ${searchRadius}..."
+		return null
+	}
 	// Pick random one
 	Town nearbyTown = nearbyTowns[ Util.randomInt(nearbyTowns.size()) ]
 	// Create behavior data
 	Behavior beh = new Behavior("objective_travel")
 	beh.setVar("destinationName", nearbyTown.getName())
 	beh.setVar("destinationId", nearbyTown.id)
+	beh.setVar("reward", [type: "currency", currency: "gold", amount: 50])
 	return beh
 }
 
 Behavior getRandomQuest(Town town) {
-	return makeTravelQuest(town, 25.0f)
+	return makeTravelQuest(town, 50.0f)
 }

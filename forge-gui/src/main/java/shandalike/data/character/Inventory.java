@@ -19,6 +19,7 @@ import forge.item.PaperCard;
 import forge.util.storage.IStorage;
 import forge.util.storage.StorageBase;
 import shandalike.Model;
+import shandalike.Util;
 import shandalike.data.World;
 import shandalike.mtg.RandomPool;
 
@@ -34,6 +35,8 @@ public class Inventory {
 	public Map<String, Deck> decks;
 	// Player's currently active deck
 	public String activeDeckName;
+	/** Average cardvalue of currently active deck */
+	public float deckAverageValue = 0.0f;
 	
 	public Inventory() {
 	}
@@ -153,7 +156,9 @@ public class Inventory {
 	 */
 	public void setActiveDeckName(String name) {
 		System.out.println("[Shandalike] setActiveDeck: " + name);
-		// XXX: check that deck exists
+		Deck deck = decks.get(name);
+		if(deck == null) return;
+		deckAverageValue = Util.getFormat().getDeckAvgValue(deck);
 		Model.gameEvent("playerInventoryChanged", null, null);
 		activeDeckName = name;
 	}

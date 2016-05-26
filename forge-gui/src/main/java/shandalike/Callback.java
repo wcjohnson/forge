@@ -19,6 +19,8 @@ public class Callback implements UiCommand {
 		public String method;
 		public Object[] args;
 		
+		public ScriptObject() {}
+		
 		public ScriptObject(GroovyObject target, String method, Object arg1, Object arg2) {
 			this.target = target; this.method = method;
 			args = new Object[2];
