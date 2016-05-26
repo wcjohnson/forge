@@ -3,6 +3,7 @@ import shandalike.data.world.MapState
 import shandalike.data.entity.Entity
 import shandalike.data.entity.MobilePawn
 import shandalike.data.entity.PlayerPawn
+import shandalike.data.entity.PointOfInterest
 import groovy.transform.Field
 
 @Field MapState mapState
@@ -23,10 +24,11 @@ void position(int tries) {
 	// Get map dimensions
 	def mapInfo = mapState.getMapInfo()
 	// Locate random position for trash spawning
-	x = Util.randomFloat() * (float)(mapInfo.widthTiles)
-	y = Util.randomFloat() * (float)(mapInfo.heightTiles)
+	x = Util.randomFloat() * (float)(mapInfo.width)
+	y = Util.randomFloat() * (float)(mapInfo.height)
 	// Get terrain. Don't spawn on no terrain
 	tileTerrain = mapInfo.getTerrainAt(x,y)
+	println "Positioning lair at ${x} ${y} on terrain ${tileTerrain}"
 	if(!tileTerrain || tileTerrain.equals("none")) {
 		position(tries + 1)
 		return
@@ -67,6 +69,7 @@ void cleanup(stuff) {
 }
 
 void timer(ent) {
+	println "SpawnLairs"
 	mapState = Util.getActiveMapState()
 	playerPawn = mapState.getPlayerPawn()
 	if(!playerPawn) return

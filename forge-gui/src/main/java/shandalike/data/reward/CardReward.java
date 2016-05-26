@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 
+import forge.UiCommand;
 import forge.card.CardRules;
 import forge.card.CardRulesPredicates;
 import forge.card.MagicColor;
@@ -15,7 +16,9 @@ import forge.deck.CardPool;
 import forge.item.InventoryItem;
 import forge.item.PaperCard;
 import forge.util.ItemPool;
+import shandalike.Callback;
 import shandalike.Model;
+import shandalike.UIModel;
 import shandalike.Util;
 import shandalike.data.character.Inventory;
 import shandalike.data.entity.town.CardShop;
@@ -100,8 +103,11 @@ public class CardReward implements Reward {
 	 * Allow the player to dupe a card from his inventory matching the predicates.
 	 */
 	public void setDuplicateCard() {
-		policy = "pick";
 		duplicate = true;
+	}
+	
+	public void setPicked() {
+		policy = "pick";
 	}
 	
 	public void build() {
@@ -149,6 +155,7 @@ public class CardReward implements Reward {
 			return;
 		}
 		if(policy.equals("random")) {
+			reward = new ArrayList<PaperCard>();
 			// From BoosterUtils
 			PrintSheet ps = new PrintSheet("rewards");
 			ps.addAll(cardPool.toFlatList());
@@ -286,5 +293,24 @@ public class CardReward implements Reward {
 			}
 			
 		};
+	}
+
+	@SuppressWarnings("serial")
+	@Override
+	public void show(UIModel ui, boolean showPicker) {
+		if(showPicker && reward == null) {
+			UIModel.Panel pnl = (UIModel.Panel)ui.addPanel("Reward", this.getDescription());
+			Callback cb = new Callback.Command(new UiCommand() {
+				@Override
+				public void run() {
+					CardReward.this.choose();
+				}
+			});
+			pnl.addButton("Choose Reward", cb);
+			return;
+		}
+		if(reward != null) {
+			ui.addCards("Won Cards", "", this.reward);
+		}
 	}
 }

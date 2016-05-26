@@ -2,6 +2,8 @@ package shandalike.data.reward;
 
 import java.util.ArrayList;
 
+import shandalike.UIModel;
+
 public interface Reward {
 	/**
 	 * Get a textual description of this reward before it has been granted.
@@ -29,4 +31,9 @@ public interface Reward {
 	 * player inventory.
 	 */
 	public void award();
+	
+	/**
+	 * Show the reward in a UI.
+	 */
+	public void show(UIModel ui, boolean showPicker);
 }

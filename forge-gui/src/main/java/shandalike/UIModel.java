@@ -51,7 +51,7 @@ public class UIModel {
 		public String leftText;
 		public List<PaperCard> cards;
 		public void setCards(List<PaperCard> cards) { this.cards = cards; }
-		public void setCardsFromIPaperCard(List<IPaperCard> icards) {
+		public void setCardsFromIPaperCard(List<? extends IPaperCard> icards) {
 			cards = new ArrayList<PaperCard>();
 			for(IPaperCard ipc: icards) {
 				cards.add(new PaperCard(
@@ -114,7 +114,7 @@ public class UIModel {
 		return addPanel(title, null, null);
 	}
 	
-	public Widget addCards(String title, String text, List<IPaperCard> cards) {
+	public Widget addCards(String title, String text, List<? extends IPaperCard> cards) {
 		Cards pnl = new Cards();
 		pnl.title = title; pnl.leftText = text;
 		pnl.setCardsFromIPaperCard(cards);

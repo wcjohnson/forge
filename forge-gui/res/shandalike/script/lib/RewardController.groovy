@@ -12,7 +12,7 @@ class RewardController {
 		int amt = 0
 		if(descriptor.minAmount) {
 			amt = Util.randomInt(descriptor.maxAmount - descriptor.minAmount) + descriptor.minAmount
-		} else {
+		} else if(descriptor.amount) {
 			amt = descriptor.amount
 		}
 
@@ -24,6 +24,12 @@ class RewardController {
 			def reward = new CardReward()
 			reward.n = amt
 			String description = "" + amt
+			if(descriptor.pick) {
+				reward.setPicked()
+				description += " choice of"
+			} else {
+				description += " random"
+			}
 			if(descriptor.duplicate) {
 				reward.setDuplicateCard();
 				description += " duplicate"
@@ -31,10 +37,12 @@ class RewardController {
 			if(descriptor.color) {
 				reward.filterColor(descriptor.color)
 				description += " " + descriptor.color
+			} else {
+				description += " any"
 			}
 			description += " cards"
 			if(descriptor.maxValue) {
-				reward.filterValue(descriptor.minValue, descriptor.maxValue)
+				reward.filterValue((int)descriptor.minValue, (int)descriptor.maxValue)
 				description += "(max value " + descriptor.maxValue + ")"
 			}
 			reward.description = description

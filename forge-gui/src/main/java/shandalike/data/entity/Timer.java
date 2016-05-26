@@ -20,7 +20,7 @@ public class Timer extends Positional {
 		public void think(Entity entity, ThinkState thinkState) {
 			// TODO Auto-generated method stub
 			Timer e = (Timer)entity;
-			if(e.period > 0.0f && (thinkState.gameTime - e.last > e.period)) {
+			if(e.period > 0.0f && ( (thinkState.gameTime - e.last > e.period) || e.last == 0.0f) ) {
 				e.last = thinkState.gameTime;
 				Model.script.pcall(e.script, "timer", e);
 			}

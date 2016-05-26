@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="500" tilewidth="32" tileheight="32" nextobjectid="144">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="500" tilewidth="32" tileheight="32" nextobjectid="145">
  <properties>
   <property name="onFirstEnter" value="spawnPlayerInRandomTown"/>
  </properties>
@@ -1376,6 +1376,16 @@
   &quot;type&quot;: &quot;Timer&quot;,
   &quot;period&quot;: 20.0,
   &quot;script&quot;: &quot;eatFood&quot;
+}</property>
+   </properties>
+  </object>
+  <object id="144" name="lair_spawner" x="7520" y="8096" width="32" height="32">
+   <properties>
+    <property name="action" value="init"/>
+    <property name="entity">{
+  &quot;type&quot;: &quot;Timer&quot;,
+  &quot;period&quot;: 30.0,
+  &quot;script&quot;: &quot;spawnLairs&quot;
 }</property>
    </properties>
   </object>

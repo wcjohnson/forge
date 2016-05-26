@@ -3,6 +3,7 @@ package shandalike.data.reward;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import shandalike.UIModel;
 import shandalike.Util;
 
 public class CurrencyReward implements Reward {
@@ -39,6 +40,11 @@ public class CurrencyReward implements Reward {
 	@Override
 	public void award() {
 		Util.getPlayerInventory().addCurrency(type, amount);
+	}
+
+	@Override
+	public void show(UIModel ui, boolean showPicker) {
+		ui.addPanel("Reward!", getDescription());
 	}
 
 }

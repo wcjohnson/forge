@@ -76,6 +76,7 @@ public class WorldLister extends JPanel {
         RowPanel row;
 
         for (Adventure qd : sorted) {
+        	if(qd == null || qd.summary == null) continue;
         	String capsColor = qd.summary.color.substring(0,1).toUpperCase() + qd.summary.color.substring(1);
 //            mode = qd.getMode().toString();
             row = new RowPanel(qd);
