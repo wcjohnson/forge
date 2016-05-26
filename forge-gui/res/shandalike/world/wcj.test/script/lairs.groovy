@@ -11,7 +11,12 @@ class Lairs {
 void buildLairs() {
 	lairs = new Lairs()
 
-	def randomCardLair =
+	def randomCardLair = new PointOfInterest()
+	randomCardLair.showOnMinimap = false
+	randomCardLair.labelOnMinimap = false
+	randomCardLair.labelOnMap = true
+	randomCardLair.label = "lair"
+	randomCardLair.spriteAsset = "cave.sprite.json"
 }
 
 Lairs getLairs() {
