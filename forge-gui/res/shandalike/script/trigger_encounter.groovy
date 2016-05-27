@@ -1,3 +1,4 @@
+import shandalike.Util
 import shandalike.data.entity.Entity
 import shandalike.data.behavior.Behavior
 
@@ -15,19 +16,25 @@ def methodMissing(String name, args) {
 // know the type of the arg, leave it typeless, as incorrectly typing it will cause
 // your method not to be called by Groovy.
 def collideWithPlayer(Behavior behavior, Entity thisEntity, Entity playerPawn, arg2) {
-	// Determine duel file.
-	String duelFile = (String)thisEntity.getVar("duelFile")
-	if(duelFile == null) {
-		duelFile = (String)behavior.getVar("duelFile")
+	// Determine encounter.
+	String eid = (String)thisEntity.getVar("encounterId")
+	if(eid == null) {
+		eid = (String)behavior.getVar("encounterId")
 	}
-	if(duelFile == null) {
-		println("[Shandalike] ERROR: encounter: no duelFile defined.")
+	if(eid == null) {
+		println("[Shandalike] ERROR: trigger_encounter: no encounterId defined.")
+		return
 	}
-	ctrl = new DuelController()
-	ctrl.config.duelFile = duelFile
+	def encounters = Util.runScript("encounters", "getEncounters")
+	def encounter = encounters.getById(eid)
+	if(encounter == null) {
+		println("[Shandalike] ERROR: trigger_encounter: no such encounter ${eid}.")
+		return
+	}
+
+	def ctrl = encounter.makeDuelController()
 	if(!thisEntity.getVar("noBribe")) {
 		ctrl.config.canBribe = true
-		ctrl.config.bribeValue = 100
 	} else {
 		ctrl.config.canBribe = false
 	}

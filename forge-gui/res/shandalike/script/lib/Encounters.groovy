@@ -19,7 +19,7 @@ class Encounters {
 
 	Pawn random(String category, float offColorChance) {
 		if(categories.size() == 0) return null
-		
+
 		if(Util.randomFloat() < offColorChance) {
 			category = categories[ Util.randomInt(categories.size()) ]
 		}
@@ -28,6 +28,10 @@ class Encounters {
 		if(possibleEncounters.size() == 0) return null
 		def encounter = possibleEncounters[ Util.randomInt(possibleEncounters.size()) ]
 		encounter.spawn()
+	}
+
+	Encounter getById(String id) {
+		encounters.find { it.id.equals(id) }
 	}
 
 

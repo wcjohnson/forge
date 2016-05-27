@@ -4,6 +4,7 @@ import shandalike.Util
 import shandalike.Model
 import shandalike.data.JSON
 import shandalike.mtg.RandomPool
+import shandalike.data.behavior.Behavior
 
 String randomName(first, last) {
 	String pickedFirst = first[Model.rng.randomInt(first.size())]
@@ -13,6 +14,7 @@ String randomName(first, last) {
 
 void mapInit(float x, float y, float width, float height, mapState, Map var) {
 	Town town = mapState.addEntity(Town.class)
+	town.addBehavior(new Behavior("trigger_town"))
 	town.pos.x = x; town.pos.y = y
 	town.spriteAsset = "house.sprite.json"
 

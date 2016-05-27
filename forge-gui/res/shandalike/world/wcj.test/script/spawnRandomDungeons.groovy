@@ -30,7 +30,7 @@ void setupDungeon(PointOfInterest dungeon) {
 	dungeon.load()
 	dungeon.setVar("baseMap", "dungeon_1")
 	dungeon.setVar("rewards", [])
-	dungeon.setVar("encounters", ["black_trash_1"])
+	dungeon.setVar("encounters", ["b1", "u1", "r1", "g1"])
 	dungeon.setVar("behaviors", [ ["script": "debuff_lifeTotalCarriesOver"], ["script": "debuff_evictedOnLoss"] ])
 	dungeon.setVar("density", 0.5)
 	dungeon.collisionScript = "dungeonPopulator"

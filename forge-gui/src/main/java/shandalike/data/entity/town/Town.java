@@ -12,9 +12,6 @@ public class Town extends PointOfInterest {
 	public CardShop cardShop;
 	
 	public Town() {
-		Behavior beh = new Behavior();
-		beh.script = "town";
-		this.addBehavior(beh);
 		this.labelOnMap = true;
 	}
 	

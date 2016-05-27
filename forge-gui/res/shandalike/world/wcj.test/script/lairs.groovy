@@ -18,20 +18,59 @@ class Lairs {
 	}
 }
 
+PointOfInterest buildRandomCardLair() {
+	def lair = new PointOfInterest()
+	lair.addBehavior(new Behavior("trigger_lair"))
+	lair.labelOnMap = true
+	lair.label = "RandomCardLair"
+	lair.spriteAsset = "cave.sprite.json"
+	lair.load()
+	lair.setVar("lairType", "reward")
+	lair.setVar("rewards", [
+		[type: "card", amount: 1, minValue: 0, maxValue: 500]
+	])
+
+	lair
+}
+
+PointOfInterest buildQuizLair() {
+	def lair = new PointOfInterest()
+	lair.addBehavior(new Behavior("trigger_lair"))
+	lair.labelOnMap = true
+	lair.label = "QuizLair"
+	lair.spriteAsset = "cave.sprite.json"
+	lair.load()
+	lair.setVar("lairType", "quiz")
+	lair.setVar("rewards", [
+		[type: "card", minAmount: 1, maxAmount: 3, minValue: 0, maxValue: 1000]
+	])
+
+	lair
+}
+
+PointOfInterest buildDuelLair1() {
+	def lair = new PointOfInterest()
+	lair.addBehavior(new Behavior("trigger_lair"))
+	lair.labelOnMap = true
+	lair.label = "DuelLair1"
+	lair.spriteAsset = "cave.sprite.json"
+	lair.load()
+	lair.setVar("lairType", "duel")
+	lair.setVar("encounters", [ "u1", "b1", "r1", "g1" ])
+	lair.setVar("rewards", [
+		[type: "card", minAmount: 2, maxAmount: 5, minValue: 0, maxValue: 1500]
+	])
+
+	lair
+}
+
 void buildLairs() {
 	ll = new Lairs()
+	ll.add(buildRandomCardLair())
+	ll.add(buildQuizLair())
+	ll.add(buildDuelLair1())
 
-	def randomCardLair = new PointOfInterest()
-	randomCardLair.showOnMinimap = false
-	randomCardLair.labelOnMinimap = false
-	randomCardLair.labelOnMap = true
-	randomCardLair.label = "lair"
-	randomCardLair.spriteAsset = "cave.sprite.json"
-	randomCardLair.load()
-	randomCardLair.setVar("rewards", [ [type: "card", amount: 1, minValue: 1, maxValue: 1000] ])
-	randomCardLair.addBehavior(new Behavior("trigger_lair"))
-
-	ll.add(randomCardLair)
+	ll.add(quizLair)
 }
 
 Lairs getLairs() {

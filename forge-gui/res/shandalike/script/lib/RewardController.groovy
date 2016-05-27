@@ -22,6 +22,13 @@ class RewardController {
 
 		if(descriptor.type.equals("card")) {
 			def reward = new CardReward()
+			// Named card reward
+			if(descriptor.cards) {
+				descriptor.cards.each { reward.addNamedCard(it) }
+				reward.description = reward.cards.join(', ')
+				return reward
+			}
+			// Unnamed reward
 			reward.n = amt
 			String description = "" + amt
 			if(descriptor.pick) {

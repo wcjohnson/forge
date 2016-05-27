@@ -23,13 +23,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 
 import forge.card.CardEdition;
+import forge.card.CardRulesPredicates;
 import forge.deck.CardPool;
 import forge.deck.Deck;
 import forge.game.GameFormat;
 import forge.item.PaperCard;
 import forge.model.FModel;
+import forge.util.Aggregates;
 
 
 /**
@@ -87,6 +90,17 @@ public final class Format extends GameFormat {
     		if(c.getName().equals(name)) return c;
     	}
     	return null;
+    }
+    
+    public List<PaperCard> getRandomCreatures(int n) {
+    	return Aggregates.random(
+    			Iterables.filter(
+    					this.getAllCards(), com.google.common.base.Predicates.compose(
+    							CardRulesPredicates.coreType(true, "Creature"),
+    							PaperCard.FN_GET_RULES
+    					)
+    			), 
+    		n);
     }
     
     /**

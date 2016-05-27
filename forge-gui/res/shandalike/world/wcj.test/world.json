@@ -1,7 +1,7 @@
 {
 	"name":"Test World",
 	"formatSpec": {
-		"sets": ["2ED", "ATQ", "ARN", "LEG", "DRK", "4ED"],
+		"sets": ["2ED", "ATQ", "ARN", "LEG", "DRK"],
 		"bans": [
 			"Chaos Orb", "Falling Star"
 		],
@@ -24,7 +24,7 @@
 			"Contract from Below": 50000,
 			"Strip Mine": 1200,
 			"Fastbond": 5000,
-			"Black Vise": 1000,
+			"Black Vise": 2000,
 			"The Rack": 1000,
 			"Mana Drain": 5000,
 			"Swords to Plowshares": 1000,
@@ -61,7 +61,9 @@
 			"Ivory Tower": 1000,
 			"Killer Bees": 250,
 			"Mana Vault": 5000,
-			"Basalt Monolith": 250
+			"Basalt Monolith": 250,
+			"Moat": 1250,
+			"The Rack": 1250
 		}
 	},
 	"rewardOnly": [

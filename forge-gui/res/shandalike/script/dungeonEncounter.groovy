@@ -9,10 +9,11 @@ void mapInit(float x, float y, float width, float height, MapState mapState, Map
 	println "dungeonEncounter spawner: ${context}"
 	if( Util.randomFloat() < (float)context.density ) {
 		// PIck random encounter
-		String randomEncounter = context.encounters[Util.randomInt(context.encounters.size())]
+		String eid = context.encounters[Util.randomInt(context.encounters.size())]
+		def encounters = Util.runScript("encounters", "getEncounters")
+		def encounter = encounters.getById(eid)
 		// Instantiate template
-		Entity ent = Util.getWorldState().getBaseWorld().entityTemplates.get(randomEncounter)
-		MobilePawn pawn = (MobilePawn)ent.deepCopy()
+		MobilePawn pawn = encounter.spawn()
 		pawn.pos.x = x; pawn.pos.y = y
 		pawn.moving = false
 		pawn.setVar("noBribe", true) // don't allow dungeon mobs to be bribed

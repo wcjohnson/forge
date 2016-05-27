@@ -64,6 +64,16 @@ public class CardReward implements Reward {
 	}
 	
 	/**
+	 * Add a card by name. Note: when you do this, it becomes a specific named card award and all
+	 * other award options will no longer apply.
+	 * @param name
+	 */
+	public void addNamedCard(String name) {
+		if(cards == null) cards = new ArrayList<String>();
+		cards.add(name);
+	}
+	
+	/**
 	 * Add a value filter to the reward cards.
 	 * @param min
 	 * @param max
@@ -169,7 +179,7 @@ public class CardReward implements Reward {
 	}
 	
 	public void choose() {
-		if(policy.equals("pick")) {
+		if(policy.equals("pick") && reward == null) {
 			reward = new ArrayList<PaperCard>();
 			Util.openShop(getShopModel());
 		}
@@ -297,20 +307,22 @@ public class CardReward implements Reward {
 
 	@SuppressWarnings("serial")
 	@Override
-	public void show(UIModel ui, boolean showPicker) {
+	public void show(final UIModel ui, boolean showPicker) {
 		if(showPicker && reward == null) {
-			UIModel.Panel pnl = (UIModel.Panel)ui.addPanel("Reward", this.getDescription());
+			final UIModel.Panel pnl = (UIModel.Panel)ui.addPanel("Reward!", this.getDescription());
 			Callback cb = new Callback.Command(new UiCommand() {
 				@Override
 				public void run() {
 					CardReward.this.choose();
+					ui.remove(pnl);
+					ui.update();
 				}
 			});
 			pnl.addButton("Choose Reward", cb);
 			return;
 		}
 		if(reward != null) {
-			ui.addCards("Won Cards", "", this.reward);
+			ui.addCards("Reward!", this.getDescription(), this.reward);
 		}
 	}
 }

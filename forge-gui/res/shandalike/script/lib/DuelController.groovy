@@ -1,7 +1,11 @@
 package lib
+
 import shandalike.mtg.Duel
 import shandalike.Model
 import shandalike.Util
+import shandalike.data.reward.Reward
+
+import lib.RewardController
 
 class DuelController {
 	Duel duel
@@ -96,11 +100,18 @@ class DuelController {
 
 	///////////////////// Postduel activities
 	def duel_ended(theDuel) {
-		buildPostDuelMenu()
+		if(duel.result.playerDidWin) {
+			duel.menu.addPanel("Victory!", "You have vanquished ${duel.getOpponentName()}!", this)
+		} else {
+			duel.menu.addPanel("Defeat!", "You were shamed by ${duel.getOpponentName()}", this)
+		}
+
 		// Despawn entity if called for
 		if( (config.despawnOnWin && duel.result.playerDidWin) || (config.despawnOnLose && duel.result.playerDidLose) ) {
 			despawn()
 		}
+		buildPostDuelMenu()
+		duel.menu.addButton("Return to World", this, "clickedReturn", null, null)
 	}
 
 	void despawn() {
@@ -118,12 +129,8 @@ class DuelController {
 	}
 
 	def buildPostDuelMenu() {
-		if(duel.result.playerDidWin) {
-			duel.menu.addPanel("Victory!", "You have vanquished ${duel.getOpponentName()}!", this)
-		} else {
-			duel.menu.addPanel("Defeat!", "You were shamed by ${duel.getOpponentName()}", this)
-		}
-		duel.menu.addButton("Return to World", this, "clickedReturn", null, null)
+
+
 	}
 
 	def clickedReturn(arg1, arg2) {
