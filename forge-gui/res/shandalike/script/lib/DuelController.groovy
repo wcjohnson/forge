@@ -102,6 +102,9 @@ class DuelController {
 	def duel_ended(theDuel) {
 		if(duel.result.playerDidWin) {
 			duel.menu.addPanel("Victory!", "You have vanquished ${duel.getOpponentName()}!", this)
+			if(config.rewards) {
+				RewardController.grantAwardsFromDescriptors(config.rewards, duel.menu)
+			}
 		} else {
 			duel.menu.addPanel("Defeat!", "You were shamed by ${duel.getOpponentName()}", this)
 		}

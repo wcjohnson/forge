@@ -66,11 +66,9 @@ PointOfInterest buildDuelLair1() {
 
 void buildLairs() {
 	ll = new Lairs()
-	ll.add(buildRandomCardLair())
-	ll.add(buildQuizLair())
+	//ll.add(buildRandomCardLair())
+	//ll.add(buildQuizLair())
 	ll.add(buildDuelLair1())
-
-	ll.add(quizLair)
 }
 
 Lairs getLairs() {

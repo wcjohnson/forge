@@ -15,18 +15,19 @@ void clickedReturn(arg1, arg2) {
 	Util.popUI()
 }
 
-public void grantAwards(Entity lair, arg2) {
+void doAcceptDuel(Entity lair, def encounter) {
+	Util.popUI()
+	def ctrl = encounter.makeDuelController()
+	ctrl.config.canBribe = false
+	ctrl.config.rewards = lair.getVar("rewards")
+	ctrl.startDuel()
+}
+
+void grantAwards(Entity lair, arg2) {
 	def rewardDescs = lair.getVar("rewards")
-	println "trigger_lair.grantAwards ${rewardDescs}"
-	def rewards = rewardDescs.collect {
-		def reward = RewardController.fromDescriptor(it)
-		reward.build(); reward.award()
-		return reward
-	}
-	// Show ui
 	def ui = new UIModel()
 	ui.addHeading("Lair Rewards!")
-	rewards.each { it.show(ui, true) }
+	RewardController.grantAwardsFromDescriptors(rewardDescs, ui)
 	ui.addButton("Return", this, "clickedReturn", null, null)
 	Util.pushUI(ui)
 }
@@ -46,8 +47,6 @@ void collideWithPlayer(Behavior behavior, Entity trigger, Entity playerPawn, arg
 	} else if(lairType.equals("reward")) {
 		grantAwards(lair, null)
 	} else if (lairType.equals("duel")) {
-		// XXX: this is essentially copypasta of trigger_encounter
-		// Factor all this out somewhere...
 		def encs = trigger.getVar("encounters")
 		def eid = encs[Util.randomInt(encs.size())]
 		def encounters = Util.runScript("encounters", "getEncounters")
@@ -56,10 +55,16 @@ void collideWithPlayer(Behavior behavior, Entity trigger, Entity playerPawn, arg
 			println("[Shandalike] ERROR: no such encounter ${eid}.")
 			return
 		}
-		def ctrl = encounter.makeDuelController()
-		ctrl.config.canBribe = false
-		ctrl.config.rewards = trigger.getVar("rewards")
-		ctrl.startDuel()
+		// Duel prompt
+		def ui = new UIModel()
+		ui.addPanel("${encounter.name} Lair", """<html>
+You stumbled on a ${encounter.name} lair.<br>
+You may flee, or fight the beast for the following rewards:<br><br>\n
+""" + RewardController.describeRewardsFromDescriptors(trigger.getVar("rewards")) + "</html>"
+		)
+		ui.addButton("Fight", this, "doAcceptDuel", trigger, encounter)
+		ui.addButton("Flee", this, "clickedReturn", null, null)
+		Util.pushUI(ui)
 	}
 	// Despawn this entity
 	Util.getActiveMapState().removeEntity(trigger)

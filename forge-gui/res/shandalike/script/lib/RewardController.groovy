@@ -4,16 +4,22 @@ import shandalike.Util
 import shandalike.data.reward.Reward
 import shandalike.data.reward.CardReward
 import shandalike.data.reward.CurrencyReward
+import shandalike.UIModel
 
 // Manages reward handouts.
 class RewardController {
 
 	static Reward fromDescriptor(Map descriptor) {
 		int amt = 0
+		String description = ""
 		if(descriptor.minAmount) {
-			amt = Util.randomInt(descriptor.maxAmount - descriptor.minAmount) + descriptor.minAmount
+			int imin = (int)descriptor.minAmount
+			int imax = (int)descriptor.maxAmount
+			amt = Util.randomInt(imax - imin) + imin
+			description += "${imin}-${imax}"
 		} else if(descriptor.amount) {
 			amt = descriptor.amount
+			description += amt
 		}
 
 		if(descriptor.type.equals("currency")) {
@@ -30,7 +36,6 @@ class RewardController {
 			}
 			// Unnamed reward
 			reward.n = amt
-			String description = "" + amt
 			if(descriptor.pick) {
 				reward.setPicked()
 				description += " choice of"
@@ -57,6 +62,27 @@ class RewardController {
 		}
 
 		return null
+	}
+
+	static String describeRewardsFromDescriptors(descrs) {
+		if(descrs == null || descrs.size() == 0) return "None.<br>\n"
+		String desc = ""
+		descrs.each {
+			Reward r = RewardController.fromDescriptor(it)
+			desc += "- ${r.getDescription()}<br>\n"
+		}
+		desc
+	}
+
+	static void grantAwardsFromDescriptors(descrs, UIModel ui) {
+		def rewards = descrs.collect {
+			def reward = RewardController.fromDescriptor(it)
+			reward.build(); reward.award()
+			reward
+		}
+		if(ui != null) {
+			rewards.each{ it.show(ui, true) }
+		}
 	}
 
 }
