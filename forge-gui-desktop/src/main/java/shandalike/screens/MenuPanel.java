@@ -170,13 +170,15 @@ public class MenuPanel extends JPanel implements HierarchyListener, UIModel.Chan
 	private void rebuild() {
 		this.removeAll();
 		componentTypes.clear();
-		for(UIModel.Widget w: model.widgets) {
-			WidgetViewController ctrl = viewControllers.get(w.getWidgetType());
-			String constraints = ctrl.getConstraints();
-			if(constraints == null) constraints = "h 50px::, w 90%!";
-			if(ctrl != null) {
-				componentTypes.add(w.getWidgetType());
-				this.add(ctrl.build(this, w), constraints);
+		if(model != null) {
+			for(UIModel.Widget w: model.widgets) {
+				WidgetViewController ctrl = viewControllers.get(w.getWidgetType());
+				String constraints = ctrl.getConstraints();
+				if(constraints == null) constraints = "h 50px::, w 90%!";
+				if(ctrl != null) {
+					componentTypes.add(w.getWidgetType());
+					this.add(ctrl.build(this, w), constraints);
+				}
 			}
 		}
 		this.revalidate();

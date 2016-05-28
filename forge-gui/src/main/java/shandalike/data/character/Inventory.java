@@ -109,16 +109,44 @@ public class Inventory {
 	 * @return
 	 */
 	public long getCurrency(String currencyType) {
+		// Special case for amulets -- total up all amulets
+		if(currencyType.equals("amulets")) {
+			return getAmulets();
+		}
 		Long i = currency.get(currencyType);
 		if(i == null) return 0;
 		return i;
 	}
 	
+	protected long getAmulets() {
+		long x = 0;
+		for(Entry<String, Long> k: currency.entrySet()) {
+			if(k.getKey().startsWith("amulet_")) x += k.getValue();
+		}
+		return x;
+	}
+	
 	public boolean takeCurrency(String currencyType, long amt) {
+		if(currencyType.equals("amulets")) return takeAmulets(amt);
 		long x = getCurrency(currencyType);
 		if(x < amt) return false;
 		currency.put(currencyType, x - amt);
 		Model.gameEvent("playerInventoryChanged", null, null);
+		return true;
+	}
+	
+	public boolean takeAmulets(long amt) {
+		if(amt > getAmulets()) return false;
+		for(Entry<String, Long> k: currency.entrySet()) {
+			if(k.getKey().startsWith("amulet_")) {
+				amt -= k.getValue();
+				if(amt <= 0L) {
+					k.setValue(-amt);
+					break;
+				}
+				k.setValue(0L);
+			}
+		}
 		return true;
 	}
 	

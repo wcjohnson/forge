@@ -33,6 +33,11 @@ public interface ShopModel {
 	public long getShopCurrency();
 	/** GEt name of relevant currency of this shop. gold, amulets, etc. */
 	public String getCurrencyName();
+	/** Attempt to take the given amount of currency from the player, returning true if successful. DO NOT use on dry runs. */
+	public boolean takePlayerCurrency(long amt);
+	public boolean givePlayerCurrency(long amt);
+	public boolean takeShopCurrency(long amt);
+	public boolean giveShopCurrency(long amt);
 	/** Can this shop buy cards from the player? */
 	public boolean canBuy();
 	/** Can the player sell cards to this shop? */

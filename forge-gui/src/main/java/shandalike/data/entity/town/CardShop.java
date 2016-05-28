@@ -30,6 +30,10 @@ public class CardShop {
 	public long restockGold = 0;
 	/** Shop inventory */
 	public CardPool inventory;
+	/** Shop currency type */
+	public String currencyType = "gold";
+	public boolean canBuy = true;
+	public boolean canSell = true;
 	
 	/**
 	 * Determine if the spell shop needs restocked.
@@ -57,6 +61,13 @@ public class CardShop {
 	}
 	
 	/**
+	 * Set the cardpool for the shop directly.
+	 */
+	public void setCardPool(CardPool cp) {
+		this.inventory = cp;
+	}
+	
+	/**
 	 * Get the ShopModel to attach to the shop controller for this card shop.
 	 * @param parentTown
 	 * @return
@@ -76,7 +87,7 @@ public class CardShop {
 
 			@Override
 			public long getPlayerCurrency() {
-				return Model.adventure.getPlayer().getInventory().getCurrency("gold");
+				return Model.adventure.getPlayer().getInventory().getCurrency(currencyType);
 			}
 
 			@Override
@@ -86,17 +97,17 @@ public class CardShop {
 
 			@Override
 			public String getCurrencyName() {
-				return "Gold";
+				return currencyType;
 			}
 
 			@Override
 			public boolean canBuy() {
-				return true;
+				return canBuy;
 			}
 
 			@Override
 			public boolean canSell() {
-				return true;
+				return canSell;
 			}
 
 			@Override
@@ -138,12 +149,12 @@ public class CardShop {
 		            final int qty = itemEntry.getValue();
 		            final long value = getBuyPrice(item, qty);
 		            // Take gold from player
-		            if(inventory.takeCurrency("gold", value)) {
+		            if(takePlayerCurrency(value)) {
 		            	// Add card to player
 		            	inventory.addCard((PaperCard)item, qty);
 		            	itemsToAdd.add(item, qty);
 		            	// Add the gold from the shop inventory
-			            CardShop.this.gold += value;
+		            	giveShopCurrency(value);
 			            // Rmoeve the card from the shop inventory
 			            CardShop.this.inventory.remove((PaperCard)item, qty);
 		            }
@@ -195,9 +206,9 @@ public class CardShop {
 		            // Subtract the card from the player
 		            inventory.removeCard(card, qty);
 		            // Subtract the gold from the shop inventory
-		            CardShop.this.gold -= price;
+		            takeShopCurrency(price);
 		            // Add the gold to the player inventory
-		            inventory.addCurrency("gold", price);
+		            givePlayerCurrency(price);
 		            // Add the card to the shop inventory
 		            CardShop.this.inventory.add(card, qty);
 		        }
@@ -210,18 +221,44 @@ public class CardShop {
 			@Override
 			public long getBuyPrice(InventoryItem item, Integer count) {
 				float f = (float)Model.adventure.getWorld().getFormat().getCardValue((PaperCard)item) * (float)count * buyRatio;
-				return (long)f;
+				return (long)Math.ceil(f);
 			}
 
 			@Override
 			public long getSellPrice(InventoryItem item, Integer count) {
 				float f = (float)Model.adventure.getWorld().getFormat().getCardValue((PaperCard)item) * (float)count * sellRatio;
-				return (long)f;
+				return (long)Math.ceil(f);
 			}
 
 			@Override
 			public int getQtyOwned(InventoryItem item) {
 				return Model.adventure.getPlayer().getInventory().cardPool.count((PaperCard)item);
+			}
+
+			@Override
+			public boolean takePlayerCurrency(long amt) {
+				return Util.getPlayerInventory().takeCurrency(currencyType, amt);
+			}
+
+			@Override
+			public boolean givePlayerCurrency(long amt) {
+				Util.getPlayerInventory().addCurrency(currencyType, amt);
+				return true;
+			}
+
+			@Override
+			public boolean takeShopCurrency(long amt) {
+				if(CardShop.this.gold >= amt) {
+					CardShop.this.gold -= amt; return true;
+				} else {
+					return false;
+				}
+			}
+
+			@Override
+			public boolean giveShopCurrency(long amt) {
+				CardShop.this.gold += amt;
+				return true;
 			}
 			
 		};

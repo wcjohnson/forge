@@ -100,6 +100,10 @@ public class Util {
 		return Model.adventure.getWorld().getDifficultySpec();
 	}
 	
+	public int getDifficulty() {
+		return Model.adventure.summary.difficulty;
+	}
+	
 	/**
 	 * General utility for picking items out of collections.
 	 * See http://stackoverflow.com/questions/124671/picking-a-random-element-from-a-set

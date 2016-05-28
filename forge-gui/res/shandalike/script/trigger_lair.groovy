@@ -3,6 +3,8 @@ import shandalike.data.behavior.Behavior
 import shandalike.Util
 import shandalike.UIModel
 import shandalike.Callback
+import shandalike.data.entity.town.CardShop
+import shandalike.data.reward.Reward
 
 import lib.RewardController
 import lib.Quiz
@@ -30,6 +32,19 @@ void grantAwards(Entity lair, arg2) {
 	RewardController.grantAwardsFromDescriptors(rewardDescs, ui)
 	ui.addButton("Return", this, "clickedReturn", null, null)
 	Util.pushUI(ui)
+}
+
+void doOpenShop(Entity lair, arg2) {
+	CardShop shop = new CardShop()
+	shop.canSell = false
+	shop.currencyType = lair.getVar("currencyType")
+	shop.buyRatio = lair.getVar("currencyRatio")
+	// Build cardpool of shop from reward spec
+	Reward r = RewardController.fromDescriptor(lair.getVar("inventory"))
+	r.build()
+	shop.setCardPool(r.getCardPool())
+	Util.popUI()
+	Util.openShop(shop.getShopModel())
 }
 
 // Dungeon reward script.
@@ -64,6 +79,17 @@ You may flee, or fight the beast for the following rewards:<br><br>\n
 		)
 		ui.addButton("Fight", this, "doAcceptDuel", trigger, encounter)
 		ui.addButton("Flee", this, "clickedReturn", null, null)
+		Util.pushUI(ui)
+	} else if (lairType.equals("shop")) {
+		String name = trigger.getVar("shopName")
+		String curr = trigger.getVar("currencyType")
+		Reward r = RewardController.fromDescriptor(trigger.getVar("inventory"))
+		def ui = new UIModel()
+		ui.addPanel("${name}", """<html>
+You happen upon a ${name}. Here you can trade ${curr} for ${r.getDescription()}.
+</html>""")
+		ui.addButton("Enter ${name}", this, "doOpenShop", trigger, null)
+		ui.addButton("Leave", this, "clickedReturn", null, null)
 		Util.pushUI(ui)
 	}
 	// Despawn this entity

@@ -48,6 +48,38 @@ PointOfInterest buildQuizLair() {
 	lair
 }
 
+PointOfInterest buildBazaarLair() {
+	def lair = new PointOfInterest()
+	lair.addBehavior(new Behavior("trigger_lair"))
+	lair.labelOnMap = true
+	lair.label = "BazaarLair"
+	lair.spriteAsset = "cave.sprite.json"
+	lair.load()
+	lair.setVar("lairType", "shop")
+	lair.setVar("shopName", "Bazaar of Wonders")
+	lair.setVar("currencyType", "gold")
+	lair.setVar("currencyRatio", 2.0f)
+	lair.setVar("inventory", [type: "card", minValue: 0, maxValue: 10000, pick: true])
+
+	lair
+}
+
+PointOfInterest buildGemLair() {
+	def lair = new PointOfInterest()
+	lair.addBehavior(new Behavior("trigger_lair"))
+	lair.labelOnMap = true
+	lair.label = "GemLair"
+	lair.spriteAsset = "cave.sprite.json"
+	lair.load()
+	lair.setVar("lairType", "shop")
+	lair.setVar("shopName", "Diamond Mine")
+	lair.setVar("currencyType", "amulets")
+	lair.setVar("currencyRatio", 1.0f/500.0f)
+	lair.setVar("inventory", [type: "card", minValue: 0, maxValue: 20000, pick: true])
+
+	lair
+}
+
 PointOfInterest buildDuelLair1() {
 	def lair = new PointOfInterest()
 	lair.addBehavior(new Behavior("trigger_lair"))
@@ -66,9 +98,25 @@ PointOfInterest buildDuelLair1() {
 
 void buildLairs() {
 	ll = new Lairs()
-	//ll.add(buildRandomCardLair())
-	//ll.add(buildQuizLair())
-	ll.add(buildDuelLair1())
+	def rc = buildRandomCardLair()
+	def q = buildQuizLair()
+	def baz = buildBazaarLair()
+	def gem = buildGemLair()
+	def d1 = buildDuelLair1()
+	int difficulty = Util.getDifficulty()
+
+	ll.add(rc); ll.add(rc); ll.add(rc); ll.add(rc); ll.add(rc)
+	ll.add(rc); ll.add(rc); ll.add(rc); ll.add(rc); ll.add(rc)
+	ll.add(q); ll.add(q)
+	ll.add(d1); ll.add(d1); ll.add(d1); ll.add(d1)
+
+	// Lower difficulty = more bazzaars
+	ll.add(baz)
+	if(difficulty < 3) ll.add(baz)
+	if(difficulty < 2) ll.add(baz)
+	if(difficulty < 1) ll.add(baz)
+	ll.add(gem)
+	if(difficulty < 2) ll.add(gem)
 }
 
 Lairs getLairs() {

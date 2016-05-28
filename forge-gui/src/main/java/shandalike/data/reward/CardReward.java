@@ -122,20 +122,22 @@ public class CardReward implements Reward {
 	
 	public void build() {
 		// Early out if card pool already picked.
-		if(cardPool != null) return;
+		if(cardPool != null || reward != null) return;
+		// Generate card pool
+		cardPool = new CardPool();
 		// If a list of cards is specified, those are the reward cards, period.
 		if(cards != null) {
 			reward = new ArrayList<PaperCard>();
 			for(String cardName: cards) {
 				PaperCard pc = Util.getFormat().getCardByName(cardName);
 				if(pc != null) {
+					cardPool.add(pc);
 					reward.add(pc);
 				}
 			}
 			return;
 		}
-		// Generate card pool
-		cardPool = new CardPool();
+		// Dupe - pull cardpool from player inventory
 		if(duplicate) {
 			for(Entry<PaperCard, Integer> c: Util.getPlayerInventory().cardPool) {
 				if(predicate.apply(c.getKey())) {
@@ -155,6 +157,8 @@ public class CardReward implements Reward {
 			}
 		}
 	}
+	
+	public CardPool getCardPool() { return cardPool; }
 		
 	public void award() {
 		// THe pick utility automatically adds the cards to inventory
@@ -262,7 +266,7 @@ public class CardReward implements Reward {
 		            final int qty = itemEntry.getValue();
 		            final long value = getBuyPrice(item, qty);
 		            // Take gold from player
-		            nRemaining -= value;
+		            takePlayerCurrency(value);
 	            	// Add card to player
 		            for(int i=0; i<qty; i++)
 		            	reward.add((PaperCard)item);
@@ -300,6 +304,32 @@ public class CardReward implements Reward {
 			@Override
 			public int getQtyOwned(InventoryItem item) {
 				return Model.adventure.getPlayer().getInventory().cardPool.count((PaperCard)item);
+			}
+
+			@Override
+			public boolean takePlayerCurrency(long amt) {
+				if(nRemaining >= amt) {
+					nRemaining -= amt; return true;
+				} else {
+					return false;
+				}
+			}
+
+			@Override
+			public boolean givePlayerCurrency(long amt) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean takeShopCurrency(long amt) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean giveShopCurrency(long amt) {
+				return true;
 			}
 			
 		};

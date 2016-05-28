@@ -55,7 +55,7 @@ class RewardController {
 			description += " cards"
 			if(descriptor.maxValue) {
 				reward.filterValue((int)descriptor.minValue, (int)descriptor.maxValue)
-				description += "(max value " + descriptor.maxValue + ")"
+				description += " (max value " + descriptor.maxValue + ")"
 			}
 			reward.description = description
 			return reward
