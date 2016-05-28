@@ -26,12 +26,10 @@ void buildPanel(String header, String body, String button, String method, obj, u
   }
 }
 
-void buildUI(Behavior obj, IBehavioral player, UIModel ui, String mode) {
+void buildUI(Behavior obj, IBehavioral objectives, UIModel ui, String mode) {
   String dest = obj.getVar("destinationName")
-  Map rdesc = obj.getVar("reward")
-  println "rdesc ${rdesc}"
-  Reward r = RewardController.fromDescriptor(rdesc)
-  String rinfo = r.getDescription()
+  def rdesc = obj.getVar("rewards")
+  String rinfo = RewardController.describeRewardsFromDescriptors(rdesc)
   String longInfo = "<html>Travel to ${dest} and deliver a message.<br><br><b>Reward:</b><br>\n${rinfo}</html>"
   if(mode.equals("offer")) {
     buildPanel("New Quest", longInfo, "Accept", "doAcceptQuest", obj, ui)
@@ -59,9 +57,9 @@ void doAbandonQuest(obj, ui, elt) {
 void doCompleteQuest(obj, ui, elt) {
   // Remove objective from player
   Util.getPlayer().getObjectives().removeBehavior(obj)
-  Map rdesc = obj.getVar("reward")
-  Reward r = RewardController.fromDescriptor(rdesc)
-  r.build(); r.choose(); r.award()
+  def rewardDescs = obj.getVar("rewards")
+  ui.addHeading("Quest Completed!")
+  RewardController.grantAwardsFromDescriptors(rewardDescs, ui)
   ui.remove(elt)
   ui.update()
 }
@@ -74,7 +72,7 @@ String getObjectiveTitle(behavior, behavioral, arg1, arg2) {
 String getObjectiveDescription(behavior, behavioral, arg1, arg2) {
   String dest = behavior.getVar("destinationName")
   if(behavior.getVar("isComplete")) {
-    "Quest complete! Claim your reward!"
+    "Quest complete! Travel to ${dest} and claim your reward!"
   } else {
     "Travel to ${dest} and deliver a message."
   }
@@ -96,10 +94,12 @@ boolean isHelpful(behavior) {
   true
 }
 
+// Can this quest be abandoned?
 boolean canAbandon(behavior, behavioral, arg1, arg2) {
   true
 }
 
+// Is this quest complete?
 boolean isComplete(behavior, behavioral, arg1, arg2) {
   if(behavior.getVar("isComplete")) {
     true
@@ -108,12 +108,20 @@ boolean isComplete(behavior, behavioral, arg1, arg2) {
   }
 }
 
+// Quest must be complete and player must be in destination city
+// NOTE: canTurnIn is executed in the quest context, not the playerbuff context
+boolean canTurnIn(behavior, behavioral, arg1, arg2) {
+  if(!isComplete(behavior, behavioral, arg1, arg2)) return false
+  String inTownId = Util.getActiveMapState().inTownId
+  if(!inTownId) return false
+  if(!inTownId.equals(behavior.getVar("destinationId"))) return false
+  return true
+}
+
 // Upon removal, dispell the tracking debuff from the player
 void behaviorWillRemove(behavior, behavioral, arg1, arg2) {
-  println "objective_travel.behaviorWillRemove"
   if(behavioral == Util.getPlayer().getObjectives()) {
     // Remove tracking debuff which has the same tag as this debuff
-    println "objective_travel.behaviorWillRemove inner"
     Behavior.purgeByTag(Util.getPlayer(), behavior.tag)
   }
 }
@@ -121,11 +129,9 @@ void behaviorWillRemove(behavior, behavioral, arg1, arg2) {
 // Upon addition, add a tracking buff to the player that will trigger
 // when he reaches the destination
 void behaviorDidAdd(behavior, behavioral, arg1, arg2) {
-  println "objective_travel.behaviorAdd"
   // This script serves a "dual use" as both the objective and tracking buff.
   // Only run this routine when the objective is being added to the objectives.
   if(behavioral == Util.getPlayer().getObjectives()) {
-    println "objective_travel.behaviorAdd inner"
     // Assign a tag for later reference
     behavior.tag = Util.generateID()
     // Assign a buff to the player with this script.
@@ -144,10 +150,10 @@ void playerDidEnterTown(behavior, behavioral, town, townMenu) {
   }
 }
 
-void townWillBuildMenu(behavior, player, town, townMenu) {
-  Behavior obj = QuestController.getObjectiveForTag(behavior.tag)
-  String destId = obj.getVar("destinationId")
-  if(town.id.equals(destId) && obj.getVar("isComplete")) {
-    buildUI(obj, Util.getPlayer().getObjectives(), townMenu, "complete")
-  }
-}
+// void townWillBuildMenu(behavior, player, town, townMenu) {
+//   Behavior obj = QuestController.getObjectiveForTag(behavior.tag)
+//   String destId = obj.getVar("destinationId")
+//   if(town.id.equals(destId) && obj.getVar("isComplete")) {
+//     buildUI(obj, Util.getPlayer().getObjectives(), townMenu, "complete")
+//   }
+// }

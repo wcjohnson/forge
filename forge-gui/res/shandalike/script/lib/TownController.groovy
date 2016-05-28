@@ -4,17 +4,21 @@ import shandalike.Model
 import shandalike.UIModel
 import shandalike.Util
 import shandalike.data.behavior.Behavior
+import lib.QuestController
 
 class TownController {
 	Town town
 	UIModel townMenu
 	long foodPrice
 	long foodQty = 20
-	def offeredQuests = []
+	QuestController questController
+
 
 	TownController(Town ts) {
 		this.town = ts
 		townMenu = new UIModel()
+		questController = new QuestController()
+		questController.newQuestSource = this.town.quests
 	}
 
 	// We need this for script delegation
@@ -26,6 +30,7 @@ class TownController {
 		// Handle script events
 		Util.getPlayer().handleEvent("playerDidEnterTown", town, null)
 		// Perform pre-entry tasks.
+		questController.populate(town)
 		doCardShopMaintenance()
 		buildTownMenu()
 		// Offer scripts the opportunity to enhance the town menu
@@ -75,14 +80,17 @@ class TownController {
 	}
 
 	void buildQuestMenu() {
-		townMenu.addButton("Quests", this, "doQuests", null, null)
+		if(QuestController.canTurnInAny()) {
+			townMenu.addButton("QUEST COMPLETE! Claim reward", this, "doQuests", null, null)
+		} else {
+			townMenu.addButton("Quests", this, "doQuests", null, null)
+		}
 	}
 
 	/////////////////// Callbacks
 	void doQuests(arg1, arg2) {
 		def questUI = new UIModel()
-		def quest = Util.runScript("quests", "getRandomQuest", town)
-		quest.runScript("buildUI", Util.getPlayer(), questUI, "offer")
+		questController.buildMenu(questUI)
 		questUI.addButton("Back to Town", this, "doExitSubscreen", null, null)
 		Util.pushUI(questUI)
 	}

@@ -1,7 +1,11 @@
 package shandalike.data.entity.town;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import shandalike.Model;
 import shandalike.data.behavior.Behavior;
+import shandalike.data.behavior.Behaviors;
 import shandalike.data.entity.PointOfInterest;
 import shandalike.data.world.MapState;
 
@@ -10,6 +14,8 @@ public class Town extends PointOfInterest {
 	public String name;
 	/** Information about the town's Card Shop. */
 	public CardShop cardShop;
+	/** Information about available quests in this town. */
+	public Behaviors quests = new Behaviors();
 	
 	public Town() {
 		this.labelOnMap = true;

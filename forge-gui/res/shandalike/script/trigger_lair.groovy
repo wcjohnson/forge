@@ -47,9 +47,7 @@ void doOpenShop(Entity lair, arg2) {
 	Util.openShop(shop.getShopModel())
 }
 
-// Dungeon reward script.
-// This adds a reward to the player's character record, which will be permanentized when
-// the trigger_awardDungeonRewards is executed.
+// Trigger script - Does the lair thing.
 // Then it despawns the entity.
 void collideWithPlayer(Behavior behavior, Entity trigger, Entity playerPawn, arg2) {
 	String lairType = trigger.getVar("lairType")
@@ -60,7 +58,7 @@ void collideWithPlayer(Behavior behavior, Entity trigger, Entity playerPawn, arg
 		quiz.generate()
 		quiz.show()
 	} else if(lairType.equals("reward")) {
-		grantAwards(lair, null)
+		grantAwards(trigger, null)
 	} else if (lairType.equals("duel")) {
 		def encs = trigger.getVar("encounters")
 		def eid = encs[Util.randomInt(encs.size())]

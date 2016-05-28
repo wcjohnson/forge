@@ -80,6 +80,11 @@ public class Util {
 		return MagicColor.Color.COLORLESS;
 	}
 	
+	public static String randomColorName() {
+		String[] strings = { "white", "blue", "black", "red", "green" };
+		return strings[Util.randomInt(strings.length)];
+	}
+	
 	public static float randomFloat() {
 		return Model.rng.randomFloat();
 	}
@@ -100,7 +105,7 @@ public class Util {
 		return Model.adventure.getWorld().getDifficultySpec();
 	}
 	
-	public int getDifficulty() {
+	public static int getDifficulty() {
 		return Model.adventure.summary.difficulty;
 	}
 	
