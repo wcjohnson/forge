@@ -120,6 +120,7 @@ public class Duel implements GameRules.AnteDelegate {
 	LobbyPlayer aiLobbyPlayer;
 	// AI player info
 	String opponentName;
+	String encounterId;
 	
 	// Status
 	public boolean dueling = false;
