@@ -24,7 +24,8 @@ def getEncounterById(String id) {
 // Get description of this objective
 String getDescription(Behavior objective) {
   def targets = objective.getVar("targets")
-  String rst = ""
+  String dest = obj.getVar("destinationName")
+  String rst = "Defeat the following enemies:"
   targets.each { k, v ->
     def encounter = getEncounterById(k)
     int nKilled = v[0]
@@ -33,6 +34,7 @@ String getDescription(Behavior objective) {
       rst += "${encounter.name} (${nKilled}/${nNeeded})<br>\n"
     }
   }
+  rst += "Then go to ${dest} to claim your reward.<br>\n"
   rst
 }
 
@@ -50,11 +52,11 @@ void buildUI(Behavior obj, IBehavioral objectives, UIModel ui, String mode) {
   String dest = obj.getVar("destinationName")
   def rdesc = obj.getVar("rewards")
   String rinfo = RewardController.describeRewardsFromDescriptors(rdesc)
-  String longInfo = "<html>Travel to ${dest} and deliver a message.<br><br><b>Reward:</b><br>\n${rinfo}</html>"
+  String longInfo = getDescription(obj)
   if(mode.equals("offer")) {
     buildPanel("New Quest", longInfo, "Accept", "doAcceptQuest", obj, ui)
   } else if (mode.equals("ongoing")) {
-    buildPanel("Travel", longInfo, "Abandon", "doAbandonQuest", obj, ui)
+    buildPanel("Kill", longInfo, "Abandon", "doAbandonQuest", obj, ui)
   } else if (mode.equals("complete")) {
     buildPanel("Quest Complete!", longInfo, "Complete", "doCompleteQuest", obj, ui)
   }
@@ -86,7 +88,7 @@ void doCompleteQuest(obj, ui, elt) {
 
 String getObjectiveTitle(behavior, behavioral, arg1, arg2) {
   String dest = behavior.getVar("destinationName")
-  return "Travel to ${dest}!"
+  return "Defeat your enemies!"
 }
 
 String getObjectiveDescription(behavior, behavioral, arg1, arg2) {
