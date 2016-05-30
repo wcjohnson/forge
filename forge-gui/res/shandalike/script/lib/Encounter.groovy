@@ -47,7 +47,7 @@ class Encounter {
 		dc.config.duelFile = this.duelFile
 		dc.config.encounterName = this.name
 		dc.config.bribeValue = (int)((Util.randomFloat() + 0.5f) * (float)this.baseBribe)
-		dc.encounterId = this.id
+		dc.duel.encounterId = this.id
 		return dc
 	}
 

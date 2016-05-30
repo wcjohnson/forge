@@ -64,20 +64,6 @@ void doCompleteQuest(obj, ui, elt) {
   ui.update()
 }
 
-String getObjectiveTitle(behavior, behavioral, arg1, arg2) {
-  String dest = behavior.getVar("destinationName")
-  return "Travel to ${dest}!"
-}
-
-String getObjectiveDescription(behavior, behavioral, arg1, arg2) {
-  String dest = behavior.getVar("destinationName")
-  if(behavior.getVar("isComplete")) {
-    "Quest complete! Travel to ${dest} and claim your reward!"
-  } else {
-    "Travel to ${dest} and deliver a message."
-  }
-}
-
 String getTitle(behavior) {
   "Hidden objective_travel buff"
 }

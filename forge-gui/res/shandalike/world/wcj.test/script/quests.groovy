@@ -33,7 +33,33 @@ Behavior makeTravelQuest(Town town, float searchRadius, int difficulty) {
 	return beh
 }
 
+// Makes a kill quest asking player to slay a randomly selected mob type
+Behavior makeKillQuest(Town town, int difficulty) {
+	// Locate a random encounter
+	def encounters = Util.runScript("encounters", "getEncounters")
+	def encounter = encounters.randomEncounter()
+	// Create the behavior
+	Behavior beh = new Behavior("objective_kill")
+	beh.setVar("destinationName", town.getName())
+	beh.setVar("destinationId", town.id)
+	beh.setVar("targets", [ "${encounter.id}": [0, 1] ])
+	// Generate rewards
+	def rewards = [
+		[type: "currency", currency: "gold", amount: (50 / (difficulty + 1))]
+	]
+	// Random amulet chance
+	if(Util.randomFloat() < 1.0f / (float)(difficulty + 1)) {
+		rewards.add([type: "currency", currency: "amulet_${Util.randomColorName()}", amount: 1])
+	}
+	beh.setVar("rewards", rewards)
+	return beh
+}
+
 Behavior getRandomQuest(Town town) {
 	int difficulty = Util.getDifficulty()
-	return makeTravelQuest(town, 50.0f, difficulty)
+	if(Util.randomFloat() < 0.5f) {
+		return makeTravelQuest(town, 50.0f, difficulty)
+	} else {
+		return makeKillQuest(town, difficulty)
+	}
 }

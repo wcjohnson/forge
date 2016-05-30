@@ -35,7 +35,9 @@ class QuestController {
   void populate(def town) {
     for(int i=newQuestSource.size(); i<nQuests; i++) {
       def quest = Util.runScript("quests", "getRandomQuest", town)
-      newQuestSource.add(quest)
+      if(quest) {
+        newQuestSource.add(quest)
+      }
     }
   }
 

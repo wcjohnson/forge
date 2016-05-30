@@ -30,6 +30,11 @@ class Encounters {
 		encounter.spawn()
 	}
 
+	Encounter randomEncounter() {
+		def encounter = encounters [ Util.randomInt(encounters.size()) ]
+		return encounter
+	}
+
 	Encounter getById(String id) {
 		encounters.find { it.id.equals(id) }
 	}
