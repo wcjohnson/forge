@@ -25,64 +25,24 @@ def getEncounterById(String id) {
 String getLongDescription(Behavior objective) {
   def targets = objective.getVar("targets")
   String dest = objective.getVar("destinationName")
-  String rst = "Defeat the following enemies:<br>\n"
+  String rst = "<b>Defeat the following enemies:</b><br>\n"
   targets.each { k, v ->
     def encounter = getEncounterById(k)
     int nKilled = v[0]
     int nNeeded = v[1]
     if(encounter) {
-      rst += "${encounter.name} (${nKilled}/${nNeeded})<br>\n"
+      rst += "- ${encounter.name} (${nKilled}/${nNeeded})<br>\n"
     }
   }
+  rst += "Then return to ${dest}.<br>"
   rst
 }
 
-void buildPanel(String header, String body, String button, String method, obj, ui) {
-  def elt = ui.addPanel(header, body)
-  if(button != null) {
-    Callback cb = new Callback.ScriptObject()
-    cb.target = this; cb.method = method
-    cb.args = [obj, ui, elt] as Object[]
-    elt.addButton(button, cb)
-  }
-}
-
-void buildUI(Behavior obj, IBehavioral objectives, UIModel ui, String mode) {
-  String dest = obj.getVar("destinationName")
-  def rdesc = obj.getVar("rewards")
+String getObjectiveDescription(Behavior objective, IBehavioral objectives, arg1, arg2) {
+  String ldesc = getLongDescription(objective)
+  def rdesc = objective.getVar("rewards")
   String rinfo = RewardController.describeRewardsFromDescriptors(rdesc)
-  String longInfo = getLongDescription(obj)
-  if(mode.equals("offer")) {
-    buildPanel("New Quest", "<html>${longInfo}<br>Then go to ${dest} to claim your reward.<br></html>", "Accept", "doAcceptQuest", obj, ui)
-  } else if (mode.equals("ongoing")) {
-    buildPanel("Kill", "<html>${longInfo}<br>Then go to ${dest} to claim your reward.<br></html>", "Abandon", "doAbandonQuest", obj, ui)
-  } else if (mode.equals("complete")) {
-    buildPanel("Quest Complete!", "<html>${longInfo}<br>Go to ${dest} to claim your reward.<br></html>", "Complete", "doCompleteQuest", obj, ui)
-  }
-}
-
-void doAcceptQuest(obj, ui, elt) {
-  // Add objectives to player
-  Util.getPlayer().getObjectives().addBehavior(obj)
-  ui.remove(elt)
-  ui.update()
-}
-
-void doAbandonQuest(obj, ui, elt) {
-  // Remove objective from player
-  Util.getPlayer().getObjectives().removeBehavior(obj)
-  ui.remove(elt)
-  ui.update()
-}
-
-void doCompleteQuest(obj, ui, elt) {
-  // Remove objective from player
-  Util.getPlayer().getObjectives().removeBehavior(obj)
-  def rewardDescs = obj.getVar("rewards")
-  ui.addHeading("Quest Completed!")
-  RewardController.grantAwardsFromDescriptors(rewardDescs, ui)
-  ui.remove(elt)
-  ui.update()
+  "${ldesc}<br><b>Reward:</b><br>\n${rinfo}"
 }
 
 String getTitle(behavior) {

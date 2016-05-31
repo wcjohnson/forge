@@ -16,69 +16,19 @@ import groovy.transform.Field
 // Every behavior must implement methodMissing.
 def methodMissing(String name, args) { null }
 
-void buildPanel(String header, String body, String button, String method, obj, ui) {
-  def elt = ui.addPanel(header, body)
-  if(button != null) {
-    Callback cb = new Callback.ScriptObject()
-    cb.target = this; cb.method = method
-    cb.args = [obj, ui, elt] as Object[]
-    elt.addButton(button, cb)
-  }
-}
-
-void buildUI(Behavior obj, IBehavioral objectives, UIModel ui, String mode) {
-  String dest = obj.getVar("destinationName")
-  def rdesc = obj.getVar("rewards")
+// Get the string description of this objective. Executed in the objectives context
+String getObjectiveDescription(Behavior objective, IBehavioral objectives, arg1, arg2) {
+  String dest = objective.getVar("destinationName")
+  def rdesc = objective.getVar("rewards")
   String rinfo = RewardController.describeRewardsFromDescriptors(rdesc)
-  String longInfo = "<html>Travel to ${dest} and deliver a message.<br><br><b>Reward:</b><br>\n${rinfo}</html>"
-  if(mode.equals("offer")) {
-    buildPanel("New Quest", longInfo, "Accept", "doAcceptQuest", obj, ui)
-  } else if (mode.equals("ongoing")) {
-    buildPanel("Travel", longInfo, "Abandon", "doAbandonQuest", obj, ui)
-  } else if (mode.equals("complete")) {
-    buildPanel("Quest Complete!", longInfo, "Complete", "doCompleteQuest", obj, ui)
-  }
+  "Travel to ${dest} and deliver a message.<br><br><b>Reward:</b><br>\n${rinfo}"
 }
 
-void doAcceptQuest(obj, ui, elt) {
-  // Add objectives to player
-  Util.getPlayer().getObjectives().addBehavior(obj)
-  ui.remove(elt)
-  ui.update()
-}
-
-void doAbandonQuest(obj, ui, elt) {
-  // Remove objective from player
-  Util.getPlayer().getObjectives().removeBehavior(obj)
-  ui.remove(elt)
-  ui.update()
-}
-
-void doCompleteQuest(obj, ui, elt) {
-  // Remove objective from player
-  Util.getPlayer().getObjectives().removeBehavior(obj)
-  def rewardDescs = obj.getVar("rewards")
-  ui.addHeading("Quest Completed!")
-  RewardController.grantAwardsFromDescriptors(rewardDescs, ui)
-  ui.remove(elt)
-  ui.update()
-}
-
-String getTitle(behavior) {
-  "Hidden objective_travel buff"
-}
-
-String getDescription(behavior) {
-  "Tracks travel objective"
-}
-
-boolean isHidden(behavior) {
-  true
-}
-
-boolean isHelpful(behavior) {
-  true
-}
+// Get buff title; executed in buff context
+String getTitle(behavior) { "Hidden objective_travel buff" }
+String getDescription(behavior) { "Tracks travel objective" }
+boolean isHidden(behavior) { true }
+boolean isHelpful(behavior) { true }
 
 // Can this quest be abandoned?
 boolean canAbandon(behavior, behavioral, arg1, arg2) {
