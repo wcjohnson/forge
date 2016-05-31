@@ -27,7 +27,8 @@ Behavior makeTravelQuest(Town town, float searchRadius, int difficulty) {
 	]
 	// Random amulet chance
 	if(Util.randomFloat() < 1.0f / (float)(difficulty + 1)) {
-		rewards.add([type: "currency", currency: "amulet_${Util.randomColorName()}", amount: 1])
+		String ammy = "amulet_${Util.randomColorName()}"
+		rewards.add([type: "currency", currency: ammy, amount: 1])
 	}
 	beh.setVar("rewards", rewards)
 	return beh
@@ -38,18 +39,22 @@ Behavior makeKillQuest(Town town, int difficulty) {
 	// Locate a random encounter
 	def encounters = Util.runScript("encounters", "getEncounters")
 	def encounter = encounters.randomEncounter()
+	String encId = encounter.id
 	// Create the behavior
 	Behavior beh = new Behavior("objective_kill")
 	beh.setVar("destinationName", town.getName())
 	beh.setVar("destinationId", town.id)
-	beh.setVar("targets", [ "${encounter.id}": [0, 1] ])
+	def targets = [:]
+	targets[encId] = [0, 1]
+	beh.setVar("targets", targets)
 	// Generate rewards
 	def rewards = [
 		[type: "currency", currency: "gold", amount: (50 / (difficulty + 1))]
 	]
 	// Random amulet chance
 	if(Util.randomFloat() < 1.0f / (float)(difficulty + 1)) {
-		rewards.add([type: "currency", currency: "amulet_${Util.randomColorName()}", amount: 1])
+		String ammy = "amulet_${Util.randomColorName()}"
+		rewards.add([type: "currency", currency: ammy, amount: 1])
 	}
 	beh.setVar("rewards", rewards)
 	return beh
