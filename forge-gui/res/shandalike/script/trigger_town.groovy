@@ -16,7 +16,6 @@ def methodMissing(String name, args) {
 // know the type of the arg, leave it typeless, as incorrectly typing it will cause
 // your method not to be called by Groovy.
 void collideWithPlayer(Behavior behavior, Town town, Entity playerPawn, arg2) {
-	println "town.collideWithPlayer"
 	def townController = new TownController(town)
 	townController.enter()
 }
