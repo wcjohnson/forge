@@ -7,7 +7,7 @@ import lib.BuffUtils
 def methodMissing(String name, args) { null }
 
 // Get display-related information about this buff.
-boolean isHidden(beh) { BuffUtils.getHideOverride(beh, false) }
+boolean isHidden(beh) { BuffUtils.getHideOverride(beh, true) }
 boolean isHelpful(beh) { true }
 String getTitle(beh) { BuffUtils.getStackedTitle(beh, "Mana Link") }
 String getDescription(beh) { "Starting Life total +1" }
