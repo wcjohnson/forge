@@ -4,6 +4,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import forge.ai.*;
 import forge.card.MagicColor;
@@ -32,41 +33,114 @@ import forge.game.zone.ZoneType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class ChangeZoneAi extends SpellAbilityAi {
-
-    /**
-     * <p>
-     * changeZoneCanPlayAI.
-     * </p>
-     * @param sa
-     *            a {@link forge.game.spellability.SpellAbility} object.
-     * 
-     * @return a boolean.
+    /*
+     * This class looks horribly convoluted with hidden/known + CanPlay/Drawback/Trigger
+     * and static functions like chooseCardToHiddenOriginChangeZone(). It might be a good
+     * idea to re-factor ChangeZoneAi into more specific effects since it is really doing
+     * too much: blink/bounce/exile/tutor/Raise Dead/Surgical Extraction/......
      */
+    
     @Override
-    protected boolean canPlayAI(Player aiPlayer, SpellAbility sa) {
+    protected boolean checkAiLogic(final Player ai, final SpellAbility sa, final String aiLogic) {
+        if (aiLogic.equals("BeforeCombat")) {
+            if (ai.getGame().getPhaseHandler().getPhase().isAfter(PhaseType.COMBAT_BEGIN)) {
+                return false;
+            }
+        } else if (aiLogic.equals("SurpriseBlock")) {
+            if (ai.getGame().getPhaseHandler().getPhase().isBefore(PhaseType.COMBAT_DECLARE_ATTACKERS)) {
+                return false;
+            }
+        }
+        return super.checkAiLogic(ai, sa, aiLogic);
+    }
+
+    @Override
+    protected boolean checkApiLogic(Player aiPlayer, SpellAbility sa) {
+        // Checks for "return true" unlike checkAiLogic()
+        String aiLogic = sa.getParam("AILogic");
+        if (aiLogic != null) {
+            if (aiLogic.equals("Always")) {
+                return true;
+            }
+            if (aiLogic.equals("SameName")) {   // Declaration in Stone
+                final Game game = aiPlayer.getGame();
+                final Card source = sa.getHostCard();
+                final TargetRestrictions tgt = sa.getTargetRestrictions();
+                final ZoneType origin = ZoneType.listValueOf(sa.getParam("Origin")).get(0);
+                CardCollection list = CardLists.getValidCards(game.getCardsIn(origin), tgt.getValidTgts(), aiPlayer,
+                        source, sa);
+                list = CardLists.filterControlledBy(list, aiPlayer.getOpponents());
+                if (list.isEmpty()) {
+                    return false;   // no valid targets
+                }
+
+                Map<Player,Map.Entry<String, Integer>> data = Maps.newHashMap();
+
+                // need to filter for the opponents first
+                for (final Player opp : aiPlayer.getOpponents()) {
+                    CardCollection oppList = CardLists.filterControlledBy(list, opp);
+
+                    // no cards
+                    if (oppList.isEmpty()) {
+                        continue;
+                    }
+
+                    // Compute value for each possible target
+                    Map<String, Integer> values = ComputerUtilCard.evaluateCreatureListByName(oppList);
+
+                    // reject if none of them can be targeted
+                    oppList = CardLists.filter(oppList, CardPredicates.isTargetableBy(sa));
+                    // none can be targeted
+                    if (oppList.isEmpty()) {
+                        continue;
+                    }
+
+                    List<String> toRemove = Lists.newArrayList();
+                    for (final String name : values.keySet()) {
+                        if (CardLists.filter(oppList, CardPredicates.nameEquals(name)).isEmpty()) {
+                            toRemove.add(name);
+                        }
+                    }
+                    values.keySet().removeAll(toRemove);
+
+                    // JAVA 1.8 use Map.Entry.comparingByValue()
+                    data.put(opp,Collections.max(values.entrySet(), new Comparator<Map.Entry<String,Integer>>(){
+                        @Override
+                        public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                            return o1.getValue() - o2.getValue();
+                        }
+                    }));
+                }
+
+                // JAVA 1.8 use Map.Entry.comparingByValue() somehow
+                Map.Entry<Player, Map.Entry<String, Integer>> max = Collections.max(data.entrySet(), new Comparator<Map.Entry<Player,Map.Entry<String,Integer>>>(){
+                    @Override
+                    public int compare(Map.Entry<Player,Map.Entry<String,Integer>> o1, Map.Entry<Player,Map.Entry<String,Integer>> o2) {
+                        return o1.getValue().getValue() - o2.getValue().getValue();
+                    }
+                });
+
+                // filter list again by the opponent and a creature of the wanted name that can be targeted
+                list = CardLists.filter(CardLists.filterControlledBy(list, max.getKey()),
+                        CardPredicates.nameEquals(max.getValue().getKey()), CardPredicates.isTargetableBy(sa));
+
+                // list should contain only one element or zero
+                for (Card c : list) {
+                    sa.getTargets().add(c);
+                    return true;
+                }
+            }
+        }
         String origin = null;
         if (sa.hasParam("Origin")) {
             origin = sa.getParam("Origin");
         }
-
-        if (sa.hasParam("AILogic")) {
-        	String logic = sa.getParam("AILogic");
-            if (logic.equals("Always")) {
-                return true;
-            } else if (logic.equals("BeforeCombat")) {
-                if (aiPlayer.getGame().getPhaseHandler().getPhase().isAfter(PhaseType.COMBAT_BEGIN)) {
-                    return false;
-                }
-            } else if (logic.equals("SurpriseBlock")) {
-                if (aiPlayer.getGame().getPhaseHandler().getPhase().isBefore(PhaseType.COMBAT_DECLARE_ATTACKERS)) {
-                    return false;
-                }
-            }
-        }
-
         if (sa.hasParam("Hidden") || ZoneType.isHidden(origin)) {
             return hiddenOriginCanPlayAI(aiPlayer, sa);
         }
@@ -382,6 +456,18 @@ public class ChangeZoneAi extends SpellAbilityAi {
 
         final Card source = sa.getHostCard();
 
+        if (sa.hasParam("AILogic")) {
+            if (sa.getParam("AILogic").equals("Never")) {
+                /*
+                 * Hack to stop AI from using Aviary Mechanic's "may bounce" trigger.
+                 * Ideally it should look for a good bounce target like "Pacifism"-victims
+                 * but there is no simple way to check that. It is preferable for the AI
+                 * to make sub-optimal choices (waste bounce) than to make obvious mistakes
+                 * (bounce useful permanent).
+                 */
+                return false;
+            }
+        }
 
         List<ZoneType> origin = new ArrayList<ZoneType>();
         if (sa.hasParam("Origin")) {
@@ -1033,6 +1119,20 @@ public class ChangeZoneAi extends SpellAbilityAi {
 
             list.remove(choice);
             sa.getTargets().add(choice);
+        }
+
+        // Honor the Single Zone restriction. For now, simply remove targets that do not belong to the same zone as the first targeted card.
+        // TODO: ideally the AI should consider at this point which targets exactly to pick (e.g. one card in the first player's graveyard
+        // vs. two cards in the second player's graveyard, which cards are more relevant to be targeted, etc.). Consider improving.
+        if (sa.getTargetRestrictions().isSingleZone()) {
+            Card firstTgt = sa.getTargets().getFirstTargetedCard();
+            if (firstTgt != null) {
+                for (Card t : sa.getTargets().getTargetCards()) {
+                   if (!t.getController().equals(firstTgt.getController())) {
+                       sa.getTargets().remove(t);
+                   }
+                }
+            }
         }
 
         return true;

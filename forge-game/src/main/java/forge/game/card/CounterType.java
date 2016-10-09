@@ -84,8 +84,6 @@ public enum CounterType {
 
     ELIXIR(),
 
-    ENERGY(),
-
     EON(),
 
     EYEBALL(),
@@ -119,6 +117,8 @@ public enum CounterType {
     HEALING(),
 
     HOOFPRINT(),
+
+    HOUR(),
 
     HOURGLASS(),
 
@@ -192,6 +192,8 @@ public enum CounterType {
 
     PLAGUE(),
 
+    PLOT(),
+
     PRESSURE(),
 
     PHYLACTERY,
@@ -262,6 +264,8 @@ public enum CounterType {
 
     VITALITY(),
 
+    VORTEX(),
+
     WAGE(),
 
     WINCH(),
@@ -271,6 +275,8 @@ public enum CounterType {
     WISH(),
 
     // Player Counters
+
+    ENERGY(),
 
     EXPERIENCE(),
 

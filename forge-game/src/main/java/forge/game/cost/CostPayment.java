@@ -18,7 +18,6 @@
 package forge.game.cost;
 
 import forge.game.card.Card;
-import forge.game.player.Player;
 import forge.game.spellability.SpellAbility;
 
 import java.util.ArrayList;
@@ -32,10 +31,11 @@ import java.util.Map;
  * </p>
  * 
  * @author Forge
- * @version $Id: CostPayment.java 31190 2016-05-03 17:25:13Z jje4th $
+ * @version $Id: CostPayment.java 32259 2016-10-03 12:30:46Z excessum $
  */
 public class CostPayment {
     private final Cost cost;
+    private Cost adjustedCost;
     private final SpellAbility ability;
     private final List<CostPart> paidCostParts = new ArrayList<CostPart>();
 
@@ -50,6 +50,10 @@ public class CostPayment {
         return this.cost;
     }
 
+    public final SpellAbility getAbility() {
+        return this.ability;
+    }
+    
     /**
      * <p>
      * Constructor for Cost_Payment.
@@ -62,6 +66,7 @@ public class CostPayment {
      */
     public CostPayment(final Cost cost, final SpellAbility abil) {
         this.cost = cost;
+        this.adjustedCost = cost;
         this.ability = abil;
     }
 
@@ -81,13 +86,6 @@ public class CostPayment {
             return true;
         }
 
-        final Card card = ability.getHostCard();
-
-        Player activator = ability.getActivatingPlayer();
-        if (activator == null) {
-            activator = card.getController();
-        }
-
         for (final CostPart part : cost.getCostParts()) {
             if (!part.canPay(ability)) {
                 return false;
@@ -105,7 +103,7 @@ public class CostPayment {
      * @return a boolean.
      */
     public final boolean isFullyPaid() {
-        for (final CostPart part : this.cost.getCostParts()) {
+        for (final CostPart part : adjustedCost.getCostParts()) {
             if (!this.paidCostParts.contains(part)) {
                 return false;
             }
@@ -132,10 +130,11 @@ public class CostPayment {
     }
 
     public boolean payCost(final CostDecisionMakerBase decisionMaker) {
-    	final List<CostPart> costParts = this.getCost().getCostPartsWithZeroMana();
+        adjustedCost = CostAdjustment.adjust(cost, ability);
+        final List<CostPart> costParts = adjustedCost.getCostPartsWithZeroMana();
         for (final CostPart part : costParts) {
             // Wrap the cost and push onto the cost stack
-            decisionMaker.getPlayer().getGame().costPaymentStack.push(new IndividualCostPaymentInstance(part));
+            decisionMaker.getPlayer().getGame().costPaymentStack.push(new IndividualCostPaymentInstance(part, this));
 
             PaymentDecision pd = part.accept(decisionMaker);
 
@@ -167,13 +166,14 @@ public class CostPayment {
 
         Map<CostPart, PaymentDecision> decisions = new HashMap<CostPart, PaymentDecision>();
         
+        List<CostPart> parts = CostAdjustment.adjust(cost, ability).getCostParts();
         // Set all of the decisions before attempting to pay anything
-        for (final CostPart part : this.cost.getCostParts()) {
+        for (final CostPart part : parts) {
             PaymentDecision decision = part.accept(decisionMaker);
             if (null == decision) return false;
 
             // wrap the payment and push onto the cost stack
-            decisionMaker.getPlayer().getGame().costPaymentStack.push(new IndividualCostPaymentInstance(part));
+            decisionMaker.getPlayer().getGame().costPaymentStack.push(new IndividualCostPaymentInstance(part, this));
             if (decisionMaker.paysRightAfterDecision() && !part.payAsDecided(decisionMaker.getPlayer(), decision, ability)) {
                 decisionMaker.getPlayer().getGame().costPaymentStack.pop(); // cost is resolved
                 return false;
@@ -183,9 +183,9 @@ public class CostPayment {
             decisions.put(part, decision);
         }
 
-        for (final CostPart part : this.cost.getCostParts()) {
+        for (final CostPart part : parts) {
             // wrap the payment and push onto the cost stack
-            decisionMaker.getPlayer().getGame().costPaymentStack.push(new IndividualCostPaymentInstance(part));
+            decisionMaker.getPlayer().getGame().costPaymentStack.push(new IndividualCostPaymentInstance(part, this));
 
             if (!part.payAsDecided(decisionMaker.getPlayer(), decisions.get(part), this.ability)) {
                 decisionMaker.getPlayer().getGame().costPaymentStack.pop(); // cost is resolved

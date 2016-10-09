@@ -4,7 +4,7 @@
     <parent>
         <artifactId>forge</artifactId>
         <groupId>forge</groupId>
-        <version>1.5.53-SNAPSHOT</version>
+        <version>1.5.57-SNAPSHOT</version>
     </parent>
 
   <artifactId>forge-gui-mobile-dev</artifactId>
@@ -39,6 +39,12 @@
       <groupId>com.badlogicgames.gdx</groupId>
       <artifactId>gdx-platform</artifactId>
       <version>1.2.0</version>
+      <classifier>natives-desktop</classifier>
+    </dependency>
+    <dependency>
+      <groupId>com.badlogicgames.gdx</groupId>
+      <artifactId>gdx-freetype-platform</artifactId>
+      <version>1.5.5</version>
       <classifier>natives-desktop</classifier>
     </dependency>
   </dependencies>

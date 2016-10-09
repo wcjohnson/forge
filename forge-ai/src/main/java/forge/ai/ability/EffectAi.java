@@ -186,7 +186,8 @@ public class EffectAi extends SpellAbilityAi {
                 final Card host = saTop.getHostCard();
                 if (saTop.getActivatingPlayer() != ai   // from opponent
                         && !game.getStaticEffects().getGlobalRuleChange(GlobalRuleChange.noPrevention)  // no prevent damage
-                        && host != null && (host.isInstant() || host.isSorcery())) {  // valid target
+                        && host != null && (host.isInstant() || host.isSorcery())
+                        && !host.hasKeyword("Prevent all damage that would be dealt by CARDNAME.")) {  // valid target
                     final ApiType type = saTop.getApi();
                     if (type == ApiType.DealDamage || type == ApiType.DamageAll) {  // burn spell
                         sa.getTargets().add(host);
@@ -237,22 +238,5 @@ public class EffectAi extends SpellAbilityAi {
         }
 
         return randomReturn;
-    }
-
-    @Override
-    protected boolean doTriggerAINoCost(Player aiPlayer, SpellAbility sa, boolean mandatory) {
-
-        final Player opp = aiPlayer.getOpponent();
-
-        if (sa.usesTargeting()) {
-            sa.resetTargets();
-            if (mandatory && sa.canTarget(opp)) {
-                sa.getTargets().add(opp);
-            } else if (mandatory && sa.canTarget(aiPlayer)) {
-                sa.getTargets().add(aiPlayer);
-            }
-        }
-
-        return true;
     }
 }

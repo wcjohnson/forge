@@ -39,7 +39,7 @@ import forge.game.zone.ZoneType;
  * </p>
  * 
  * @author Forge
- * @version $Id: TargetRestrictions.java 31143 2016-04-20 17:47:28Z friarsol $
+ * @version $Id: TargetRestrictions.java 31384 2016-06-30 18:22:00Z friarsol $
  */
 public class TargetRestrictions {
     // Target has two things happening:
@@ -473,7 +473,7 @@ public class TargetRestrictions {
             return true;
         } else {
             for (final Card c : game.getCardsIn(this.tgtZone)) {
-                if (!c.isValid(this.validTgts, srcCard.getController(), srcCard, sa)) {
+                if (!c.isValid(this.validTgts, sa.getActivatingPlayer(), srcCard, sa)) {
                     continue;
                 }
                 if (isTargeted && !sa.canTarget(c)) {

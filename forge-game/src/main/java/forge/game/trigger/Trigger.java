@@ -25,6 +25,7 @@ import forge.game.phase.PhaseHandler;
 import forge.game.phase.PhaseType;
 import forge.game.player.Player;
 import forge.game.spellability.Ability;
+import forge.game.spellability.AbilitySub;
 import forge.game.spellability.OptionalCost;
 import forge.game.spellability.SpellAbility;
 import forge.game.zone.ZoneType;
@@ -37,7 +38,7 @@ import java.util.*;
  * </p>
  * 
  * @author Forge
- * @version $Id: Trigger.java 31174 2016-04-30 05:45:41Z jje4th $
+ * @version $Id: Trigger.java 31855 2016-08-03 08:44:56Z Hanmac $
  */
 public abstract class Trigger extends TriggerReplacementBase {
 
@@ -292,22 +293,6 @@ public abstract class Trigger extends TriggerReplacementBase {
         return true;
     }
 
-    /**
-     * <p>
-     * isSecondary.
-     * </p>
-     * 
-     * @return a boolean.
-     */
-    public final boolean isSecondary() {
-        if (this.mapParams.containsKey("Secondary")) {
-            if (this.mapParams.get("Secondary").equals("True")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /** {@inheritDoc} */
     @Override
     public final boolean equals(final Object o) {
@@ -381,7 +366,6 @@ public abstract class Trigger extends TriggerReplacementBase {
      * @return the triggered sa
      */
     public final Ability getTriggeredSA() {
-        System.out.println("TriggeredSA = " + this.triggeredSA);
         return this.triggeredSA;
     }
 
@@ -427,7 +411,16 @@ public abstract class Trigger extends TriggerReplacementBase {
         final Trigger copy = tt.createTrigger(originalMapParams, newHost, intrinsic); 
 
         if (this.getOverridingAbility() != null) {
-            copy.setOverridingAbility(this.getOverridingAbility());
+            SpellAbility old = this.getOverridingAbility();
+            SpellAbility sa = old;
+            // try to copy it if newHost is not the wanted host
+            if (!newHost.equals(old.getHostCard())) {
+	            if (old instanceof AbilitySub) {
+	                sa = ((AbilitySub)old).getCopy();
+	                sa.setHostCard(newHost);
+	            }
+            }
+            copy.setOverridingAbility(sa);
         }
 
         // 2015-03-07 Removing the ID copying which makes copied triggers Identical to each other when removing

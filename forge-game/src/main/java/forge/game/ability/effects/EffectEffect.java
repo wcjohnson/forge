@@ -2,11 +2,13 @@ package forge.game.ability.effects;
 
 import forge.GameCommand;
 import forge.ImageKeys;
+import forge.card.CardType;
 import forge.game.Game;
 import forge.game.ability.AbilityFactory;
 import forge.game.ability.AbilityUtils;
 import forge.game.ability.SpellAbilityEffect;
 import forge.game.card.Card;
+import forge.game.card.CardCollection;
 import forge.game.player.Player;
 import forge.game.replacement.ReplacementEffect;
 import forge.game.replacement.ReplacementHandler;
@@ -108,10 +110,29 @@ public class EffectEffect extends SpellAbilityEffect {
         final Player controller = sa.hasParam("EffectOwner") ? ownerEff : sa.getActivatingPlayer();
         final Card eff = new Card(game.nextCardId(), game);
         eff.setName(name);
-        eff.addType("Effect"); // Or Emblem
+        // if name includes emplem then it should be one
+        eff.addType(name.endsWith("emblem") ? "Emblem" : "Effect");
+        // add Planeswalker types into Emblem for fun
+        if (name.endsWith("emblem") && hostCard.isPlaneswalker()) {
+            for (final String type : hostCard.getType().getSubtypes()) {
+                if (CardType.isAPlaneswalkerType(type)) {
+                    eff.addType(type);
+                }
+            }
+        }
         eff.setToken(true); // Set token to true, so when leaving play it gets nuked
         eff.setOwner(controller);
-        eff.setImageKey(sa.hasParam("Image") ? ImageKeys.getTokenKey(sa.getParam("Image")) : hostCard.getImageKey());
+
+        String image;
+        if (sa.hasParam("Image")) {
+            image = ImageKeys.getTokenKey(sa.getParam("Image"));
+        } else if (name.endsWith("emblem")) { // try to get the image from name
+            image = ImageKeys.getTokenKey(name.replace(",", "").replace(" ", "_").toLowerCase());
+        } else { // use host image
+            image = hostCard.getImageKey();
+        }
+
+        eff.setImageKey(image);
         eff.setColor(hostCard.determineColor().getColor());
         eff.setImmutable(true);
         eff.setEffectSource(hostCard);
@@ -181,6 +202,23 @@ public class EffectEffect extends SpellAbilityEffect {
                     eff.addRemembered(o);
                 }
             }
+            if (sa.hasParam("ForgetOnMoved")) {
+                String zone = sa.getParam("ForgetOnMoved");
+                String trig = "Mode$ ChangesZone | ValidCard$ Card.IsRemembered | Origin$ " + zone + " | Destination$ Any | TriggerZones$ Command | Static$ True";
+                String effect = "DB$ Pump | ForgetObjects$ TriggeredCard";
+                final Trigger parsedTrigger = TriggerHandler.parseTrigger(trig, eff, true);
+                parsedTrigger.setOverridingAbility(AbilityFactory.getAbility(effect, eff));
+                final Trigger addedTrigger = eff.addTrigger(parsedTrigger);
+                addedTrigger.setIntrinsic(true);
+            } else if (sa.hasParam("ExileOnMoved")) {
+                String zone = sa.getParam("ExileOnMoved");
+                String trig = "Mode$ ChangesZone | ValidCard$ Card.IsRemembered | Origin$ " + zone + " | Destination$ Any | TriggerZones$ Command | Static$ True";
+                String effect = "DB$ ChangeZone | Defined$ Self | Origin$ Command | Destination$ Exile";
+                final Trigger parsedTrigger = TriggerHandler.parseTrigger(trig, eff, true);
+                parsedTrigger.setOverridingAbility(AbilityFactory.getAbility(effect, eff));
+                final Trigger addedTrigger = eff.addTrigger(parsedTrigger);
+                addedTrigger.setIntrinsic(true);
+            }
         }
 
         // Set Imprinted
@@ -193,6 +231,21 @@ public class EffectEffect extends SpellAbilityEffect {
         // Set Chosen Color(s)
         if (hostCard.hasChosenColor()) {
             eff.setChosenColors(Lists.newArrayList(hostCard.getChosenColors()));
+        }
+
+        // Set Chosen Cards
+        if (hostCard.hasChosenCard()) {
+            eff.setChosenCards(new CardCollection(hostCard.getChosenCards()));
+        }
+
+        // Set Chosen Player
+        if (hostCard.getChosenPlayer() != null) {
+            eff.setChosenPlayer(hostCard.getChosenPlayer());
+        }
+
+        // Set Chosen Type
+        if (!hostCard.getChosenType().isEmpty()) {
+            eff.setChosenType(hostCard.getChosenType());
         }
 
         // Set Chosen name
@@ -229,6 +282,9 @@ public class EffectEffect extends SpellAbilityEffect {
             }
             else if (duration.equals("UntilYourNextTurn")) {
                 game.getCleanup().addUntil(controller, endEffect);
+            }
+            else if (duration.equals("UntilYourNextUpkeep")) {
+                game.getUpkeep().addUntil(controller, endEffect);
             }
             else if (duration.equals("UntilEndOfCombat")) {
                 game.getEndOfCombat().addUntil(endEffect);

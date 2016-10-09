@@ -42,7 +42,7 @@ import java.util.Set;
  * </p>
  *
  * @author Forge
- * @version $Id: SpellAbilityStackInstance.java 31126 2016-04-14 18:55:58Z friarsol $
+ * @version $Id: SpellAbilityStackInstance.java 31915 2016-08-09 14:12:35Z Hanmac $
  */
 public class SpellAbilityStackInstance implements IIdentifiable, IHasCardView {
     private static int maxId = 0;
@@ -136,10 +136,12 @@ public class SpellAbilityStackInstance implements IIdentifiable, IHasCardView {
             }
         }
         // We probably should be storing SA svars too right?
-        for (final String store : sa.getSVars()) {
-            final String value = source.getSVar(store);
-            if (!StringUtils.isEmpty(value)) {
-                storedSVars.put(store, value);
+        if (!sa.isWrapper()) {
+            for (final String store : sa.getSVars()) {
+                final String value = source.getSVar(store);
+                if (!StringUtils.isEmpty(value)) {
+                    storedSVars.put(store, value);
+                }
             }
         }
 
@@ -228,6 +230,10 @@ public class SpellAbilityStackInstance implements IIdentifiable, IHasCardView {
 
     public final Card getSourceCard() {
         return ability.getHostCard();
+    }
+    
+    public final int getXManaPaid() {
+    	return xManaPaid;
     }
 
     public final boolean isSpell() {

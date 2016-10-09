@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * The Class CostPart.
  */
-public abstract class CostPart {
+public abstract class CostPart implements Comparable<CostPart> {
     private String originalAmount;
     private String amount;
     private final String originalType, originalTypeDescription;
@@ -142,13 +142,6 @@ public abstract class CostPart {
      * 
      * @param ability
      *            the ability
-     * @param source
-     *            the source
-     * @param activator
-     *            the activator
-     * @param cost
-     *            the cost
-     * @param game
      * @return true, if successful
      */
     public abstract boolean canPay(SpellAbility ability);
@@ -190,4 +183,11 @@ public abstract class CostPart {
     }
 
     public abstract boolean payAsDecided(Player payer, PaymentDecision pd, SpellAbility sa);
+
+    public int paymentOrder() { return 5; }
+
+    @Override
+    public int compareTo(CostPart o) {
+        return this.paymentOrder() - o.paymentOrder();
+    }
 }

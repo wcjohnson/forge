@@ -32,12 +32,14 @@ public class QuestChallengeReader extends StorageReaderFolder<QuestEventChalleng
         qc.setId(sectionQuest.get("ID", "-1"));
         qc.setOpponent(sectionQuest.get("OpponentName"));
         qc.setRepeatable(sectionQuest.getBoolean("Repeat", false));
+        qc.setPersistent(sectionQuest.getBoolean("Persistent", false));
         qc.setAiLife(sectionQuest.getInt("AILife", 25));
         qc.setWinsReqd(sectionQuest.getInt("Wins", 20));
         qc.setCreditsReward(sectionQuest.getInt("Credit Reward", 100));
         qc.setCardReward(sectionQuest.get("Card Reward"));
         qc.setHumanExtraCards(Arrays.asList(TextUtil.split(sectionQuest.get("HumanExtras", ""), '|')));
         qc.setAiExtraCards(Arrays.asList(TextUtil.split(sectionQuest.get("AIExtras", ""), '|')));
+        qc.setWinMessage(sectionQuest.get("WinMessage", ""));
         // Less common properties
         int humanLife = sectionQuest.getInt("HumanLife", 0);
         if (humanLife != 0) {

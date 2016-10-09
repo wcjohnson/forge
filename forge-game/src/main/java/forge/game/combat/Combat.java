@@ -49,7 +49,7 @@ import forge.util.collect.FCollectionView;
  * </p>
  * 
  * @author Forge
- * @version $Id: Combat.java 30473 2015-12-12 21:17:34Z Sloth $
+ * @version $Id: Combat.java 31986 2016-08-14 09:00:03Z Hanmac $
  */
 public class Combat {
     private final Player playerWhoAttacks;
@@ -101,9 +101,11 @@ public class Combat {
 
         //update view for all attackers and blockers
         for (Card c : attackers) {
+            c.getDamageHistory().endCombat();
             c.updateAttackingForView();
         }
         for (Card c : blockers) {
+            c.getDamageHistory().endCombat();
             c.updateBlockingForView();
         }
     }
@@ -680,6 +682,8 @@ public class Combat {
     }
 
     public void dealAssignedDamage() {
+    	playerWhoAttacks.getGame().copyLastState();
+
         // This function handles both Regular and First Strike combat assignment
         final HashMap<Card, Integer> defMap = defendingDamageMap;
         final HashMap<GameEntity, CardCollection> wasDamaged = new HashMap<GameEntity, CardCollection>();
@@ -734,6 +738,7 @@ public class Combat {
 
             for (final Entry<Card, Integer> entry : assignedDamageMap.entrySet()) {
                 final Card crd = entry.getKey();
+                c.getDamageHistory().registerCombatDamage(crd);
                 damageMap.put(crd, entry.getValue());
                 if (entry.getValue() > 0) {
                     if (damageDealtThisCombat.containsKey(crd)) {
@@ -762,6 +767,10 @@ public class Combat {
         for (final Card damageSource : dealtDamageTo.keySet()) {
             final HashMap<String, Object> runParams = new HashMap<String, Object>();
             int dealtDamage = damageDealtThisCombat.containsKey(damageSource) ? damageDealtThisCombat.get(damageSource) : 0;
+            // LifeLink for Combat Damage at this place
+            if (dealtDamage > 0 && damageSource.hasKeyword("Lifelink")) {
+                damageSource.getController().gainLife(dealtDamage, damageSource);
+            }
             runParams.put("DamageSource", damageSource);
             runParams.put("DamageTargets", dealtDamageTo.get(damageSource));
             runParams.put("DamageAmount", dealtDamage);

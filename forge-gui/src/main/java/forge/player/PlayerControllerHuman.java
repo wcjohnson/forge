@@ -38,7 +38,9 @@ import forge.GuiBase;
 import forge.LobbyPlayer;
 import forge.achievement.AchievementCollection;
 import forge.ai.GameState;
+import forge.card.CardDb;
 import forge.card.ColorSet;
+import forge.card.ICardFace;
 import forge.card.MagicColor;
 import forge.card.mana.ManaCost;
 import forge.card.mana.ManaCostShard;
@@ -1148,9 +1150,9 @@ public class PlayerControllerHuman
     }
 
     @Override
-    public PaperCard chooseSinglePaperCard(final SpellAbility sa, final String message, final Predicate<PaperCard> cpp, final String name) {
-        final Iterable<PaperCard> cardsFromDb = FModel.getMagicDb().getCommonCards().getUniqueCards();
-        final List<PaperCard> cards = Lists.newArrayList(Iterables.filter(cardsFromDb, cpp));
+    public ICardFace chooseSingleCardFace(final SpellAbility sa, final String message, final Predicate<ICardFace> cpp, final String name) {
+        final Iterable<ICardFace> cardsFromDb = FModel.getMagicDb().getCommonCards().getAllFaces();
+        final List<ICardFace> cards = Lists.newArrayList(Iterables.filter(cardsFromDb, cpp));
         Collections.sort(cards);
         return getGui().one(message, cards);
     }
@@ -1216,7 +1218,24 @@ public class PlayerControllerHuman
             }
             if (needPrompt) {
                 List<Integer> savedOrder = orderedSALookup.get(saLookupKey);
-                if (savedOrder == null) { //prompt if no saved order for the current set of abilities
+                boolean sameOrder = false;
+
+                if (savedOrder != null) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("Would you like to keep the same order for simultaneous abilities as last time?\n\n");
+                    int c = 0;
+                    for (Integer index : savedOrder) {
+                        if (c > 9) {
+                            // do not list more than ten abilities to avoid overloading the prompt box
+                            sb.append("<...>\n");
+                            break;
+                        }
+                        sb.append(++c + ". " + activePlayerSAs.get(index).getHostCard() + "\n");
+                    }
+                    sameOrder = getGui().showConfirmDialog(sb.toString(), "Ordering simultaneous abilities", true);
+                }
+
+                if (savedOrder == null || !sameOrder) { //prompt if no saved order for the current set of abilities or if the player wants to change the order
                     orderedSAs = getGui().order("Select order for simultaneous abilities", "Resolve first", activePlayerSAs, null);
                     //save order to avoid needing to prompt a second time to order the same abilties
                     savedOrder = new ArrayList<Integer>(activePlayerSAs.size());
@@ -1251,8 +1270,7 @@ public class PlayerControllerHuman
 
     @Override
     public boolean playSaFromPlayEffect(final SpellAbility tgtSA) {
-        HumanPlay.playSpellAbility(this, player, tgtSA);
-        return true;
+        return HumanPlay.playSpellAbility(this, player, tgtSA);
     }
 
     @Override
@@ -1273,25 +1291,33 @@ public class PlayerControllerHuman
     }
 
     @Override
-    public boolean chooseCardsPile(final SpellAbility sa, final CardCollectionView pile1, final CardCollectionView pile2, final boolean faceUp) {
-        if (!faceUp) {
-            final String p1Str = String.format("Pile 1 (%s cards)", pile1.size());
-            final String p2Str = String.format("Pile 2 (%s cards)", pile2.size());
+    public boolean chooseCardsPile(final SpellAbility sa, final CardCollectionView pile1, final CardCollectionView pile2, final String faceUp) {
+        final String p1Str = String.format("-- Pile 1 (%s cards) --", pile1.size());
+        final String p2Str = String.format("-- Pile 2 (%s cards) --", pile2.size());
+
+        /*
+        if (faceUp.equals("True")) {
             final List<String> possibleValues = ImmutableList.of(p1Str , p2Str);
             return getGui().confirm(CardView.get(sa.getHostCard()), "Choose a Pile", possibleValues);
         }
-
-        tempShowCards(pile1);
-        tempShowCards(pile2);
+        */
 
         final List<CardView> cards = Lists.newArrayListWithCapacity(pile1.size() + pile2.size() + 2);
-        final CardView pileView1 = new CardView(Integer.MIN_VALUE, null, "--- Pile 1 ---");
-        cards.add(pileView1);
-        cards.addAll(CardView.getCollection(pile1));
+        final CardView pileView1 = new CardView(Integer.MIN_VALUE, null, p1Str);
 
-        final CardView pileView2 = new CardView(Integer.MIN_VALUE + 1, null, "--- Pile 2 ---");
+        cards.add(pileView1);
+        if (faceUp.equals("False")) {
+            tempShowCards(pile1);
+            cards.addAll(CardView.getCollection(pile1));
+        }
+
+        final CardView pileView2 = new CardView(Integer.MIN_VALUE + 1, null, p2Str);
         cards.add(pileView2);
-        cards.addAll(CardView.getCollection(pile2));
+        if (!faceUp.equals("True")) {
+            tempShowCards(pile2);
+            cards.addAll(CardView.getCollection(pile2));
+        }
+
 
         // make sure Pile 1 or Pile 2 is clicked on
         boolean result;
@@ -1348,9 +1374,10 @@ public class PlayerControllerHuman
     }
 
     @Override
-    public String chooseCardName(final SpellAbility sa, final Predicate<PaperCard> cpp, final String valid, final String message) {
+    public String chooseCardName(final SpellAbility sa, final Predicate<ICardFace> cpp, final String valid, final String message) {
         while (true) {
-            final PaperCard cp = chooseSinglePaperCard(sa, message, cpp, sa.getHostCard().getName());
+            final ICardFace cardFace = chooseSingleCardFace(sa, message, cpp, sa.getHostCard().getName());
+            final PaperCard cp = FModel.getMagicDb().getCommonCards().getCard(cardFace.getName());
             final Card instanceForPlayer = Card.fromPaperCard(cp, player); // the Card instance for test needs a game to be tested
             if (instanceForPlayer.isValid(valid, sa.getHostCard().getController(), sa.getHostCard(), sa)) {
                 return cp.getName();
@@ -1744,14 +1771,17 @@ public class PlayerControllerHuman
                 return;
             }
 
-            final List<PaperCard> cards =  Lists.newArrayList(FModel.getMagicDb().getCommonCards().getUniqueCards());
-            Collections.sort(cards);
+            final CardDb carddb = FModel.getMagicDb().getCommonCards();
+            final List<ICardFace> faces =  Lists.newArrayList(carddb.getAllFaces());
+            Collections.sort(faces);
 
             // use standard forge's list selection dialog
-            final IPaperCard c = getGui().oneOrNone("Name the card", cards);
-            if (c == null) {
+            final ICardFace f = getGui().oneOrNone("Name the card", faces);
+            if (f == null) {
                 return;
             }
+
+            final PaperCard c = carddb.getUniqueByName(f.getName());
 
             game.getAction().invoke(new Runnable() { @Override public void run() {
                 game.getAction().moveToHand(Card.fromPaperCard(c, p));
@@ -1768,14 +1798,17 @@ public class PlayerControllerHuman
                 return;
             }
 
-            final List<PaperCard> cards =  Lists.newArrayList(FModel.getMagicDb().getCommonCards().getUniqueCards());
-            Collections.sort(cards);
+            final CardDb carddb = FModel.getMagicDb().getCommonCards();
+            final List<ICardFace> faces =  Lists.newArrayList(carddb.getAllFaces());
+            Collections.sort(faces);
 
             // use standard forge's list selection dialog
-            final IPaperCard c = getGui().oneOrNone("Name the card", cards);
-            if (c == null) {
+            final ICardFace f = getGui().oneOrNone("Name the card", faces);
+            if (f == null) {
                 return;
             }
+
+            final PaperCard c = carddb.getUniqueByName(f.getName());
 
             game.getAction().invoke(new Runnable() {
                 @Override public void run() {
@@ -1906,5 +1939,11 @@ public class PlayerControllerHuman
         final PlayerZone hand = player.getZone(ZoneType.Hand);
         hand.reorder(game.getCard(card), index);
         player.updateZoneForView(hand);
+    }
+
+    @Override
+    public String chooseCardName(SpellAbility sa, List<ICardFace> faces, String message) {
+        ICardFace face = getGui().one(message, faces);
+        return face == null ? "" : face.getName();
     }
 }

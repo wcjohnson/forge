@@ -30,7 +30,7 @@ import forge.game.staticability.StaticAbility;
  * 
  * @author Forge
 
- * @version $Id: PlayerZoneBattlefield.java 30125 2015-09-26 15:03:51Z Agetian $
+ * @version $Id: PlayerZoneBattlefield.java 31649 2016-07-23 01:26:51Z friarsol $
  */
 public class PlayerZoneBattlefield extends PlayerZone {
     /** Constant <code>serialVersionUID=5750837078903423978L</code>. */
@@ -38,10 +38,21 @@ public class PlayerZoneBattlefield extends PlayerZone {
 
     private boolean trigger = true;
     private boolean leavesTrigger = true;
+    private CardCollection meldedCards = new CardCollection();
 
     public PlayerZoneBattlefield(final ZoneType zone, final Player player) {
         super(zone, player);
     }
+
+    public final void addToMelded(final Card c) {
+        c.getZone().remove(c);
+        meldedCards.add(c);
+    }
+
+    public final void removeFromMelded(final Card c) {
+        meldedCards.remove(c);
+    }
+
 
     /** {@inheritDoc} */
     @Override

@@ -976,9 +976,9 @@ public class FSkin {
 
         if (formatReminderText) {
             //format reminder text in italics (or hide if preference set)
-            pattern = "\\((.+)\\)";
+            pattern = " \\((.+?)\\)";
             replacement = FModel.getPreferences().getPrefBoolean(FPref.UI_HIDE_REMINDER_TEXT) ?
-                    "" : "<i>\\($1\\)</i>";
+                    "" : " <i>\\($1\\)</i>";
             str = str.replaceAll(pattern, replacement);
         }
 
@@ -1273,6 +1273,7 @@ public class FSkin {
         addEncodingSymbol("Q", FSkinProp.IMG_UNTAP);
         addEncodingSymbol("S", FSkinProp.IMG_MANA_SNOW);
         addEncodingSymbol("T", FSkinProp.IMG_TAP);
+        addEncodingSymbol("E", FSkinProp.IMG_ENERGY);
 
         // Set look and feel after skin loaded
         FView.SINGLETON_INSTANCE.setSplashProgessBarMessage("Setting look and feel...");

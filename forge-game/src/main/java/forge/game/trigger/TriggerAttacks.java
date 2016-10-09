@@ -31,7 +31,7 @@ import java.util.Map;
  * </p>
  * 
  * @author Forge
- * @version $Id: TriggerAttacks.java 31143 2016-04-20 17:47:28Z friarsol $
+ * @version $Id: TriggerAttacks.java 32192 2016-09-25 16:39:46Z Hanmac $
  */
 public class TriggerAttacks extends Trigger {
 
@@ -100,6 +100,24 @@ public class TriggerAttacks extends Trigger {
         	}
         }
 
+        if (this.mapParams.containsKey("AttackDifferentPlayers")) {
+            GameEntity attacked = (GameEntity) runParams2.get("Attacked");
+            boolean found = false;
+            if (attacked instanceof Player) {
+                @SuppressWarnings("unchecked")
+                List<GameEntity> list = (List<GameEntity>) runParams2.get("Defenders");
+                for (GameEntity e : list) {
+                    if ((e instanceof Player) && !e.equals(attacked)) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -108,6 +126,7 @@ public class TriggerAttacks extends Trigger {
     public final void setTriggeringObjects(final SpellAbility sa) {
         sa.setTriggeringObject("Attacker", this.getRunParams().get("Attacker"));
         sa.setTriggeringObject("Defender", this.getRunParams().get("Attacked"));
+        sa.setTriggeringObject("Defenders", this.getRunParams().get("Defenders"));
         sa.setTriggeringObject("DefendingPlayer", this.getRunParams().get("DefendingPlayer"));
     }
 

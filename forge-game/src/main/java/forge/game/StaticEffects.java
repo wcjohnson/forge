@@ -33,7 +33,7 @@ import forge.game.staticability.StaticAbility;
  * </p>
  * 
  * @author Forge
- * @version $Id: StaticEffects.java 28775 2015-02-03 04:43:40Z Myrd $
+ * @version $Id: StaticEffects.java 31865 2016-08-03 15:42:28Z Hanmac $
  */
 public class StaticEffects {
 
@@ -72,7 +72,7 @@ public class StaticEffects {
             return currentEffect;
         }
 
-        final StaticEffect newEffect = new StaticEffect(staticAbility.getHostCard());
+        final StaticEffect newEffect = new StaticEffect(staticAbility);
         this.staticEffects.put(staticAbility, newEffect);
         return newEffect;
     }

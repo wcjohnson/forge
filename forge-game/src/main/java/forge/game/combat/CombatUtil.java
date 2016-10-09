@@ -61,7 +61,7 @@ import forge.util.maps.MapToAmount;
  * </p>
  * 
  * @author Forge
- * @version $Id: CombatUtil.java 31143 2016-04-20 17:47:28Z friarsol $
+ * @version $Id: CombatUtil.java 32029 2016-08-25 12:15:54Z Hanmac $
  */
 public class CombatUtil {
 
@@ -188,6 +188,25 @@ public class CombatUtil {
             return false;
         }
 
+        // Goad logic
+        // a goaded creature does need to attack a player which does not goaded her
+        // or if not possible a planeswalker or a player which does goaded her
+        if (attacker.isGoaded()) {
+            final boolean goadedByDefender = defender instanceof Player && attacker.isGoadedBy((Player) defender);
+            // attacker got goaded by defender or defender is not player
+            if (goadedByDefender || !(defender instanceof Player)) {
+                for (GameEntity ge : getAllPossibleDefenders(attacker.getController())) {
+                    if (!defender.equals(ge) && ge instanceof Player) {
+                        // found a player which does not goad that creature
+                        // and creature can attack this player or planeswalker
+                        if (!attacker.isGoadedBy((Player) ge) && canAttack(attacker, ge)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
         // Keywords
         final boolean canAttackWithDefender = attacker.hasKeyword("CARDNAME can attack as though it didn't have defender.");
         for (final String keyword : attacker.getKeywords()) {
@@ -300,6 +319,7 @@ public class CombatUtil {
         runParams.put("OtherAttackers", otherAttackers);
         runParams.put("Attacked", combat.getDefenderByAttacker(c));
         runParams.put("DefendingPlayer", combat.getDefenderPlayerByAttacker(c));
+        runParams.put("Defenders", combat.getDefenders());
         game.getTriggerHandler().runTrigger(TriggerType.Attacks, runParams, false);
 
         // Annihilator: can be copied by Strionic Resonator now
@@ -498,7 +518,8 @@ public class CombatUtil {
 
         // Landwalk
         if (isUnblockableFromLandwalk(attacker, defender)) {
-            return false;
+            if (CardLists.getAmountOfKeyword(defender.getCreaturesInPlay(), "CARDNAME can block creatures with landwalk abilities as though they didn't have those abilities.") == 0)
+            	return false;
         }
 
         return true;
@@ -755,6 +776,18 @@ public class CombatUtil {
                     || (attacker.hasStartOfKeyword("CARDNAME must be blocked if able.")
                             && combat.getBlockers(attacker).isEmpty())) {
                 attackersWithLure.add(attacker);
+            } else {
+                for (String keyword : attacker.getKeywords()) {
+                    // MustBeBlockedBy <valid>
+                    if (keyword.startsWith("MustBeBlockedBy ")) {
+                        final String valid = keyword.substring("MustBeBlockedBy ".length());
+                        if (blocker.isValid(valid, null, null, null) &&
+                                CardLists.getValidCardCount(combat.getBlockers(attacker), valid, null, null) == 0) {
+                            attackersWithLure.add(attacker);
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -855,6 +888,19 @@ public class CombatUtil {
             return false;
         }
 
+        boolean mustBeBlockedBy = false;
+        for (String keyword : attacker.getKeywords()) {
+            // MustBeBlockedBy <valid>
+            if (keyword.startsWith("MustBeBlockedBy ")) {
+                final String valid = keyword.substring("MustBeBlockedBy ".length());
+                if (blocker.isValid(valid, null, null, null) &&
+                        CardLists.getValidCardCount(combat.getBlockers(attacker), valid, null, null) == 0) {
+                    mustBeBlockedBy = true;
+                    break;
+                }
+            }
+        }
+
         // if the attacker has no lure effect, but the blocker can block another
         // attacker with lure, the blocker can't block the former
         if (!attacker.hasKeyword("All creatures able to block CARDNAME do so.")
@@ -862,6 +908,7 @@ public class CombatUtil {
                 && !(attacker.hasStartOfKeyword("All creatures with flying able to block CARDNAME do so.") && blocker.hasKeyword("Flying"))
                 && !(attacker.hasKeyword("CARDNAME must be blocked if able.") && combat.getBlockers(attacker).isEmpty())
                 && !(blocker.getMustBlockCards() != null && blocker.getMustBlockCards().contains(attacker))
+                && !mustBeBlockedBy
                 && CombatUtil.mustBlockAnAttacker(blocker, combat)) {
             return false;
         }
@@ -910,6 +957,11 @@ public class CombatUtil {
         }
 
         if (CardFactoryUtil.hasProtectionFrom(blocker, attacker)) {
+            return false;
+        }
+        
+        if (isUnblockableFromLandwalk(attacker, blocker.getController())
+        		&& !blocker.hasKeyword("CARDNAME can block creatures with landwalk abilities as though they didn't have those abilities.")) {
             return false;
         }
 
@@ -1032,69 +1084,6 @@ public class CombatUtil {
         }
 
         return true;
-    }
-
-    public static void handleRampage(final Game game, final Card a, final List<Card> blockers) {
-        for (final String keyword : a.getKeywords()) {
-            final int idx = keyword.indexOf("Rampage ");
-            if (idx < 0)
-                continue;
-
-            final int numBlockers = blockers.size();
-            final int magnitude = Integer.valueOf(keyword.substring(idx + "Rampage ".length()));
-            CombatUtil.executeRampageAbility(game, a, magnitude, numBlockers);
-        } // end Rampage
-    }
-
-    /**
-     * executes Rampage abilities for a given card.
-     * @param game
-     * 
-     * @param c
-     *            the card to add rampage bonus to
-     * @param magnitude
-     *            the magnitude of rampage (ie Rampage 2 means magnitude should
-     *            be 2)
-     * @param numBlockers
-     *            - the number of creatures blocking this rampaging creature
-     */
-    private static void executeRampageAbility(final Game game, final Card c, final int magnitude, final int numBlockers) {
-        final int totalBonus = Math.max(0, (numBlockers - 1) * magnitude);
-        final String effect = "AB$ Pump | Cost$ 0 | " + c.getId() + " | NumAtt$ " + totalBonus + " | NumDef$ " + totalBonus + " | ";
-        final String desc = "StackDescription$ Rampage " + magnitude + " (Whenever CARDNAME becomes blocked, it gets +" + magnitude + "/+"
-                + magnitude + " until end of turn for each creature blocking it beyond the first.)";
-
-        final SpellAbility ability = AbilityFactory.getAbility(effect + desc, c);
-        ability.setActivatingPlayer(c.getController());
-        ability.setDescription(ability.getStackDescription());
-        ability.setTrigger(true);
-
-        game.getStack().addSimultaneousStackEntry(ability);
-    }
-
-    public static void handleFlankingKeyword(final Game game, final Card attacker, final List<Card> blockers) {
-        for (final Card blocker : blockers) {
-            if (attacker.hasKeyword("Flanking") && !blocker.hasKeyword("Flanking")) {
-                final int flankingMagnitude = attacker.getAmountOfKeyword("Flanking");
-
-                // Rule 702.23b:  If a creature has multiple instances of flanking, each triggers separately.
-                for (int i = 0; i < flankingMagnitude; i++) {
-                    final String effect = String.format("AB$ Pump | Cost$ 0 | Defined$ CardUID_%d | NumAtt$ -1 | NumDef$ -1 | ", blocker.getId());
-                    final String desc = String.format("StackDescription$ Flanking (The blocker %s (%d) gets -1/-1 until end of turn)", blocker.getName(), blocker.getId());
-
-                    final SpellAbility ability = AbilityFactory.getAbility(effect + desc, attacker);
-                    ability.setActivatingPlayer(attacker.getController());
-                    ability.setDescription(ability.getStackDescription());
-                    ability.setTrigger(true);
-
-                    game.getStack().addSimultaneousStackEntry(ability);
-                }
-            } // flanking
-
-            // TODO what are these lines doing here?
-            blocker.addBlockedThisTurn(attacker);
-            attacker.addBlockedByThisTurn(blocker);
-        }
     }
 
 } // end class CombatUtil

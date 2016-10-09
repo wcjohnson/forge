@@ -32,21 +32,22 @@ import forge.util.Lang;
  * </p>
  * 
  * @author Forge
- * @version $Id: PlayerZone.java 27901 2014-10-13 01:17:02Z drdev $
+ * @version $Id: PlayerZone.java 31865 2016-08-03 15:42:28Z Hanmac $
  */
 public class PlayerZone extends Zone {
     private static final long serialVersionUID = -5687652485777639176L;
 
     // the this is not the owner of the card
-    private final class AlienCardsActivationFilter implements Predicate<Card> {
-        @Override
-        public boolean apply(final Card c) {
-            if (c.hasStartOfKeyword("May be played by your opponent")
-                    || c.hasKeyword("Your opponent may look at this card.")) {
-                return true;
+    private static Predicate<Card> alienCardsActivationFilter(final Player who) {
+        return new Predicate<Card>() {
+            @Override
+            public boolean apply(final Card c) {
+                if (!c.mayPlay(who).isEmpty() || c.hasKeyword("Your opponent may look at this card.")) {
+                    return true;
+                }
+                return false;
             }
-            return false;
-        }
+        };
     }
 
     private final class OwnCardsActivationFilter implements Predicate<Card> {
@@ -56,19 +57,24 @@ public class PlayerZone extends Zone {
                 return true;
             }
 
-            if (c.isLand() && (c.hasKeyword("May be played") || c.hasKeyword("May be played without paying its mana cost"))) {
+            if (c.isLand() && (!c.mayPlay(c.getController()).isEmpty())) {
                 return true;
             }
 
             for (final SpellAbility sa : c.getSpellAbilities()) {
                 final ZoneType restrictZone = sa.getRestrictions().getZone();
+
+                // for mayPlay the restrictZone is null for reasons
+                if (sa.isSpell() && c.mayPlay(sa.getMayPlay()) != null) {
+                    return true;
+                }
+
                 if (PlayerZone.this.is(restrictZone)) {
                     return true;
                 }
-   
+
                 if (sa.isSpell()
-                        && (c.hasKeyword("May be played") || c.hasKeyword("May be played without paying its mana cost")
-                                || (c.hasStartOfKeyword("Flashback") && PlayerZone.this.is(ZoneType.Graveyard)))
+                        && (c.hasStartOfKeyword("Flashback") && PlayerZone.this.is(ZoneType.Graveyard))
                         && restrictZone.equals(ZoneType.Hand)) {
                     return true;
                 }
@@ -112,7 +118,7 @@ public class PlayerZone extends Zone {
             cards = Iterables.limit(cards, 1);
         }
 
-        final Predicate<Card> filterPredicate = checkingForOwner ? new OwnCardsActivationFilter() : new AlienCardsActivationFilter();
+        final Predicate<Card> filterPredicate = checkingForOwner ? new OwnCardsActivationFilter() : alienCardsActivationFilter(who);
         return CardLists.filter(cl, filterPredicate);
     }
 }

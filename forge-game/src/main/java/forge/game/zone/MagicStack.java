@@ -59,6 +59,7 @@ import forge.game.replacement.ReplacementEffect;
 import forge.game.replacement.ReplacementHandler;
 import forge.game.replacement.ReplacementLayer;
 import forge.game.spellability.Ability;
+import forge.game.spellability.AbilitySub;
 import forge.game.spellability.AbilityStatic;
 import forge.game.spellability.OptionalCost;
 import forge.game.spellability.Spell;
@@ -76,7 +77,7 @@ import forge.game.trigger.WrappedAbility;
  * </p>
  * 
  * @author Forge
- * @version $Id: MagicStack.java 31160 2016-04-28 02:35:26Z friarsol $
+ * @version $Id: MagicStack.java 31985 2016-08-14 08:59:17Z Hanmac $
  */
 public class MagicStack /* extends MyObservable */ implements Iterable<SpellAbilityStackInstance> {
     private final List<SpellAbility> simultaneousStackEntryList = new ArrayList<SpellAbility>();
@@ -232,6 +233,11 @@ public class MagicStack /* extends MyObservable */ implements Iterable<SpellAbil
             return;
         }
 
+        if (!hasLegalTargeting(sp, source)) {
+            game.getGameLog().add(GameLogEntryType.STACK_ADD, source + " - [Couldn't add to stack, failed to target] - " + sp.getDescription());
+            return;
+        }
+
         if (sp.isSpell()) {
             source.setController(activator, 0);
             final Spell spell = (Spell) sp;
@@ -336,8 +342,9 @@ public class MagicStack /* extends MyObservable */ implements Iterable<SpellAbil
                     }
 
                     // Replicate Trigger
-                    String effect = String.format("AB$ CopySpellAbility | Cost$ 0 | Defined$ SourceFirstSpell | Amount$ %d", magnitude);
-                    SpellAbility sa = AbilityFactory.getAbility(effect, source);
+                    String effect = String.format("DB$ CopySpellAbility | Cost$ 0 | Defined$ Parent | Amount$ %d", magnitude);
+                    AbilitySub sa = (AbilitySub) AbilityFactory.getAbility(effect, source);
+                    sa.setParent(sp);
                     sa.setDescription("Replicate - " + source);
                     sa.setTrigger(true);
                     sa.setCopied(true);
@@ -347,6 +354,9 @@ public class MagicStack /* extends MyObservable */ implements Iterable<SpellAbil
         }
 
         sp.setTotalManaSpent(totManaSpent);
+        if (sp.getMayPlayOriginal() != null) {
+            sp.getMayPlayOriginal().setTotalManaSpent(totManaSpent);
+        }
 
         // Copied spells aren't cast per se so triggers shouldn't run for them.
         HashMap<String, Object> runParams = new HashMap<String, Object>();
@@ -444,6 +454,9 @@ public class MagicStack /* extends MyObservable */ implements Iterable<SpellAbil
             System.out.println(sp.getHostCard().getName() + " - activatingPlayer not set before adding to stack.");
         }
 
+        if (sp.isSpell() && sp.getMayPlay() != null) {
+            sp.getMayPlay().getHostCard().incMayPlayTurn();
+        }
         final SpellAbilityStackInstance si = new SpellAbilityStackInstance(sp);
 
         stack.addFirst(si);
@@ -487,6 +500,10 @@ public class MagicStack /* extends MyObservable */ implements Iterable<SpellAbil
         
         boolean thisHasFizzled = hasFizzled(sa, source, null);
         
+        if (!thisHasFizzled) {
+            game.copyLastState();
+        }
+
         if (thisHasFizzled) { // Fizzle
             if (sa.hasParam("Bestow")) {
                 // 702.102d: if its target is illegal, 
@@ -515,6 +532,7 @@ public class MagicStack /* extends MyObservable */ implements Iterable<SpellAbil
         }
 
         if (isEmpty()) {
+            game.copyLastState();
             // FIXME: assuming that if the stack is empty, no reason to hold on to old LKI data (everything is a new object). Is this correct?
             game.clearChangeZoneLKIInfo();
         }
@@ -625,6 +643,20 @@ public class MagicStack /* extends MyObservable */ implements Iterable<SpellAbil
             // If Spell and still on the Stack then let it goto the graveyard or replace its own movement
             game.getAction().moveToGraveyard(source);
         }
+    }
+
+    public final boolean hasLegalTargeting(final SpellAbility sa, final Card source) {
+        if (sa == null) {
+            return true;
+        }
+        TargetRestrictions tgt = sa.getTargetRestrictions();
+        if (tgt != null) {
+            int numTargets = sa.getTargets().getNumTargeted();
+            if (tgt.getMinTargets(source, sa) > numTargets || (tgt.getMaxTargets(source, sa) < numTargets)) {
+                return false;
+            }
+        }
+        return hasLegalTargeting(sa.getSubAbility(), source);
     }
 
     private final boolean hasFizzled(final SpellAbility sa, final Card source, final Boolean parentFizzled) {
@@ -770,6 +802,11 @@ public class MagicStack /* extends MyObservable */ implements Iterable<SpellAbil
     public boolean addAllTriggeredAbilitiesToStack() {
         boolean result = false;
         Player playerTurn = game.getPhaseHandler().getPlayerTurn();
+
+        if (playerTurn == null) {
+            // caused by DevTools before first turn
+            return false;
+        }
 
         if (playerTurn.hasLost()) {
             playerTurn = game.getNextPlayerAfter(playerTurn);

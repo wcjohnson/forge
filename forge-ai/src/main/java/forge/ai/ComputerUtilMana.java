@@ -3,6 +3,7 @@ package forge.ai;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 import forge.card.ColorSet;
@@ -21,10 +22,10 @@ import forge.game.card.CardLists;
 import forge.game.card.CardUtil;
 import forge.game.combat.CombatUtil;
 import forge.game.cost.Cost;
+import forge.game.cost.CostAdjustment;
 import forge.game.cost.CostPartMana;
 import forge.game.cost.CostPayment;
 import forge.game.mana.Mana;
-import forge.game.mana.ManaCostAdjustment;
 import forge.game.mana.ManaCostBeingPaid;
 import forge.game.mana.ManaPool;
 import forge.game.phase.PhaseType;
@@ -306,6 +307,9 @@ public class ComputerUtilMana {
     private static boolean payManaCost(final ManaCostBeingPaid cost, final SpellAbility sa, final Player ai, final boolean test, boolean checkPlayable) {
         adjustManaCostToAvoidNegEffects(cost, sa.getHostCard(), ai);
         List<Mana> manaSpentToPay = test ? new ArrayList<Mana>() : sa.getPayingMana();
+
+        List<SpellAbility> paymentList = Lists.newArrayList();
+
         if (payManaCostFromPool(cost, sa, ai, test, manaSpentToPay)) {
             return true;	// paid all from floating mana
         }
@@ -358,6 +362,7 @@ public class ComputerUtilMana {
                 }
                 continue;
             }
+            paymentList.add(saPayment);
 
             setExpressColorChoice(sa, ai, cost, toPay, saPayment);
 
@@ -420,6 +425,7 @@ public class ComputerUtilMana {
         if (!cost.isPaid()) {
             refundMana(manaSpentToPay, ai, sa);
             if (test) {
+                resetPayment(paymentList);
                 return false;
             }
             else {
@@ -428,17 +434,27 @@ public class ComputerUtilMana {
             }
         }
 
-        if (test) {
-            refundMana(manaSpentToPay, ai, sa);
-        }
         // Note: manaSpentToPay shouldn't be cleared here, since it needs to remain
         // on the SpellAbility in order for effects that check mana spent cost to work.
 
         sa.getHostCard().setColorsPaid(cost.getColorsPaid());
         // if (sa instanceof Spell_Permanent) // should probably add this
         sa.getHostCard().setSunburstValue(cost.getSunburst());
+
+        if (test) {
+            refundMana(manaSpentToPay, ai, sa);
+            resetPayment(paymentList);
+        }
+
         return true;
     } // payManaCost()
+
+    private static void resetPayment(List<SpellAbility> payments) {
+        for(SpellAbility sa : payments) {
+            sa.getManaPart().clearExpressChoice();
+        }
+    }
+
 
 	/**
 	 * Creates a mapping between the required mana shards and the available spell abilities to pay for them
@@ -682,6 +698,8 @@ public class ComputerUtilMana {
                 }
             }
             else if (sourceCard.isTapped()) {
+                return false;
+            } else if (ma.getRestrictions() != null && ma.getRestrictions().isInstantSpeed()) {
                 return false;
             }
         }
@@ -943,7 +961,7 @@ public class ComputerUtilMana {
             sa.getHostCard().setCastFrom(card.getZone().getZoneType());
         }
 
-        Cost payCosts = sa.getPayCosts();
+        Cost payCosts = CostAdjustment.adjust(sa.getPayCosts(), sa);
         CostPartMana manapart = payCosts != null ? payCosts.getCostMana() : null;
         final ManaCost mana = payCosts != null ? ( manapart == null ? ManaCost.ZERO : manapart.getManaCostFor(sa) ) : ManaCost.NO_COST;
 
@@ -952,7 +970,7 @@ public class ComputerUtilMana {
             restriction = payCosts.getCostMana().getRestiction();
         }
         ManaCostBeingPaid cost = new ManaCostBeingPaid(mana, restriction);
-        ManaCostAdjustment.adjust(cost, sa, null, test);
+        CostAdjustment.adjust(cost, sa, null, test);
 
         // Tack xMana Payments into mana here if X is a set value
         if (sa.getPayCosts() != null && (cost.getXcounter() > 0 || extraMana > 0)) {
@@ -964,8 +982,8 @@ public class ComputerUtilMana {
                 // For Count$xPaid set PayX in the AFs then use that here
                 // Else calculate it as appropriate.
                 final String xSvar = card.getSVar("X").startsWith("Count$xPaid") ? "PayX" : "X";
-                if (!card.getSVar(xSvar).equals("")) {
-                    if (xSvar.equals("PayX")) {
+                if (!sa.getSVar(xSvar).isEmpty() || card.hasSVar(xSvar)) {
+                    if (xSvar.equals("PayX") && card.hasSVar(xSvar)) {
                         manaToAdd = Integer.parseInt(card.getSVar(xSvar)) * cost.getXcounter(); // X
                     } else {
                         manaToAdd = AbilityUtils.calculateAmount(card, xSvar, sa) * cost.getXcounter();
@@ -1246,6 +1264,10 @@ public class ComputerUtilMana {
                 continue;
             }
 
+            if (a.getRestrictions() != null &&  a.getRestrictions().isInstantSpeed()) {
+                continue;
+            }
+
             if (!res.contains(a)) {
                 if (cost.isReusuableResource()) {
                     res.add(0, a);
@@ -1266,6 +1288,14 @@ public class ComputerUtilMana {
                 sa.getHostCard().getController().getGame().getAction().sacrifice(offering, sa);
             }
             sa.resetSacrificedAsOffering();
+        }
+        if (sa.isEmerge() && sa.getSacrificedAsEmerge() != null) {
+            final Card emerge = sa.getSacrificedAsEmerge();
+            emerge.setUsedToPay(false);
+            if (costIsPaid && !test) {
+                sa.getHostCard().getController().getGame().getAction().sacrifice(emerge, sa);
+            }
+            sa.resetSacrificedAsEmerge();
         }
     }
     

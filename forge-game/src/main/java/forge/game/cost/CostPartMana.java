@@ -33,23 +33,28 @@ public class CostPartMana extends CostPart {
     private boolean isEnchantedCreatureCost = false;
     private final String restriction;
 
+    public int paymentOrder() { return shouldPayLast() ? 200 : 0; }
+
     public boolean shouldPayLast() {
         return isExiledCreatureCost;
     }
     /**
      * Instantiates a new cost mana.
-     * 
-     * @param mana
-     *            the mana
-     * @param amount
-     *            the amount
-     * @param xCantBe0 TODO
      */
     public CostPartMana(final ManaCost cost, String restriction) {
         this.cost = cost;
         this.xCantBe0 = "XCantBe0".equals(restriction);
         this.isExiledCreatureCost = "Exiled".equalsIgnoreCase(restriction);
         this.isEnchantedCreatureCost = "EnchantedCost".equalsIgnoreCase(restriction);
+        this.restriction = xCantBe0 || isExiledCreatureCost || isEnchantedCreatureCost? null : restriction;
+    }
+
+    // This version of the constructor allows to explicitly set exiledCreatureCost/enchantedCreatureCost, used only when copying costs
+    public CostPartMana(final ManaCost cost, String restriction, boolean exiledCreatureCost, boolean enchantedCreatureCost) {
+        this.cost = cost;
+        this.xCantBe0 = "XCantBe0".equals(restriction);
+        this.isExiledCreatureCost = exiledCreatureCost;
+        this.isEnchantedCreatureCost = enchantedCreatureCost;
         this.restriction = xCantBe0 || isExiledCreatureCost || isEnchantedCreatureCost? null : restriction;
     }
 

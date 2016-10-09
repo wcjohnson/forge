@@ -23,6 +23,7 @@ import forge.game.Game;
 import forge.game.card.Card;
 import forge.game.card.CardCollection;
 import forge.game.card.CardCollectionView;
+import forge.game.card.CardUtil;
 import forge.game.event.EventValueChangeType;
 import forge.game.event.GameEventZone;
 import forge.game.player.Player;
@@ -91,13 +92,17 @@ public class Zone implements java.io.Serializable, Iterable<Card> {
         if (zoneType != ZoneType.Battlefield) {
             c.setTapped(false);
         }
-        c.setZone(this);
 
-        if (index == null) {
-            cardList.add(c);
-        }
-        else {
-            cardList.add(index.intValue(), c);
+        // Do not add Tokens to other zones than the battlefield.
+        // But Effects/Emblems count as Tokens too, so allow Command too.
+        if (zoneType == ZoneType.Battlefield || zoneType == ZoneType.Command || !c.isToken()) {
+            c.setZone(this);
+
+            if (index == null) {
+                cardList.add(c);
+            } else {
+                cardList.add(index.intValue(), c);
+            }
         }
         onChanged();
         game.fireEvent(new GameEventZone(zoneType, getPlayer(), EventValueChangeType.Added, c));
@@ -242,5 +247,17 @@ public class Zone implements java.io.Serializable, Iterable<Card> {
     @Override
     public String toString() {
         return zoneType.toString();
+    }
+    
+    public Zone getLKICopy() {
+        Zone result = new Zone(zoneType, game);
+
+        final CardCollection list = new CardCollection();
+        for (final Card c : getCards()) {
+            list.add(CardUtil.getLKICopy(c));
+        }
+        result.setCards(list);
+
+        return result;
     }
 }

@@ -26,11 +26,10 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import forge.GameCommand;
-import forge.card.ColorSet;
 import forge.card.MagicColor;
-import forge.card.mana.ManaCostShard;
 import forge.game.Game;
 import forge.game.GlobalRuleChange;
 import forge.game.StaticEffect;
@@ -116,13 +115,13 @@ public final class StaticAbilityContinuous {
         String addT = "";
         int toughnessBonus = 0;
         String setP = "";
-        int setPower = -1;
+        int setPower = Integer.MAX_VALUE;
         String setT = "";
-        int setToughness = -1;
+        int setToughness = Integer.MAX_VALUE;
         int keywordMultiplier = 1;
 
         String[] addKeywords = null;
-        String[] addHiddenKeywords = null;
+        List<String> addHiddenKeywords = Lists.newArrayList();
         String[] removeKeywords = null;
         String[] addAbilities = null;
         String[] addReplacements = null;
@@ -139,7 +138,8 @@ public final class StaticAbilityContinuous {
         boolean removeSubTypes = false;
         boolean removeCreatureTypes = false;
         boolean controllerMayLookAt = false;
-        boolean controllerMayPlay = false, mayPlayWithoutManaCost = false, mayPlayIgnoreColor = false;
+        boolean controllerMayPlay = false, mayPlayWithoutManaCost = false, mayPlayIgnoreColor = false, mayPlayWithFlash = false;
+        Integer mayPlayLimit = null;
 
         //Global rules changes
         if (layer == StaticAbilityLayer.RULES && params.containsKey("GlobalRule")) {
@@ -191,7 +191,7 @@ public final class StaticAbilityContinuous {
             final Iterable<String> chosencolors = hostCard.getChosenColors();
             for (final String color : chosencolors) {
                 for (int w = 0; w < addKeywords.length; w++) {
-                    addKeywords[w] = addKeywords[w].replaceAll("ChosenColor", color.substring(0, 1).toUpperCase().concat(color.substring(1, color.length())));
+                    addKeywords[w] = addKeywords[w].replaceAll("ChosenColor", StringUtils.capitalize(color));
                 }
             }
             final String chosenType = hostCard.getChosenType();
@@ -213,8 +213,12 @@ public final class StaticAbilityContinuous {
             }
         }
 
-        if (layer == StaticAbilityLayer.RULES && params.containsKey("AddHiddenKeyword")) {
-            addHiddenKeywords = params.get("AddHiddenKeyword").split(" & ");
+        if ((layer == StaticAbilityLayer.RULES || layer == StaticAbilityLayer.ABILITIES1) && params.containsKey("AddHiddenKeyword")) {
+            // can't have or gain, need to be applyed in ABILITIES1
+            for (String k : params.get("AddHiddenKeyword").split(" & ")) {
+                if ( (k.contains("can't have or gain")) == (layer == StaticAbilityLayer.ABILITIES1))
+                    addHiddenKeywords.add(k);
+            }
         }
 
         if (layer == StaticAbilityLayer.ABILITIES2 && params.containsKey("RemoveKeyword")) {
@@ -348,6 +352,7 @@ public final class StaticAbilityContinuous {
                     for (SpellAbility sa : c.getSpellAbilities()) {
                         if (sa instanceof AbilityActivated) {
                             SpellAbility newSA = ((AbilityActivated) sa).getCopy();
+                            newSA.setOriginalHost(c);
                             newSA.setIntrinsic(false);
                             newSA.setTemporary(true);
                             CardFactoryUtil.correctAbilityChainSourceCard(newSA, hostCard);
@@ -370,6 +375,12 @@ public final class StaticAbilityContinuous {
                 } else if (params.containsKey("MayPlayIgnoreColor")) {
                     mayPlayIgnoreColor = true;
                 }
+                if (params.containsKey("MayPlayWithFlash")) {
+                	mayPlayWithFlash = true;
+                }
+                if (params.containsKey("MayPlayLimit")) {
+                    mayPlayLimit = Integer.parseInt(params.get("MayPlayLimit"));
+                }
             }
 
             if (params.containsKey("IgnoreEffectCost")) {
@@ -385,6 +396,15 @@ public final class StaticAbilityContinuous {
             if (addKeywords != null) {
                 for (int i = 0; i < keywordMultiplier; i++) {
                     p.addChangedKeywords(addKeywords, removeKeywords == null ? new String[0] : removeKeywords, se.getTimestamp());
+                }
+            }
+
+            // add static abilities
+            if (addStatics != null) {
+                for (String s : addStatics) {
+                    StaticAbility stat = p.addStaticAbility(hostCard, s);
+                    stat.setTemporary(true);
+                    stat.setIntrinsic(false);
                 }
             }
 
@@ -442,13 +462,13 @@ public final class StaticAbilityContinuous {
             // set P/T
             if (layer == StaticAbilityLayer.SETPT) {
                 if (params.containsKey("CharacteristicDefining")) {
-                    if (setPower != -1) {
+                    if (setPower != Integer.MAX_VALUE) {
                         affectedCard.setBasePower(setPower);
                     }
-                    if (setToughness != -1) {
+                    if (setToughness != Integer.MAX_VALUE) {
                         affectedCard.setBaseToughness(setToughness);
                     }
-                } else if ((setPower != -1) || (setToughness != -1)) {
+                } else if ((setPower != Integer.MAX_VALUE) || (setToughness != Integer.MAX_VALUE)) {
                     // non CharacteristicDefining
                     if (setP.startsWith("AffectedX")) {
                         setPower = CardFactoryUtil.xCount(affectedCard, AbilityUtils.getSVar(stAb, setP));
@@ -478,12 +498,20 @@ public final class StaticAbilityContinuous {
             // TODO regular keywords currently don't try to use keyword multiplier
             // (Although nothing uses it at this time)
             if ((addKeywords != null) || (removeKeywords != null) || removeAllAbilities) {
-                affectedCard.addChangedCardKeywords(addKeywords, removeKeywords, removeAllAbilities,
+                String[] newKeywords = null;
+                if (addKeywords != null) {
+                    newKeywords = Arrays.copyOf(addKeywords, addKeywords.length);
+                    for (int j = 0; j < newKeywords.length; ++j) {
+                    	newKeywords[j] = newKeywords[j].replace("CardManaCost", affectedCard.getManaCost().getShortString());
+                    }
+                }
+
+                affectedCard.addChangedCardKeywords(newKeywords, removeKeywords, removeAllAbilities,
                         hostCard.getTimestamp());
             }
 
             // add HIDDEN keywords
-            if (addHiddenKeywords != null) {
+            if (!addHiddenKeywords.isEmpty()) {
                 for (final String k : addHiddenKeywords) {
                     for (int j = 0; j < keywordMultiplier; j++) {
                         affectedCard.addHiddenExtrinsicKeyword(k);
@@ -515,19 +543,7 @@ public final class StaticAbilityContinuous {
             if (addAbilities != null) {
                 for (String abilty : addAbilities) {
                     if (abilty.contains("CardManaCost")) {
-                        StringBuilder sb = new StringBuilder();
-                        int generic = affectedCard.getManaCost().getGenericCost();
-                        if (generic > 0) {
-                            sb.append(generic);
-                        }
-                        for (ManaCostShard s : affectedCard.getManaCost()) {
-                            // TODO Sol Investigate, this loop feels wrong
-                            ColorSet cs = ColorSet.fromMask(s.getColorMask());
-                            if(cs.isColorless()) continue;
-                            sb.append(' ');
-                            sb.append(s);
-                        }
-                        abilty = abilty.replace("CardManaCost", sb.toString().trim());
+                        abilty = abilty.replace("CardManaCost", affectedCard.getManaCost().getShortString());
                     } else if (abilty.contains("ConvertedManaCost")) {
                         final String costcmc = Integer.toString(affectedCard.getCMC());
                         abilty = abilty.replace("ConvertedManaCost", costcmc);
@@ -608,11 +624,12 @@ public final class StaticAbilityContinuous {
             if (controllerMayLookAt) {
                 affectedCard.setMayLookAt(controller, true);
             }
-            if (controllerMayPlay) {
-                affectedCard.setMayPlay(controller, mayPlayWithoutManaCost, mayPlayIgnoreColor);
+            if (controllerMayPlay && (mayPlayLimit == null || hostCard.getMayPlayTurn() < mayPlayLimit)) {
+                Player mayPlayController = params.containsKey("MayPlayCardOwner") ? affectedCard.getOwner() : controller;
+                affectedCard.setMayPlay(mayPlayController, mayPlayWithoutManaCost, mayPlayIgnoreColor, mayPlayWithFlash, stAb);
             }
 
-            affectedCard.updateStateForView();
+            //affectedCard.updateStateForView(); // FIXME: causes intolerable flickering for cards such as Thassa, God of the Sea or Wind Zendikon.
         }
 
         return affectedCards;

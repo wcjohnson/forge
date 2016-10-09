@@ -196,7 +196,23 @@ public class TriggerHandler {
         return mapParams;
     }
 
+    private void collectTriggerForWaiting() {
+        for (final TriggerWaiting wt : waitingTriggers) {
+            if (wt.getTriggers() != null)
+                continue;
+
+            List<Trigger> trigger = Lists.newArrayList();
+            for (final Trigger t : activeTriggers) {
+                if (canRunTrigger(t,wt.getMode(),wt.getParams())) {
+                    trigger.add(t);
+                }
+            }
+            wt.setTriggers(trigger);
+        }
+    }
+
     public final void resetActiveTriggers() {
+        collectTriggerForWaiting();
         activeTriggers.clear();
         game.forEachCardInGame(new Visitor<Card>() {
             @Override
@@ -217,10 +233,10 @@ public class TriggerHandler {
 
         while(itr.hasNext()) {
             t = itr.next();
+
             // Clear if no ZoneFrom, or not coming from the TriggerZone
             if (c.getId() == t.getHostCard().getId() && t.isIntrinsic()) {
-                if (zoneFrom == null || (!t.getMapParams().containsKey("TriggerZones") ||
-                        !t.getMapParams().get("TriggerZones").contains(zoneFrom.getZoneType().toString())))
+                if (!c.getTriggers().contains(t) || !t.zonesCheck(zoneFrom))
                     toBeRemoved.add(t);
             }
         }
@@ -311,23 +327,37 @@ public class TriggerHandler {
         // Static triggers
         for (final Trigger t : Lists.newArrayList(activeTriggers)) {
             if (t.isStatic() && canRunTrigger(t, mode, runParams)) {
-                runSingleTrigger(t, runParams);
+                int x = 1;
+
+                if (handlePanharmonicon(t, runParams)) {
+                    x += t.getHostCard().getController().getAmountOfKeyword("Panharmonicon");
+                }
+
+                for (int i = 0; i < x; ++i) {
+                    runSingleTrigger(t, runParams);
+                }
+
                 checkStatics = true;
             }
         }
 
         if (runParams.containsKey("Destination")) {
             // Check static abilities when a card enters the battlefield
-            final String type = (String) runParams.get("Destination");
-            checkStatics |= type.equals("Battlefield");
+            if (runParams.get("Destination") instanceof String) {
+                final String type = (String) runParams.get("Destination");
+                checkStatics |= type.equals("Battlefield");
+            } else {
+                final ZoneType zone = (ZoneType) runParams.get("Destination");
+                checkStatics |= zone.equals(ZoneType.Battlefield);
+            }
         }
 
         // AP 
-        checkStatics |= runNonStaticTriggersForPlayer(playerAP, mode, runParams, delayedTriggersWorkingCopy);
+        checkStatics |= runNonStaticTriggersForPlayer(playerAP, wt, delayedTriggersWorkingCopy);
 
         // NAPs
         for (final Player nap : game.getNonactivePlayers()) {
-            checkStatics |= runNonStaticTriggersForPlayer(nap, mode, runParams, delayedTriggersWorkingCopy);
+            checkStatics |= runNonStaticTriggersForPlayer(nap, wt, delayedTriggersWorkingCopy);
         }
         return checkStatics;
     }
@@ -345,13 +375,16 @@ public class TriggerHandler {
         }
     }
 
-    private boolean runNonStaticTriggersForPlayer(final Player player, final TriggerType mode, 
-            final Map<String, Object> runParams, final List<Trigger> delayedTriggersWorkingCopy ) {
+    private boolean runNonStaticTriggersForPlayer(final Player player, final TriggerWaiting wt, final List<Trigger> delayedTriggersWorkingCopy ) {
+
+        final TriggerType mode = wt.getMode(); 
+        final Map<String, Object> runParams = wt.getParams();
+        final List<Trigger> triggers = wt.getTriggers() != null ? wt.getTriggers() : activeTriggers;
 
         Card card = null;
         boolean checkStatics = false;
 
-        for (final Trigger t : activeTriggers) {
+        for (final Trigger t : triggers) {
             if (!t.isStatic() && t.getHostCard().getController().equals(player) && canRunTrigger(t, mode, runParams)) {
                 if (runParams.containsKey("Card") && runParams.get("Card") instanceof Card) {
                     card = (Card) runParams.get("Card");
@@ -363,7 +396,15 @@ public class TriggerHandler {
                     }
                 }
 
-                runSingleTrigger(t, runParams);
+                int x = 1;
+
+                if (handlePanharmonicon(t, runParams)) {
+                    x += t.getHostCard().getController().getAmountOfKeyword("Panharmonicon");
+                }
+
+                for (int i = 0; i < x; ++i) {
+                    runSingleTrigger(t, runParams);
+                }
                 checkStatics = true;
             }
         }
@@ -397,6 +438,7 @@ public class TriggerHandler {
         if (regtrig.isSuppressed()) {
             return false; // Trigger removed by effect
         }
+
         if (!regtrig.zonesCheck(game.getZoneOf(regtrig.getHostCard()))) {
             return false; // Host card isn't where it needs to be.
         }
@@ -479,11 +521,11 @@ public class TriggerHandler {
             host = trigCard;
         }
         else {
-        	// get CardState does not work for transformed cards
-        	// also its about LKI
-        	if (host.isInZone(ZoneType.Battlefield)) {
-        		host = game.getCardState(host);
-        	}
+            // get CardState does not work for transformed cards
+            // also its about LKI
+            if (host.isInZone(ZoneType.Battlefield) || !host.hasAlternateState()) {
+                host = game.getCardState(host);
+            }
         }
 
         sa = regtrig.getOverridingAbility();
@@ -496,11 +538,14 @@ public class TriggerHandler {
                 };
             }
             else {
-                sa = AbilityFactory.getAbility(host.getSVar(triggerParams.get("Execute")), host);
+                sa = AbilityFactory.getAbility(host, triggerParams.get("Execute"));
             }
         }
 
         sa.setHostCard(host);
+        sa.setLastStateBattlefield(game.getLastStateBattlefield());
+        sa.setLastStateGraveyard(game.getLastStateGraveyard());
+
         sa.setTrigger(true);
         sa.setSourceTrigger(regtrig.getId());
         regtrig.setTriggeringObjects(sa);
@@ -561,6 +606,7 @@ public class TriggerHandler {
         //wrapperAbility.setDescription(wrapperAbility.getStackDescription());
         wrapperAbility.setDescription(wrapperAbility.toUnsuppressedString());
 
+        wrapperAbility.setLastStateBattlefield(game.getLastStateBattlefield());
         if (regtrig.isStatic()) {
             wrapperAbility.getActivatingPlayer().getController().playTrigger(host, wrapperAbility, isMandatory);
         }
@@ -580,5 +626,30 @@ public class TriggerHandler {
                 regtrig.getHostCard().removeTrigger(regtrig);
             }
         }
+    }
+
+    private boolean handlePanharmonicon(final Trigger t, final Map<String, Object> runParams) {
+        // not a changesZone trigger
+        if (t.getMode() != TriggerType.ChangesZone) {
+            return false;
+        }
+
+        // not a Permanent you control
+        if (!t.getHostCard().isPermanent() || !t.getHostCard().isInZone(ZoneType.Battlefield)) {
+            return false;
+        }
+
+        // its not an ETB trigger or the card is not a Artifact or Creature
+        if (runParams.get("Destination") instanceof String) {
+            final String dest = (String) runParams.get("Destination");
+            if (dest.equals("Battlefield") && runParams.get("Card") instanceof Card) {
+                final Card card = (Card) runParams.get("Card");
+                if (card.isCreature() || card.isArtifact()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

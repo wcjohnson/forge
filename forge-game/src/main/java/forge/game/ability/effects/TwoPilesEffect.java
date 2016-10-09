@@ -89,20 +89,34 @@ public class TwoPilesEffect extends SpellAbilityEffect {
                     return;
                 }
 
+                String title = "One".equals(sa.getParamOrDefault("FaceDown", "False")) ? "Select cards for a face down pile" :
+                        "Divide cards into two piles";
+
+                card.clearRemembered();
+
                 // first, separate the cards into piles
-                final CardCollectionView pile1 = separator.getController().chooseCardsForEffect(pool, sa, "Divide cards into two piles", 0, size, false);
+                final CardCollectionView pile1 = separator.getController().chooseCardsForEffect(pool, sa, title, 0, size, false);
                 final CardCollection pile2 = new CardCollection(pool);
                 pile2.removeAll(pile1);
 
-                System.out.println("Pile 1:" + pile1);
-                System.out.println("Pile 2:" + pile2);
-                card.clearRemembered();
+                //System.out.println("Pile 1:" + pile1);
+                //System.out.println("Pile 2:" + pile2);
 
-                pile1WasChosen = chooser.getController().chooseCardsPile(sa, pile1, pile2, !sa.hasParam("FaceDown"));
+
+                pile1WasChosen = chooser.getController().chooseCardsPile(sa, pile1, pile2, sa.getParamOrDefault("FaceDown", "False"));
                 CardCollectionView chosenPile = pile1WasChosen ? pile1 : pile2;
                 CardCollectionView unchosenPile = !pile1WasChosen ? pile1 : pile2;
                 
-                p.getGame().getAction().nofityOfValue(sa, chooser, chooser + " chooses Pile " + (pile1WasChosen ? "1" : "2"), chooser);
+                String notification = chooser + " chooses Pile " + (pile1WasChosen ? "1" : "2") + ":\n";
+                if (!chosenPile.isEmpty()) {
+                    for (Card c : chosenPile) {
+                        notification += c.getName() + "\n";
+                    }
+                } else {
+                    notification += "(Empty pile)";
+                }
+
+                p.getGame().getAction().nofityOfValue(sa, chooser, notification, chooser);
 
                 // take action on the chosen pile
                 if (sa.hasParam("ChosenPile")) {
@@ -110,6 +124,10 @@ public class TwoPilesEffect extends SpellAbilityEffect {
                         card.addRemembered(z);
                     }
                     final SpellAbility action = AbilityFactory.getAbility(card.getSVar(sa.getParam("ChosenPile")), card);
+                    if (sa.isIntrinsic()) {
+                        action.setIntrinsic(true);
+                        action.changeText();
+                    }
                     action.setActivatingPlayer(sa.getActivatingPlayer());
                     ((AbilitySub) action).setParent(sa);
                     AbilityUtils.resolve(action);
@@ -123,6 +141,10 @@ public class TwoPilesEffect extends SpellAbilityEffect {
                     }
                     
                     final SpellAbility action = AbilityFactory.getAbility(card.getSVar(sa.getParam("UnchosenPile")), card);
+                    if (sa.isIntrinsic()) {
+                        action.setIntrinsic(true);
+                        action.changeText();
+                    }
                     action.setActivatingPlayer(sa.getActivatingPlayer());
                     ((AbilitySub) action).setParent(sa);
                     AbilityUtils.resolve(action);

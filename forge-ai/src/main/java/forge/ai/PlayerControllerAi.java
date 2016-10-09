@@ -9,9 +9,9 @@ import com.google.common.collect.Multimap;
 
 import forge.LobbyPlayer;
 import forge.ai.ability.ChangeZoneAi;
-import forge.ai.ability.CharmAi;
 import forge.ai.ability.ProtectAi;
 import forge.card.ColorSet;
+import forge.card.ICardFace;
 import forge.card.MagicColor;
 import forge.card.mana.ManaCost;
 import forge.card.mana.ManaCostShard;
@@ -354,7 +354,7 @@ public class PlayerControllerAi extends PlayerController {
             chosen = validTypes.get(0);
             Log.warn("AI has no idea how to choose " + kindOfType +", defaulting to 1st element: chosen");
         }
-        game.getAction().nofityOfValue(sa, null, "Computer picked: " + chosen, player);
+        game.getAction().nofityOfValue(sa, player, chosen, player);
         return chosen;
     }
 
@@ -492,12 +492,20 @@ public class PlayerControllerAi extends PlayerController {
         return choiceMap.get(options.get(i));
     }
 
-    /* (non-Javadoc)
-     * @see forge.game.player.PlayerController#chooseModeForAbility(forge.card.spellability.SpellAbility, java.util.List, int, int)
-     */
     @Override
     public List<AbilitySub> chooseModeForAbility(SpellAbility sa, int min, int num, boolean allowRepeat) {
-        return CharmAi.chooseOptionsAi(sa, player, sa.isTrigger(), num, min, allowRepeat, !player.equals(sa.getActivatingPlayer()));
+        /**
+         * Called when CharmEffect resolves for the AI to select its choices.
+         * The list of chosen options (sa.getChosenList()) should be set by
+         * CharmAi.canPlayAi() for cast spells while CharmAi.doTrigger() deals
+         * with triggers. The logic in CharmAi should only be called once to
+         * account for probabilistic choices that may result in different
+         * results in subsequent calls.
+         */
+        if (sa.getChosenList() == null) {
+            getAi().doTrigger(sa, true);
+        }
+        return sa.getChosenList();
     }
 
     @Override
@@ -570,8 +578,8 @@ public class PlayerControllerAi extends PlayerController {
     }
 
     @Override
-    public PaperCard chooseSinglePaperCard(SpellAbility sa, String message,
-            Predicate<PaperCard> cpp, String name) {
+    public ICardFace chooseSingleCardFace(SpellAbility sa, String message,
+            Predicate<ICardFace> cpp, String name) {
         throw new UnsupportedOperationException("Should not be called for AI"); // or implement it if you know how
     }
 
@@ -713,9 +721,9 @@ public class PlayerControllerAi extends PlayerController {
             Spell spell = (Spell) tgtSA;
             if (brains.canPlayFromEffectAI(spell, !optional, noManaCost) == AiPlayDecision.WillPlay || !optional) {
                 if (noManaCost) {
-                    ComputerUtil.playSpellAbilityWithoutPayingManaCost(player, tgtSA, game);
+                    return ComputerUtil.playSpellAbilityWithoutPayingManaCost(player, tgtSA, game);
                 } else {
-                    ComputerUtil.playStack(tgtSA, player, game);
+                    return ComputerUtil.playStack(tgtSA, player, game);
                 }
             } else 
                 return false; // didn't play spell
@@ -734,10 +742,13 @@ public class PlayerControllerAi extends PlayerController {
     }
 
     @Override
-    public boolean chooseCardsPile(SpellAbility sa, CardCollectionView pile1, CardCollectionView pile2, boolean faceUp) {
-        if (!faceUp) {
+    public boolean chooseCardsPile(SpellAbility sa, CardCollectionView pile1, CardCollectionView pile2, String faceUp) {
+        if (faceUp.equals("True")) {
             // AI will choose the first pile if it is larger or the same
             // TODO Improve this to be slightly more random to not be so predictable
+            return pile1.size() >= pile2.size();
+        } else if (faceUp.equals("One")) {
+            // Probably want to see if the face up pile has anything "worth it", then potentially take face down pile
             return pile1.size() >= pile2.size();
         } else {
             boolean allCreatures = Iterables.all(Iterables.concat(pile1, pile2), CardPredicates.Presets.CREATURES);
@@ -821,7 +832,7 @@ public class PlayerControllerAi extends PlayerController {
     }
 
     @Override
-    public String chooseCardName(SpellAbility sa, Predicate<PaperCard> cpp, String valid, String message) {
+    public String chooseCardName(SpellAbility sa, Predicate<ICardFace> cpp, String valid, String message) {
         if (sa.hasParam("AILogic")) {
             final String logic = sa.getParam("AILogic");
             if (logic.equals("MostProminentInComputerDeck")) {
@@ -840,7 +851,7 @@ public class PlayerControllerAi extends PlayerController {
                 return ComputerUtilCard.getMostProminentCardName(cards);
             }
         } else {
-            CardCollectionView list = CardLists.filterControlledBy(game.getCardsInGame(), player.getOpponent());
+            CardCollectionView list = CardLists.filterControlledBy(game.getCardsInGame(), player.getOpponents());
             list = CardLists.filter(list, Predicates.not(Presets.LANDS));
             if (!list.isEmpty()) {
                 return list.get(0).getName();
@@ -878,5 +889,14 @@ public class PlayerControllerAi extends PlayerController {
     @Override
     public void cancelAwaitNextInput() {
         // Do nothing
+    }
+
+    @Override
+    public String chooseCardName(SpellAbility sa, List<ICardFace> faces, String message) {
+        ApiType api = sa.getApi();
+        if (null == api) {
+            throw new InvalidParameterException("SA is not api-based, this is not supported yet");
+        }
+        return SpellApiToAi.Converter.get(api).chooseCardName(player, sa, faces);
     }
 }

@@ -41,7 +41,7 @@ import java.util.Set;
  * </p>
  * 
  * @author Forge
- * @version $Id: TriggerSpellAbilityCast.java 31143 2016-04-20 17:47:28Z friarsol $
+ * @version $Id: TriggerSpellAbilityCast.java 32199 2016-09-26 19:53:06Z friarsol $
  */
 public class TriggerSpellAbilityCast extends Trigger {
 
@@ -234,6 +234,7 @@ public class TriggerSpellAbilityCast extends Trigger {
         final SpellAbilityStackInstance si = sa.getHostCard().getGame().getStack().getInstanceFromSpellAbility(castSA);
         sa.setTriggeringObject("Card", castSA.getHostCard());
         sa.setTriggeringObject("SpellAbility", castSA);
+        sa.setTriggeringObject("StackInstance", si);
         sa.setTriggeringObject("SpellAbilityTargetingCards", (si != null ? si.getSpellAbility(true) : castSA).getTargets().getTargetCards());
         sa.setTriggeringObject("Player", this.getRunParams().get("Player"));
         sa.setTriggeringObject("Activator", this.getRunParams().get("Activator"));

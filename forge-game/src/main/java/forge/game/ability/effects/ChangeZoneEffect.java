@@ -4,10 +4,12 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import forge.card.CardStateName;
 import forge.game.Game;
 import forge.game.GameEntity;
+import forge.game.GameObject;
 import forge.game.ability.AbilityUtils;
 import forge.game.ability.SpellAbilityEffect;
 import forge.game.card.*;
@@ -25,13 +27,14 @@ import forge.game.trigger.TriggerType;
 import forge.game.zone.Zone;
 import forge.game.zone.ZoneType;
 import forge.util.Aggregates;
-import forge.util.collect.FCollectionView;
+import forge.util.collect.*;
 import forge.util.Lang;
 import forge.util.MessageUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ChangeZoneEffect extends SpellAbilityEffect {
     @Override
@@ -408,7 +411,8 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
 
         final boolean optional = sa.hasParam("Optional");
         final long ts = game.getNextTimestamp();
-
+        final Map<ZoneType, CardCollection> triggerList = Maps.newEnumMap(ZoneType.class);
+        
         for (final Card tgtC : tgtCards) {
             if (tgt != null && tgtC.isInPlay() && !tgtC.canBeTargetedBy(sa)) {
                 continue;
@@ -442,10 +446,6 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
 
                 movedCard = game.getAction().moveToLibrary(tgtC, libraryPosition);
 
-                // for things like Gaea's Blessing
-                if (sa.hasParam("Shuffle") && "True".equals(sa.getParam("Shuffle"))) {
-                    tgtC.getOwner().shuffle(sa);
-                }
             } else {
                 if (destination.equals(ZoneType.Battlefield)) {
                     if (sa.hasParam("Tapped") || sa.hasParam("Ninjutsu")) {
@@ -542,9 +542,8 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
                     if (sa.hasParam("FaceDown")) {
                         movedCard.setState(CardStateName.FaceDown, true);
                     }
-                    if (sa.hasParam("Ninjutsu") || sa.hasParam("Attacking")) {
+                    if (sa.hasParam("Attacking")) {
                         // What should they attack?
-                        // TODO Ninjutsu needs to actually select the Defender, instead of auto selecting player
                         FCollectionView<GameEntity> defenders = game.getCombat().getDefenders();
                         if (!defenders.isEmpty()) { 
                             // Blockeres are already declared, set this to unblocked
@@ -553,11 +552,28 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
                             game.fireEvent(new GameEventCombatChanged());
                         }
                     }
+                    if (sa.hasParam("Ninjutsu")) {
+                        // Ninjutsu need to get the Defender of the Returned Creature 
+                        final Card returned = sa.getPaidList("Returned").getFirst();
+                        final GameEntity defender = game.getCombat().getDefenderByAttacker(returned);
+                        game.getCombat().addAttacker(tgtC, defender);
+                        game.getCombat().getBandOfAttacker(tgtC).setBlocked(false);
+                        game.fireEvent(new GameEventCombatChanged());
+                    }
                     if (sa.hasParam("Tapped") || sa.hasParam("Ninjutsu")) {
                         tgtC.setTapped(true);
                     }
                     movedCard.setTimestamp(ts);
                 } else {
+                    // might set before card is moved only for nontoken
+                    Card host = null;
+                    if (destination.equals(ZoneType.Exile) && !tgtC.isToken()) {
+                        host = sa.getOriginalHost();
+                        if (host == null) {
+                            host = sa.getHostCard();
+                        }
+                        tgtC.setExiledWith(host);
+                    }
                     movedCard = game.getAction().moveTo(destination, tgtC);
                     // If a card is Exiled from the stack, remove its spells from the stack
                     if (sa.hasParam("Fizzle")) {
@@ -566,19 +582,57 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
                             game.getStack().remove(tgtC);
                         }
                     }
+
+                    // might set after card is moved again if something has changed
+                    if (destination.equals(ZoneType.Exile) && !movedCard.isToken()) {
+                        movedCard.setExiledWith(host);
+                    }
+
                     if (sa.hasParam("ExileFaceDown")) {
                         movedCard.setState(CardStateName.FaceDown, true);
                     }
                 }
             }
-            if (remember != null && !movedCard.getZone().equals(originZone)) {
-                hostCard.addRemembered(movedCard);
+            if (!movedCard.getZone().equals(originZone)) {
+                if (!triggerList.containsKey(originZone.getZoneType())) {
+                    triggerList.put(originZone.getZoneType(), new CardCollection());
+                }
+                triggerList.get(originZone.getZoneType()).add(movedCard);
+
+                if (remember != null) {
+                    hostCard.addRemembered(movedCard);
+                }
+                if (forget != null) {
+                    hostCard.removeRemembered(movedCard);
+                }
+                if (imprint != null) {
+                    hostCard.addImprintedCard(movedCard);
+                }
             }
-            if (forget != null && !movedCard.getZone().equals(originZone)) {
-                hostCard.removeRemembered(movedCard);
+        }
+
+        if (!triggerList.isEmpty()) {
+            final HashMap<String, Object> runParams = new HashMap<String, Object>();
+            runParams.put("Cards", triggerList);
+            runParams.put("Destination", destination);
+            game.getTriggerHandler().runTrigger(TriggerType.ChangesZoneAll, runParams, false);
+        }
+
+        // for things like Gaea's Blessing
+        if (destination.equals(ZoneType.Library) && sa.hasParam("Shuffle") && "True".equals(sa.getParam("Shuffle"))) {
+            FCollection<Player> pl = new FCollection<Player>();
+            // use defined controller. it does need to work even without Targets.
+            if (sa.hasParam("TargetsWithDefinedController")) {
+                pl.addAll(AbilityUtils.getDefinedPlayers(hostCard, sa.getParam("TargetsWithDefinedController"), sa));
+            } else {
+                for (final Card tgtC : tgtCards) {
+                    // FCollection already does use set.
+                    pl.add(tgtC.getOwner());
+                }
             }
-            if (imprint != null && !movedCard.getZone().equals(originZone)) {
-                hostCard.addImprintedCard(movedCard);
+
+            for (final Player p : pl) {
+                p.shuffle(sa);
             }
         }
     }
@@ -788,33 +842,24 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
         for (int i = 0; i < changeNum && destination != null; i++) {
             if (sa.hasParam("DifferentNames")) {
                 for (Card c : chosenCards) {
-                    fetchList = CardLists.filter(fetchList, Predicates.not(CardPredicates.nameEquals(c.getName())));
+                    fetchList = CardLists.filter(fetchList, Predicates.not(CardPredicates.sharesNameWith(c)));
                 }
             }
             if (sa.hasParam("DifferentCMC")) {
                 for (Card c: chosenCards) {
-                    fetchList = CardLists.filter(fetchList, Predicates.not(CardPredicates.hasCMC(c.getCMC())));
+                    fetchList = CardLists.filter(fetchList, Predicates.not(CardPredicates.sharesCMCWith(c)));
                 }
             }
             if (sa.hasParam("ShareLandType")) {
-                if (chosenCards.size() == 0) {
-                    // If no cards have been chosen yet, the first card must have a land type
+                // After the first card is chosen, check if the land type is shared
+                for (final Card card : chosenCards) {
                     fetchList = CardLists.filter(fetchList, new Predicate<Card>() {
                         @Override
                         public boolean apply(final Card c) {
-                            return  c.hasALandType();
+                            return  c.sharesLandTypeWith(card);
                         }
-                    });
-                } else {
-                    for (final Card card : chosenCards) {
-                        fetchList = CardLists.filter(fetchList, new Predicate<Card>() {
-                            @Override
-                            public boolean apply(final Card c) {
-                                return  c.sharesLandTypeWith(card);
-                            }
 
-                        });
-                    }
+                    });
                 }
             }
             if (totalcmc != null) {
@@ -876,8 +921,10 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
 
         CardCollection movedCards = new CardCollection();
         long ts = game.getNextTimestamp();
+        final Map<ZoneType, CardCollection> triggerList = Maps.newEnumMap(ZoneType.class);
         for (Card c : chosenCards) {
             Card movedCard = null;
+            final Zone originZone = game.getZoneOf(c);
             if (destination.equals(ZoneType.Library)) {
                 movedCard = game.getAction().moveToLibrary(c, libraryPos);
             }
@@ -969,9 +1016,23 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
                     final Combat combat = game.getCombat();
                     if ( null != combat ) {
                         final FCollectionView<GameEntity> e = combat.getDefenders();
-                        final GameEntity defender = player.getController().chooseSingleEntityForEffect(e, sa, "Declare " + c);
-                        combat.addAttacker(c, defender);
-                        game.fireEvent(new GameEventCombatChanged());
+
+                        GameEntity defender = null;
+                        if (sa.hasParam("DefinedDefender")) {
+                            FCollection<GameObject> objs = AbilityUtils.getDefinedObjects(source, sa.getParam("DefinedDefender"), sa);
+                            for(GameObject obj : objs) {
+                                if (obj instanceof GameEntity) {
+                                    defender = (GameEntity)obj;
+                                    break;
+                                }
+                            }
+                        } else {
+                            defender = player.getController().chooseSingleEntityForEffect(e, sa, "Declare a defender for " + c );
+                        }
+                        if (defender != null) {
+                            combat.addAttacker(c, defender);
+                            game.fireEvent(new GameEventCombatChanged());
+                        }
                     }
                 }
                 if (sa.hasParam("Blocking")) {
@@ -999,6 +1060,13 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
             }
             else if (destination.equals(ZoneType.Exile)) {
                 movedCard = game.getAction().exile(c);
+                if (!c.isToken()) {
+                    Card host = sa.getOriginalHost();
+                    if (host == null) {
+                        host = sa.getHostCard();
+                    }
+                    movedCard.setExiledWith(host);
+                }
                 if (sa.hasParam("ExileFaceDown")) {
                     movedCard.setState(CardStateName.FaceDown, true);
                 }
@@ -1008,6 +1076,13 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
             }
             
             movedCards.add(movedCard);
+
+            if (originZone != null) {
+                if (!triggerList.containsKey(originZone.getZoneType())) {
+                    triggerList.put(originZone.getZoneType(), new CardCollection());
+                }
+                triggerList.get(originZone.getZoneType()).add(movedCard);
+            }
 
             if (champion) {
                 final HashMap<String, Object> runParams = new HashMap<String, Object>();
@@ -1037,6 +1112,14 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
                 || (sa.hasParam("Shuffle") && "True".equals(sa.getParam("Shuffle")))) {
             player.shuffle(sa);
         }
+
+        if (!triggerList.isEmpty()) {
+            final HashMap<String, Object> runParams = new HashMap<String, Object>();
+            runParams.put("Cards", triggerList);
+            runParams.put("Destination", destination);
+            game.getTriggerHandler().runTrigger(TriggerType.ChangesZoneAll, runParams, false);
+        }
+        
     }
 
     /**
@@ -1065,6 +1148,11 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
             } else if (srcSA.getParam("Destination").equals("Graveyard")) {
                 game.getAction().moveToGraveyard(tgtSA.getHostCard());
             } else if (srcSA.getParam("Destination").equals("Exile")) {
+                Card host = srcSA.getOriginalHost();
+                if (host == null) {
+                    host = srcSA.getHostCard();
+                }
+                tgtSA.getHostCard().setExiledWith(host);
                 game.getAction().exile(tgtSA.getHostCard());
             } else if (srcSA.getParam("Destination").equals("TopOfLibrary")) {
                 game.getAction().moveToLibrary(tgtSA.getHostCard());
@@ -1074,7 +1162,7 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
                 game.getAction().moveToBottomOfLibrary(tgtSA.getHostCard());
             } else if (srcSA.getParam("Destination").equals("Library")) {
                 game.getAction().moveToBottomOfLibrary(tgtSA.getHostCard());
-                if (srcSA.hasParam("Shuffle")) {
+                if (srcSA.hasParam("Shuffle") && "True".equals(srcSA.getParam("Shuffle"))) {
                     tgtSA.getHostCard().getOwner().shuffle(srcSA);
                 }
             } else {

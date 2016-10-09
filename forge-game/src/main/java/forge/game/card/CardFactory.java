@@ -18,6 +18,7 @@
 package forge.game.card;
 
 import forge.ImageKeys;
+import forge.StaticData;
 import forge.card.CardStateName;
 import forge.card.CardRules;
 import forge.card.CardSplitType;
@@ -38,6 +39,7 @@ import forge.game.staticability.StaticAbility;
 import forge.game.trigger.Trigger;
 import forge.game.trigger.TriggerHandler;
 import forge.game.trigger.WrappedAbility;
+import forge.game.zone.ZoneType;
 import forge.item.IPaperCard;
 import forge.item.PaperCard;
 
@@ -65,7 +67,7 @@ import com.google.common.collect.Iterables;
  * there today.
  * 
  * @author Forge
- * @version $Id: CardFactory.java 31070 2016-04-05 11:47:00Z Sloth $
+ * @version $Id: CardFactory.java 32273 2016-10-05 18:11:35Z Agetian $
  */
 public class CardFactory {
     /**
@@ -109,6 +111,7 @@ public class CardFactory {
 
         out.setClones(in.getClones());
         out.setZone(in.getZone());
+        out.setCastSA(in.getCastSA());
         for (final Object o : in.getRemembered()) {
             out.addRemembered(o);
         }
@@ -117,17 +120,6 @@ public class CardFactory {
         }
         out.setCommander(in.isCommander());
 
-        /*
-        if(out.isCommander())
-        {
-            out.addStaticAbility("Mode$ RaiseCost | Amount$ CommanderCostRaise | Type$ Spell | ValidCard$ Card.Self+wasCastFromCommand | EffectZone$ All | AffectedZone$ Stack");
-            SpellAbility sa = AbilityFactory.getAbility(
-                    "SP$ PermanentCreature | SorcerySpeed$ True | ActivationZone$ Command | SubAbility$ DBCommanderIncCast | Cost$ " + out.getManaCost().toString(),
-                    out);
-            
-            out.addSpellAbility(sa);
-        }
-         */
         return out;
 
     }
@@ -242,6 +234,16 @@ public class CardFactory {
             c.setXManaCostPaidByColor(original.getXManaCostPaidByColor());
             c.setKickerMagnitude(original.getKickerMagnitude());
 
+            // Rule 706.10 : Madness is copied
+            if (original.isInZone(ZoneType.Stack)) {
+                c.setMadness(original.isMadness());
+
+                final SpellAbilityStackInstance si = controller.getGame().getStack().getInstanceFromSpellAbility(sa);
+                if (si != null) {            	
+                    c.setXManaCostPaid(si.getXManaPaid());
+                }
+            }
+
             for (OptionalCost cost : original.getOptionalCostsPaid()) {
                 c.addOptionalCostPaid(cost);
             }
@@ -286,6 +288,9 @@ public class CardFactory {
                 c.setRarity(cp.getRarity());
                 c.setState(CardStateName.RightSplit, false);
                 c.setImageKey(originalPicture);
+            } else if (c.isMeldable() && cp instanceof PaperCard) {
+                c.setState(CardStateName.Meld, false);
+                c.setImageKey(cp.getImageKey(true));
             }
 
             c.setSetCode(cp.getEdition());
@@ -319,6 +324,12 @@ public class CardFactory {
                 s.setIntrinsic(true);
             }
 
+            // ******************************************************************
+            // ************** Link to different CardFactories *******************
+            if (card.isPlaneswalker()) {
+                buildPlaneswalkerAbilities(card);
+            }
+
             if (state == CardStateName.LeftSplit || state == CardStateName.RightSplit) {
                 for (final SpellAbility sa : card.getSpellAbilities()) {
                     if (state == CardStateName.LeftSplit) {
@@ -340,11 +351,7 @@ public class CardFactory {
 
         // ******************************************************************
         // ************** Link to different CardFactories *******************
-
-        if (card.isPlaneswalker()) {
-            buildPlaneswalkerAbilities(card);
-        }
-        else if (card.isPlane()) {
+        if (card.isPlane()) {
             buildPlaneAbilities(card);
         }
         CardFactoryUtil.setupKeywordedAbilities(card); // Should happen AFTER setting left/right split abilities to set Fuse ability to both sides
@@ -359,35 +366,38 @@ public class CardFactory {
         triggerSB.append("that planar deck and turn it face up");
 
         StringBuilder saSB = new StringBuilder();
-        saSB.append("AB$ RollPlanarDice | Cost$ X | References$ X | SorcerySpeed$ True | AnyPlayer$ True | ActivationZone$ Command | ");
+        saSB.append("AB$ RollPlanarDice | Cost$ X | SorcerySpeed$ True | AnyPlayer$ True | ActivationZone$ Command | ");
         saSB.append("SpellDescription$ Roll the planar dice. X is equal to the amount of times the planar die has been rolled this turn.");        
 
         card.setSVar("RolledWalk", "DB$ Planeswalk | Cost$ 0");
         Trigger planesWalkTrigger = TriggerHandler.parseTrigger(triggerSB.toString(), card, true);
         card.addTrigger(planesWalkTrigger);
 
-        card.setSVar("X", "Count$RolledThisTurn");
         SpellAbility planarRoll = AbilityFactory.getAbility(saSB.toString(), card);
+        planarRoll.setSVar("X", "Count$RolledThisTurn");
+
         card.addSpellAbility(planarRoll);
     }
 
     private static void buildPlaneswalkerAbilities(Card card) {
-        if (card.getBaseLoyalty() > 0) {
+    	// etbCounter only for Original Card
+        if (card.getBaseLoyalty() > 0 && card.getCurrentStateName() == CardStateName.Original) {
             final String loyalty = Integer.toString(card.getBaseLoyalty());
             card.addIntrinsicKeyword("etbCounter:LOYALTY:" + loyalty + ":no Condition:no desc");
         }
+        CardState state = card.getCurrentState();
 
         //Planeswalker damage redirection
-        String replacement = "Event$ DamageDone | ActiveZones$ Battlefield | IsCombat$ False | ValidSource$ Card.OppCtrl"
+        String replacement = "Event$ DamageDone | ActiveZones$ Battlefield | IsCombat$ False | ValidSource$ Card.OppCtrl,Emblem.OppCtrl"
                 + " | ValidTarget$ You | Optional$ True | OptionalDecider$ Opponent | ReplaceWith$ ChooseDmgPW | Secondary$ True"
                 + " | AICheckSVar$ DamagePWAI | AISVarCompare$ GT4 | Description$ Redirect damage to " + card.toString();
-        card.addReplacementEffect(ReplacementHandler.parseReplacement(replacement, card, true));
-        card.setSVar("ChooseDmgPW", "AB$ ChooseCard | Cost$ 0 | Defined$ ReplacedSourceController | Choices$ Planeswalker.YouCtrl" +
+        state.addReplacementEffect(ReplacementHandler.parseReplacement(replacement, card, true));
+        state.setSVar("ChooseDmgPW", "AB$ ChooseCard | Cost$ 0 | Defined$ ReplacedSourceController | Choices$ Planeswalker.YouCtrl" +
         		" | ChoiceZone$ Battlefield | Mandatory$ True | SubAbility$ DamagePW | ChoiceTitle$ Choose a planeswalker to redirect damage");
-        card.setSVar("DamagePW", "DB$ DealDamage | Defined$ ChosenCard | NumDmg$ DamagePWX | DamageSource$ ReplacedSource | References$ DamagePWX,DamagePWAI");
-        card.setSVar("DamagePWX", "ReplaceCount$DamageAmount");
-        card.setSVar("DamagePWAI", "ReplaceCount$DamageAmount/NMinus.DamagePWY");
-        card.setSVar("DamagePWY", "Count$YourLifeTotal");
+        state.setSVar("DamagePW", "DB$ DealDamage | Defined$ ChosenCard | NumDmg$ DamagePWX | DamageSource$ ReplacedSource | References$ DamagePWX,DamagePWAI");
+        state.setSVar("DamagePWX", "ReplaceCount$DamageAmount");
+        state.setSVar("DamagePWAI", "ReplaceCount$DamageAmount/NMinus.DamagePWY");
+        state.setSVar("DamagePWY", "Count$YourLifeTotal");
     }
 
     private static Card readCard(final CardRules rules, final IPaperCard paperCard, int cardId, Game game) {
@@ -405,7 +415,11 @@ public class CardFactory {
         if (st != CardSplitType.None) {
             card.addAlternateState(st.getChangedStateName(), false);
             card.setState(st.getChangedStateName(), false);
-            readCardFace(card, rules.getOtherPart());
+            if (rules.getOtherPart() != null) {
+                readCardFace(card, rules.getOtherPart());
+            } else if (!rules.getMeldWith().isEmpty()) {
+                readCardFace(card, StaticData.instance().getCommonCards().getRules(rules.getMeldWith()).getOtherPart());
+            }
         }
         
         if (card.isInAlternateState()) {
@@ -451,11 +465,11 @@ public class CardFactory {
 
         c.setColor(face.getColor().getColor());
 
-        if (face.getIntPower() >= 0) {
+        if (face.getIntPower() != Integer.MAX_VALUE) {
             c.setBasePower(face.getIntPower());
             c.setBasePowerString(face.getPower());
         }
-        if (face.getIntToughness() >= 0) {
+        if (face.getIntToughness() != Integer.MAX_VALUE) {
             c.setBaseToughness(face.getIntToughness());
             c.setBaseToughnessString(face.getToughness());
         }
@@ -496,7 +510,7 @@ public class CardFactory {
     	}
 
     	final boolean fromIsFlipCard = from.isFlipCard();
-        final boolean fromIsTransformedCard = from.getView().getCurrentState().getState() == CardStateName.Transformed;
+        final boolean fromIsTransformedCard = from.getCurrentStateName() == CardStateName.Transformed || from.getCurrentStateName() == CardStateName.Meld;
 
     	if (fromIsFlipCard) {
     		if (to.getCurrentStateName().equals(CardStateName.Flipped)) {
@@ -506,7 +520,7 @@ public class CardFactory {
     		}
     		copyState(from, CardStateName.Flipped, to, CardStateName.Flipped);
     	} else if (fromIsTransformedCard) {
-            copyState(from, CardStateName.Transformed, to, CardStateName.Original);
+            copyState(from, from.getCurrentStateName(), to, CardStateName.Original);
         } else {
             copyState(from, from.getCurrentStateName(), to, to.getCurrentStateName());
         }
@@ -530,14 +544,14 @@ public class CardFactory {
     	}
 
     	final boolean fromIsFlipCard = from.isFlipCard();
-        final boolean fromIsTransformedCard = from.getView().getCurrentState().getState() == CardStateName.Transformed;
+        final boolean fromIsTransformedCard = from.getCurrentStateName() == CardStateName.Transformed || from.getCurrentStateName() == CardStateName.Meld;
 
     	if (fromIsFlipCard) {
     		copyAbilities(from, CardStateName.Original, to, to.getCurrentStateName());
     		copyAbilities(from, CardStateName.Flipped, to, CardStateName.Flipped);
         }
         else if (fromIsTransformedCard) {
-    		copyAbilities(from, CardStateName.Transformed, to, CardStateName.Original);
+    		copyAbilities(from, from.getCurrentStateName(), to, CardStateName.Original);
     	} else {
     		copyAbilities(from, from.getCurrentStateName(), to, to.getCurrentStateName());
     	}

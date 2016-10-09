@@ -27,10 +27,16 @@ public class AiCostDecision extends CostDecisionMakerBase {
     private final SpellAbility ability;
     private final Card source;
     
+    private final CardCollection discarded;
+    private final CardCollection tapped;
+
     public AiCostDecision(Player ai0, SpellAbility sa) {
         super(ai0);
         ability = sa;
         source = ability.getHostCard();
+
+        discarded = new CardCollection();
+        tapped = new CardCollection();
     }
 
     @Override
@@ -90,7 +96,12 @@ public class AiCostDecision extends CostDecisionMakerBase {
         }
         else {
             final AiController aic = ((PlayerControllerAi)player.getController()).getAi();
-            return PaymentDecision.card(aic.getCardsToDiscard(c, type.split(";"), ability));
+
+            CardCollection result = aic.getCardsToDiscard(c, type.split(";"), ability, discarded);
+            if (result != null) {
+                discarded.addAll(result);
+            }
+            return PaymentDecision.card(result);
         }
     }
 
@@ -305,6 +316,24 @@ public class AiCostDecision extends CostDecisionMakerBase {
         return PaymentDecision.number(c);
     }
 
+    @Override
+    public PaymentDecision visit(CostPayEnergy cost) {
+        Integer c = cost.convertAmount();
+        if (c == null) {
+            final String sVar = ability.getSVar(cost.getAmount());
+            // Generalize cost
+            if (sVar.equals("XChoice")) {
+                return null;
+            } else {
+                c = AbilityUtils.calculateAmount(source, cost.getAmount(), ability);
+            }
+        }
+        if (!player.canPayEnergy(c)) {
+            return null;
+        }
+        return PaymentDecision.number(c);
+    }
+
 
     @Override
     public PaymentDecision visit(CostPutCardToLib cost) {
@@ -379,31 +408,42 @@ public class AiCostDecision extends CostDecisionMakerBase {
     public PaymentDecision visit(CostTapType cost) {
         final String amount = cost.getAmount();
         Integer c = cost.convertAmount();
+        String type = cost.getType();
+        boolean isVehicle = type.contains("+withTotalPowerGE");
         if (c == null) {
             final String sVar = ability.getSVar(amount);
             if (sVar.equals("XChoice")) {
                 CardCollectionView typeList =
-                        CardLists.getValidCards(player.getCardsIn(ZoneType.Battlefield), cost.getType().split(";"),
+                        CardLists.getValidCards(player.getCardsIn(ZoneType.Battlefield), type.split(";"),
                                 ability.getActivatingPlayer(), ability.getHostCard(), ability);
                 typeList = CardLists.filter(typeList, Presets.UNTAPPED);
                 c = typeList.size();
                 source.setSVar("ChosenX", "Number$" + Integer.toString(c));
             } else {
-                c = AbilityUtils.calculateAmount(source, amount, ability);
+                if (!isVehicle) {
+                    c = AbilityUtils.calculateAmount(source, amount, ability);
+                }
             }
         }
-        if (cost.getType().contains("sharesCreatureTypeWith") || cost.getType().contains("withTotalPowerGE")) {
+        if (type.contains("sharesCreatureTypeWith")) {
             return null;
         }
 
-        CardCollectionView totap = ComputerUtil.chooseTapType(player, cost.getType(), source, !cost.canTapSource, c);
-
+        String totalP = "";
+        CardCollectionView totap;
+        if (isVehicle) {
+            totalP = type.split("withTotalPowerGE")[1];
+            type = type.replace("+withTotalPowerGE" + totalP, "");
+            totap = ComputerUtil.chooseTapTypeAccumulatePower(player, type, ability, !cost.canTapSource, Integer.parseInt(totalP), tapped);
+        } else {
+            totap = ComputerUtil.chooseTapType(player, type, source, !cost.canTapSource, c, tapped);
+        }
 
         if (totap == null) {
-            System.out.println("Couldn't find a valid card to tap for: " + source.getName());
+//            System.out.println("Couldn't find a valid card(s) to tap for: " + source.getName());
             return null;
         }
-
+        tapped.addAll(totap);
         return PaymentDecision.card(totap);
     }
 
@@ -414,11 +454,6 @@ public class AiCostDecision extends CostDecisionMakerBase {
             return PaymentDecision.card(source);
         }
         if (cost.getAmount().equals("All")) {
-            /*CardCollectionView typeList = new CardCollection(activator.getCardsIn(ZoneType.Battlefield));
-            typeList = CardLists.getValidCards(typeList, cost.getType().split(";"), activator, source);
-            if (activator.hasKeyword("You can't sacrifice creatures to cast spells or activate abilities.")) {
-                typeList = CardLists.getNotType(typeList, "Creature");
-            }*/
             // Does the AI want to use Sacrifice All?
             return null;
         }
@@ -431,7 +466,7 @@ public class AiCostDecision extends CostDecisionMakerBase {
 
             c = AbilityUtils.calculateAmount(source, cost.getAmount(), ability);
         }
-        CardCollectionView list = ComputerUtil.chooseSacrificeType(player, cost.getType(), source, ability.getTargetCard(), c);
+        CardCollectionView list = ComputerUtil.chooseSacrificeType(player, cost.getType(), ability, ability.getTargetCard(), c);
         return PaymentDecision.card(list);
     }
 

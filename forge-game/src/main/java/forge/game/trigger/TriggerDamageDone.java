@@ -18,7 +18,9 @@
 package forge.game.trigger;
 
 import forge.game.card.Card;
+import forge.game.card.CardUtil;
 import forge.game.spellability.SpellAbility;
+import forge.game.spellability.SpellAbilityStackInstance;
 import forge.util.Expressions;
 
 /**
@@ -27,7 +29,7 @@ import forge.util.Expressions;
  * </p>
  * 
  * @author Forge
- * @version $Id: TriggerDamageDone.java 31143 2016-04-20 17:47:28Z friarsol $
+ * @version $Id: TriggerDamageDone.java 31878 2016-08-05 04:26:24Z Hanmac $
  */
 public class TriggerDamageDone extends Trigger {
 
@@ -95,13 +97,28 @@ public class TriggerDamageDone extends Trigger {
             System.out.println(operand);
         }
 
+        if (this.mapParams.containsKey("OncePerEffect")) {
+            // A "once per effect" trigger will only trigger once regardless of how many things the effect caused
+            // to change zones.
+
+            // The SpellAbilityStackInstance keeps track of which host cards with "OncePerEffect"
+            // triggers already fired as a result of that effect.
+            // TODO This isn't quite ideal, since it really should be keeping track of the SpellAbility of the host
+            // card, rather than keeping track of the host card itself - but it's good enough for now - since there
+            // are no cards with multiple different OncePerEffect triggers.
+            SpellAbilityStackInstance si = (SpellAbilityStackInstance) runParams2.get("SpellAbilityStackInstance");
+
+            // si == null means the stack is empty
+            return si == null || si.attemptOncePerEffectTrigger(this.getHostCard());
+        }
+
         return true;
     }
 
     /** {@inheritDoc} */
     @Override
     public final void setTriggeringObjects(final SpellAbility sa) {
-        sa.setTriggeringObject("Source", this.getRunParams().get("DamageSource"));
+        sa.setTriggeringObject("Source", CardUtil.getLKICopy((Card)this.getRunParams().get("DamageSource")));
         sa.setTriggeringObject("Target", this.getRunParams().get("DamageTarget"));
         sa.setTriggeringObject("DamageAmount", this.getRunParams().get("DamageAmount"));
         // This parameter is here because LKI information related to combat doesn't work properly

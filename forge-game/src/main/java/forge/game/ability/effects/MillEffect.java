@@ -21,6 +21,7 @@ public class MillEffect extends SpellAbilityEffect {
         final boolean bottom = sa.hasParam("FromBottom");
         final boolean facedown = sa.hasParam("ExileFaceDown");
         final boolean reveal = !sa.hasParam("NoReveal");
+        final boolean showRevealDialog = sa.hasParam("ShowMilledCards");
 
         if (sa.hasParam("ForgetOtherRemembered")) {
             source.clearRemembered();
@@ -45,14 +46,23 @@ public class MillEffect extends SpellAbilityEffect {
                 // Reveal the milled cards, so players don't have to manually inspect the
                 // graveyard to figure out which ones were milled.
                 if (!facedown && reveal) { // do not reveal when exiling face down
-                    //p.getGame().getAction().reveal(milled, p, false);
+                    if (showRevealDialog) {
+                        p.getGame().getAction().reveal(milled, p, false);
+                    }
                     StringBuilder sb = new StringBuilder();
                     sb.append(p).append(" milled ").append(milled).append(" to ").append(destination);
                     p.getGame().getGameLog().add(GameLogEntryType.ZONE_CHANGE, sb.toString());
                 }
-                if (destination.equals(ZoneType.Exile) && facedown) {
+                if (destination.equals(ZoneType.Exile)) {
+                    Card host = sa.getOriginalHost();
+                    if (host == null) {
+                        host = sa.getHostCard();
+                    }
                     for (final Card c : milled) {
-                        c.setState(CardStateName.FaceDown, true);
+                        c.setExiledWith(host);
+                    	if (facedown) {
+                            c.setState(CardStateName.FaceDown, true);
+                        }
                     }
                 }
                 if (sa.hasParam("RememberMilled")) {

@@ -34,7 +34,7 @@ import forge.util.PredicateString;
  * </p>
  * 
  * @author Forge
- * @version $Id: CardPredicates.java 31143 2016-04-20 17:47:28Z friarsol $
+ * @version $Id: CardPredicates.java 31370 2016-06-28 11:00:30Z Hanmac $
  */
 public final class CardPredicates {
 
@@ -108,11 +108,38 @@ public final class CardPredicates {
         };
     }
 
+    public static final Predicate<Card> sharesNameWith(final Card name) {
+        return new Predicate<Card>() {
+            @Override
+            public boolean apply(Card c) {
+                return c.sharesNameWith(name);
+            }
+        };
+    }
+
+    public static final Predicate<Card> sharesCMCWith(final Card cmc) {
+        return new Predicate<Card>() {
+            @Override
+            public boolean apply(Card c) {
+                return c.sharesCMCWith(cmc);
+            }
+        };
+    }
+
     public static final Predicate<Card> sharesColorWith(final Card color) {
         return new Predicate<Card>() {
             @Override
             public boolean apply(Card c) {
                 return c.sharesColorWith(color);
+            }
+        };
+    }
+
+    public static final Predicate<Card> sharesControllerWith(final Card color) {
+        return new Predicate<Card>() {
+            @Override
+            public boolean apply(Card c) {
+                return c.sharesControllerWith(color);
             }
         };
     }
@@ -170,6 +197,24 @@ public final class CardPredicates {
             }
         };
     } // getColor()
+
+    public static final Predicate<Card> isEquippedBy(final String name) {
+        return new Predicate<Card>() {
+            @Override
+            public boolean apply(final Card c) {
+                return c.isEquippedBy(name);
+            }
+        };
+    }
+
+    public static final Predicate<Card> isEnchantedBy(final String name) {
+        return new Predicate<Card>() {
+            @Override
+            public boolean apply(final Card c) {
+                return c.isEnchantedBy(name);
+            }
+        };
+    }
 
     public static final Predicate<Card> hasCMC(final int cmc) {
         return new Predicate<Card>() {
