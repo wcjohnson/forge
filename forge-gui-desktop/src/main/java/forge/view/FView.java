@@ -25,6 +25,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
 import net.miginfocom.swing.MigLayout;
+import shandalike.screens.Root;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -86,6 +87,21 @@ public enum FView {
     private final JPanel pnlPreview = new PreviewPanel();
     // Tab overflow is for the +X display for extra tabs.
     private final JPanel pnlTabOverflow = new JPanel(new MigLayout("insets 0, gap 0, wrap"));
+    ///// Shandalike
+    // Top panel is a panel that will be added to the top layer of the SkinnedLayeredPane.
+    // Hopefully this will get the GDX Canvas to work
+    // NOTE: It is POSSIBLE that this would be made unnecessary if isOptimizedDrawingEnabled() were
+    // set to false on the SkinnedLayeredPane. I did not try it because I didn't want to mess with Forge's internals
+    // that much, plus in general, even small changes to the initialization sequence for Shandalike cause tremendous
+    // failures.
+    @SuppressWarnings("serial")
+	private final JPanel pnlTopLayer = new JPanel() {
+		@Override
+		public boolean isOptimizedDrawingEnabled() {
+			return false;
+		}
+    };
+    //// End Shandalike
 
     private FView() {
         frmSplash = new SplashFrame();
@@ -118,6 +134,9 @@ public enum FView {
         lpnDocument.add(navigationBar.getPnlReveal(), NAVIGATION_BAR_REVEAL_LAYER);
         lpnDocument.add(FOverlay.SINGLETON_INSTANCE.getPanel(), OVERLAY_LAYER);
         lpnDocument.add(FDialog.getBackdropPanel(), DIALOG_BACKDROP_LAYER);
+        //// Shandalike - add top layer panel to layer stack
+        lpnDocument.add(pnlTopLayer, (Integer) 100);
+        //// End Shadnalike
         // Note: when adding new panels here, keep in mind that the layered pane
         // has a null layout, so new components will be W0 x H0 pixels - gotcha!
         // FControl has a method called "sizeComponents" which will fix this.
@@ -130,6 +149,9 @@ public enum FView {
 
         pnlContent.setOpaque(false);
         pnlContent.setLayout(null);
+        
+        // Shandalike - make topmost layer transparent
+        pnlTopLayer.setOpaque(false);
 
         FOverlay.SINGLETON_INSTANCE.getPanel().setBackground(FSkin.getColor(FSkin.Colors.CLR_OVERLAY));
 
@@ -341,6 +363,11 @@ public enum FView {
     public JPanel getPnlTabOverflow() {
         return pnlTabOverflow;
     }
+    
+    // Shandalike - allow access to top layer
+    public JPanel getPnlTopLayer() {
+    	return pnlTopLayer;
+    }
 
     /** @return {@link java.util.List}<{@link forge.gui.framework.DragCell}> */
     public List<DragCell> getDragCells() {
@@ -394,6 +421,8 @@ public enum FView {
         VHomeUI.SINGLETON_INSTANCE.instantiate();
         VDeckEditorUI.SINGLETON_INSTANCE.instantiate();
         VBazaarUI.SINGLETON_INSTANCE.instantiate();
+        // Shandalike
+        Root.SINGLETON_INSTANCE.instantiate();
     }
 
     public void incrementSplashProgessBar(final int value) {

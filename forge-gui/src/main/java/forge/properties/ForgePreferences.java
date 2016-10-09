@@ -103,6 +103,7 @@ public class ForgePreferences extends PreferencesStore<ForgePreferences.FPref> {
         SUBMENU_QUEST ("false"),
         SUBMENU_SETTINGS ("false"),
         SUBMENU_UTILITIES ("false"),
+        SUBMENU_SHANDALIKE ("false"),
 
         ENFORCE_DECK_LEGALITY ("true"),
 

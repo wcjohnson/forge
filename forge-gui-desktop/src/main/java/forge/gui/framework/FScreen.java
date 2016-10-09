@@ -20,6 +20,7 @@ import forge.toolbox.FOptionPane;
 import forge.toolbox.FSkin;
 import forge.toolbox.FSkin.SkinImage;
 import forge.view.FView;
+import shandalike.screens.Root;
 
 /**
  * Definitions for Forge screens
@@ -151,6 +152,13 @@ public class FScreen {
             "Leave Bazaar",
             null,
             false);
+    // Shandalike screens
+    public static final FScreen SHANDALIKE = new FScreen(
+    		Root.SINGLETON_INSTANCE, Root.SINGLETON_INSTANCE, 
+    		"Shandalike", FSkin.getIcon(FSkinProp.ICO_QUEST_MAP), false, "Quit",
+    		null, false
+    );
+    // End shandalike screens
 
     private final IVTopLevelUI view;
     private final ICDoc controller;

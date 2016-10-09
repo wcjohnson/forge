@@ -33,6 +33,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 
 import net.miginfocom.swing.MigLayout;
+import shandalike.screens.home.VSubmenuWorld;
 import forge.Singletons;
 import forge.assets.FSkinProp;
 import forge.gui.framework.EDocID;
@@ -126,6 +127,9 @@ public enum VHomeUI implements IVTopLevelUI {
         allSubmenus.add(VSubmenuQuestDecks.SINGLETON_INSTANCE);
         allSubmenus.add(VSubmenuQuestData.SINGLETON_INSTANCE);
         allSubmenus.add(VSubmenuQuestPrefs.SINGLETON_INSTANCE);
+        
+        // Shandalike
+        allSubmenus.add(VSubmenuWorld.SINGLETON_INSTANCE);
 
         allSubmenus.add(VSubmenuGauntletQuick.SINGLETON_INSTANCE);
         allSubmenus.add(VSubmenuGauntletBuild.SINGLETON_INSTANCE);

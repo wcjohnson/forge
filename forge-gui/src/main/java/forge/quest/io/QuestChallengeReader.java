@@ -21,11 +21,11 @@ public class QuestChallengeReader extends StorageReaderFolder<QuestEventChalleng
         super(deckDir0, QuestEventChallenge.FN_GET_ID);
         // TODO Auto-generated constructor stub
     }
-
-    @Override
-    protected QuestEventChallenge read(File file) {
-        final Map<String, List<String>> contents = FileSection.parseSections(FileUtil.readFile(file));
-        final QuestEventChallenge qc = new QuestEventChallenge();
+    
+    ////// Shandalike: refactor this to make it more reusable outside Quest Mode.
+    // XXX: had to keep the file parameter here for human deck reading...
+    public static QuestEventChallenge readFromContents(Map<String, List<String>> contents, File file) {
+    	final QuestEventChallenge qc = new QuestEventChallenge();
 
         // Unique properties
         FileSection sectionQuest = FileSection.parse(contents.get("quest"), "=");
@@ -74,6 +74,16 @@ public class QuestChallengeReader extends StorageReaderFolder<QuestEventChalleng
         qc.setEventDeck(DeckSerializer.fromSections(contents));
         return qc;
     }
+    public static QuestEventChallenge readFromFile(File file) {
+        final Map<String, List<String>> contents = FileSection.parseSections(FileUtil.readFile(file));
+        return readFromContents(contents, file);
+    }
+
+    @Override
+    protected QuestEventChallenge read(File file) {
+    	return readFromFile(file);
+    }
+    /////////////////////// End Shandalike
 
     @Override
     protected FilenameFilter getFileFilter() { 

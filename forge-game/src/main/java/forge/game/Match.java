@@ -82,7 +82,14 @@ public class Match {
     public void startGame(final Game game) {
         prepareAllZones(game);
         if (rules.useAnte()) {  // Deciding which cards go to ante
-            Multimap<Player, Card> list = game.chooseCardsForAnte(rules.getMatchAnteRarity());
+        	Multimap<Player, Card> list = null;
+        	// Shandalike: allow delegation of ante selection to the outside system
+        	if(rules.getAnteDelegate() != null) {
+        		list = rules.getAnteDelegate().getCardsForAnte(players, rules, game);
+        	} else {
+        		list = game.chooseCardsForAnte(rules.getMatchAnteRarity());
+        	}
+        	// End shandalike
             for (Entry<Player, Card> kv : list.entries()) {
                 Player p = kv.getKey();
                 game.getAction().moveTo(ZoneType.Ante, kv.getValue());

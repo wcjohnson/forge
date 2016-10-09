@@ -13,6 +13,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import net.miginfocom.swing.MigLayout;
+import shandalike.screens.ShandalikeWinLose;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -77,6 +78,11 @@ public class ViewWinLose implements IWinLoseView<FButton> {
         // modes.
         ControlWinLose control = null;
         switch (game0.getGameType()) {
+        // Shandalike - winlose controller
+        case Shandalike:
+        	control = new ShandalikeWinLose(this, game0, matchUI);
+        	break;
+        // End SHandalike
         case Quest:
             control = new QuestWinLose(this, game0, matchUI);
             break;

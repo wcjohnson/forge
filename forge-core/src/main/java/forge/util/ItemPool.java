@@ -185,6 +185,11 @@ public class ItemPool<T extends InventoryItem> implements Iterable<Entry<T, Inte
     public ItemPool<T> getView() {
         return new ItemPool<T>(Collections.unmodifiableMap(items), getMyClass());
     }
+    
+    // Shandalike
+    public Map<T, Integer> getItems() {
+    	return items;
+    }
 
     public void add(final T item) {
         add(item, 1);

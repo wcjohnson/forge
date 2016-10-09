@@ -263,6 +263,7 @@ public final class BoosterUtils {
 
     }
 
+    // Shandalike: made this method public
     /**
      * Create the list of card names at random from the given pool.
      *
@@ -278,7 +279,7 @@ public final class BoosterUtils {
      *            If true, multiple copies of the same card will be allowed to be generated.
      * @return a list of card names
      */
-    private static List<PaperCard> generateCards(
+    public static List<PaperCard> generateCards(
             final Iterable<PaperCard> source, final Predicate<PaperCard> filter, final int cntNeeded,
             final List<Predicate<CardRules>> allowedColors, final boolean allowDuplicates) {
 
