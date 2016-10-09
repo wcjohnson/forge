@@ -20,12 +20,8 @@ import shandalike.Callback;
 import shandalike.Model;
 import shandalike.UIModel;
 import shandalike.Util;
-import shandalike.data.character.Inventory;
-import shandalike.data.entity.town.CardShop;
-import shandalike.data.entity.town.Town;
 import shandalike.mtg.Format;
 import shandalike.mtg.ShopModel;
-import shandalike.mtg.ShopModel.TransactionResult;
 
 /**
  * Description of a Shandalike card reward.

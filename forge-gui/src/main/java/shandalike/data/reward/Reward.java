@@ -1,7 +1,5 @@
 package shandalike.data.reward;
 
-import java.util.ArrayList;
-
 import shandalike.UIModel;
 
 public interface Reward {

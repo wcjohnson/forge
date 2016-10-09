@@ -1,10 +1,6 @@
 package shandalike.data.entity.town;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import shandalike.Model;
-import shandalike.data.behavior.Behavior;
 import shandalike.data.behavior.Behaviors;
 import shandalike.data.entity.PointOfInterest;
 import shandalike.data.world.MapState;

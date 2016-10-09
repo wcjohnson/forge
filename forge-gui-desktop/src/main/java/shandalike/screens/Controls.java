@@ -4,10 +4,8 @@ import javax.swing.JPanel;
 
 import forge.UiCommand;
 import forge.assets.FSkinProp;
-import forge.gui.framework.FScreen;
 import forge.toolbox.FLabel;
 import forge.toolbox.FSkin;
-import forge.view.FView;
 import net.miginfocom.swing.MigLayout;
 import shandalike.IGameEventListener;
 import shandalike.Model;

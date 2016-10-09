@@ -1,8 +1,5 @@
 package shandalike.data.reward;
 
-import java.util.Map;
-import java.util.Map.Entry;
-
 import shandalike.UIModel;
 import shandalike.Util;
 
