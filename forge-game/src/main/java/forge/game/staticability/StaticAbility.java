@@ -19,11 +19,13 @@ package forge.game.staticability;
 
 import forge.card.MagicColor;
 import forge.game.CardTraitBase;
+import forge.game.Game;
 import forge.game.GameEntity;
 import forge.game.ability.AbilityUtils;
 import forge.game.card.Card;
 import forge.game.card.CardCollection;
 import forge.game.card.CardCollectionView;
+import forge.game.card.CardLists;
 import forge.game.cost.Cost;
 import forge.game.phase.PhaseType;
 import forge.game.player.Player;
@@ -42,7 +44,7 @@ import com.google.common.collect.Maps;
 /**
  * The Class StaticAbility.
  */
-public class StaticAbility extends CardTraitBase {
+public class StaticAbility extends CardTraitBase implements Comparable<StaticAbility> {
 
     private final Set<StaticAbilityLayer> layers;
     private CardCollectionView ignoreEffectCards = new CardCollection();
@@ -135,7 +137,7 @@ public class StaticAbility extends CardTraitBase {
         if (this.mapParams.containsKey("AddKeyword") || this.mapParams.containsKey("AddAbility")
                 || this.mapParams.containsKey("AddTrigger") || this.mapParams.containsKey("RemoveTriggers")
                 || this.mapParams.containsKey("RemoveKeyword") || this.mapParams.containsKey("AddReplacementEffects")
-                || this.mapParams.containsKey("AddSVar")) {
+                || this.mapParams.containsKey("AddStaticAbility") || this.mapParams.containsKey("AddSVar")) {
             layers.add(StaticAbilityLayer.ABILITIES2);
         }
 
@@ -150,8 +152,20 @@ public class StaticAbility extends CardTraitBase {
             layers.add(StaticAbilityLayer.MODIFYPT);
         }
 
-        if (layers.isEmpty() || this.mapParams.containsKey("AddHiddenKeyword")) {
-        	layers.add(StaticAbilityLayer.RULES);
+        if (this.mapParams.containsKey("AddHiddenKeyword")) {
+        	// special rule for can't have or gain
+            if (this.mapParams.get("AddHiddenKeyword").contains("can't have or gain")) {
+                layers.add(StaticAbilityLayer.ABILITIES1);
+            }
+            layers.add(StaticAbilityLayer.RULES);
+        }
+
+        if (this.mapParams.containsKey("IgnoreEffectCost")) {
+            layers.add(StaticAbilityLayer.RULES);
+        }
+
+        if (layers.isEmpty()) {
+            layers.add(StaticAbilityLayer.RULES);
         }
 
         return layers;
@@ -443,6 +457,7 @@ public class StaticAbility extends CardTraitBase {
      */
     public final boolean checkConditions() {
         final Player controller = this.hostCard.getController();
+        final Game game = controller.getGame();
 
         if (this.hostCard.isPhasedOut()) {
             return false;
@@ -503,6 +518,38 @@ public class StaticAbility extends CardTraitBase {
             }
             final Card topCard = controller.getCardsIn(ZoneType.Library).get(0);
             if (!topCard.isValid(this.mapParams.get("TopCardOfLibraryIs").split(","), controller, this.hostCard, null)) {
+                return false;
+            }
+        }
+
+        if (this.mapParams.containsKey("isPresent")) {
+        	final ZoneType zone = mapParams.containsKey("PresentZone") ? ZoneType.valueOf(mapParams.get("PresentZone")) : ZoneType.Battlefield;
+        	final String compare = mapParams.containsKey("PresentCompare") ? mapParams.get("PresentCompare") : "GE1";
+            CardCollectionView list = game.getCardsIn(zone);
+            final String present = mapParams.get("isPresent");
+
+            list = CardLists.getValidCards(list, present.split(","), controller, hostCard, null);
+
+            int right = 1;
+            final String rightString = compare.substring(2);
+            right = AbilityUtils.calculateAmount(hostCard, rightString, this);
+            final int left = list.size();
+
+            if (!Expressions.compare(left, compare, right)) {
+                return false;
+            }
+        }
+
+        if (this.mapParams.containsKey("Presence")) {
+            if (hostCard.getCastFrom() == null || hostCard.getCastSA() == null)
+                return false;
+
+            final String type = this.mapParams.get("Presence");
+
+            int revealed = AbilityUtils.calculateAmount(hostCard, "Revealed$Valid " + type, hostCard.getCastSA());
+            int ctrl = AbilityUtils.calculateAmount(hostCard, "Count$LastStateBattlefield " + type + ".YouCtrl", hostCard.getCastSA());
+
+            if (revealed + ctrl == 0) {
                 return false;
             }
         }
@@ -612,4 +659,8 @@ public class StaticAbility extends CardTraitBase {
         return layers;
     }
 
+	@Override
+	public int compareTo(StaticAbility arg0) {
+	    return getHostCard().compareTo(arg0.getHostCard());
+	}
 } // end class StaticAbility

@@ -21,6 +21,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 
 import forge.card.CardEdition.CardInSet;
@@ -41,9 +42,12 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
     
     // need this to obtain cardReference by name+set+artindex
     private final ListMultimap<String, PaperCard> allCardsByName = Multimaps.newListMultimap(new TreeMap<String,Collection<PaperCard>>(String.CASE_INSENSITIVE_ORDER),  CollectionSuppliers.<PaperCard>arrayLists());
-    private final Map<String, PaperCard> uniqueCardsByName = new TreeMap<String, PaperCard>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, PaperCard> uniqueCardsByName = Maps.newTreeMap(String.CASE_INSENSITIVE_ORDER);
     private final Map<String, CardRules> rulesByName;
+    private final Map<String, ICardFace> facesByName = Maps.newTreeMap(String.CASE_INSENSITIVE_ORDER);
     private static Map<String, String> artPrefs = new HashMap<String, String>();
+    
+    private final Map<String, String> alternateName = Maps.newTreeMap(String.CASE_INSENSITIVE_ORDER);
 
     private final List<PaperCard> allCards = new ArrayList<PaperCard>();
     private final List<PaperCard> roAllCards = Collections.unmodifiableList(allCards);
@@ -116,27 +120,47 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
     public CardDb(Map<String, CardRules> rules, CardEdition.Collection editions0) {
         this.rulesByName = rules;
         this.editions = editions0;
+
+        // create faces list from rules
+        for (final CardRules rule : rules.values() ) {
+            final ICardFace main = rule.getMainPart(); 
+            facesByName.put(main.getName(), main);
+            if (main.getAltName() != null) {
+                alternateName.put(main.getAltName(), main.getName());
+            }
+            final ICardFace other = rule.getMainPart();
+            if (other != null) {
+                facesByName.put(other.getName(), other);
+                if (other.getAltName() != null) {
+                    alternateName.put(other.getAltName(), other.getName());
+                }
+            }
+        }
     }
 
     public void initialize(boolean logMissingPerEdition, boolean logMissingSummary) {
         Set<String> allMissingCards = new LinkedHashSet<String>();
         List<String> missingCards = new ArrayList<String>();
+        Map<String, Integer> artIds = new HashMap<String, Integer>();
+        CardEdition upcomingSet = null;
+        Date today = new Date();
+
         for (CardEdition e : editions.getOrderedEditions()) {
             boolean isCoreExpSet = e.getType() == CardEdition.Type.CORE || e.getType() == CardEdition.Type.EXPANSION || e.getType() == CardEdition.Type.REPRINT; 
             if (logMissingPerEdition && isCoreExpSet) {
                 System.out.print(e.getName() + " (" + e.getCards().length + " cards)");
             }
-            String lastCardName = null;
-            int artIdx = 1;
+            if (e.getDate().after(today)) {
+                upcomingSet = e;
+            }
+
             for (CardEdition.CardInSet cis : e.getCards()) {
-                if (cis.name.equals(lastCardName)) {
-                    artIdx++;
+                int artIdx = 1;
+                if (artIds.containsKey(cis.name)) {
+                    artIdx = artIds.get(cis.name) + 1;
                 }
-                else {
-                    artIdx = 1;
-                    lastCardName = cis.name;
-                }
-                CardRules cr = rulesByName.get(lastCardName);
+                artIds.put(cis.name, artIdx);
+                CardRules cr = rulesByName.get(cis.name);
                 if (cr != null) {
                     addCard(new PaperCard(cr, e.getCode(), cis.rarity, artIdx));
                 }
@@ -157,16 +181,25 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
                 allMissingCards.addAll(missingCards);
             }
             missingCards.clear();
+            artIds.clear();
         }
         
         if (logMissingSummary) {
             System.out.printf("Totally %d cards not implemented: %s\n", allMissingCards.size(), StringUtils.join(allMissingCards, " | "));
         }
 
+        if (upcomingSet != null) {
+            System.err.println("Upcoming set " + upcomingSet + " dated in the future. All unaccounted cards will be added to this set with unknown rarity.");
+        }
+
         for (CardRules cr : rulesByName.values()) {
-            if (!allCardsByName.containsKey(cr.getName())) {
-                System.err.println("The card " + cr.getName() + " was not assigned to any set. Adding it to UNKNOWN set... to fix see res/cardeditions/ folder. ");
-                addCard(new PaperCard(cr, CardEdition.UNKNOWN.getCode(), CardRarity.Special, 1));
+            if (!contains(cr.getName())) {
+                if (upcomingSet != null) {
+                    addCard(new PaperCard(cr, upcomingSet.getCode(), CardRarity.Unknown, 1));
+                } else {
+                    System.err.println("The card " + cr.getName() + " was not assigned to any set. Adding it to UNKNOWN set... to fix see res/cardeditions/ folder. ");
+                    addCard(new PaperCard(cr, CardEdition.UNKNOWN.getCode(), CardRarity.Special, 1));
+                }
             }
         }
 
@@ -178,8 +211,10 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
 
         if (paperCard.getRules().getSplitType() == CardSplitType.None) { return; }
 
-        //allow looking up card by the name of other faces
-        allCardsByName.put(paperCard.getRules().getOtherPart().getName(), paperCard);
+        if (paperCard.getRules().getOtherPart() != null) {
+            //allow looking up card by the name of other faces
+            allCardsByName.put(paperCard.getRules().getOtherPart().getName(), paperCard);
+        }
         if (paperCard.getRules().getSplitType() == CardSplitType.Split) {
             //also include main part for split cards
             allCardsByName.put(paperCard.getRules().getMainPart().getName(), paperCard);
@@ -219,6 +254,15 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
         return false;
     }
 
+    public CardRules getRules(String cardname) {
+        CardRules result = rulesByName.get(cardname);
+        if (result != null) {
+            return result;
+        } else {
+            return CardRules.getUnsupportedCardNamed(cardname);
+        }
+    }
+
     @Override
     public PaperCard getCard(String cardName) {
         CardRequest request = CardRequest.fromString(cardName);
@@ -247,6 +291,7 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
     }
     
     public int getCardCollectorNumber(String cardName, String reqEdition) {
+        cardName = getName(cardName);
         CardEdition edition = editions.get(reqEdition);
         if (edition == null)
             return -1;
@@ -259,7 +304,7 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
     }
 
     private PaperCard tryGetCard(CardRequest request) {
-        Collection<PaperCard> cards = allCardsByName.get(request.cardName);
+        Collection<PaperCard> cards = getAllCards(request.cardName);
         if (cards == null) { return null; }
 
         PaperCard result = null;
@@ -322,7 +367,7 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
     @Override
     public PaperCard getCardFromEdition(final String cardName, final Date printedBefore, final SetPreference fromSet, int artIndex) {
         final CardRequest cr = CardRequest.fromString(cardName);
-        List<PaperCard> cards = this.allCardsByName.get(cr.cardName);
+        List<PaperCard> cards = getAllCards(cr.cardName);
         boolean cardsListReadOnly = true;
 
         if (StringUtils.isNotBlank(cr.edition)) {
@@ -408,7 +453,7 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
     @Override
     public int getPrintCount(String cardName, String edition) {
         int cnt = 0;
-        for (PaperCard pc : allCardsByName.get(cardName)) {
+        for (PaperCard pc : getAllCards(cardName)) {
             if (pc.getEdition().equals(edition)) {
                 cnt++;
             }
@@ -419,7 +464,7 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
     @Override
     public int getMaxPrintCount(String cardName) {
         int max = -1;
-        for (PaperCard pc : allCardsByName.get(cardName)) {
+        for (PaperCard pc : getAllCards(cardName)) {
             if (max < pc.getArtIndex()) {
                 max = pc.getArtIndex();
             }
@@ -431,7 +476,7 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
     public int getArtCount(String cardName, String setName) {
         int cnt = 0;
 
-        Collection<PaperCard> cards = allCardsByName.get(cardName);
+        Collection<PaperCard> cards = getAllCards(cardName);
         if (null == cards) {
             return 0;
         } 
@@ -451,14 +496,33 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
         return uniqueCardsByName.values();
     }
 
+    public PaperCard getUniqueByName(final String name) {
+        return uniqueCardsByName.get(getName(name));
+    }
+
+    public Collection<ICardFace> getAllFaces() {
+        return facesByName.values();
+    }
+
+    public ICardFace getFaceByName(final String name) {
+        return facesByName.get(getName(name));
+    }
+
     @Override
     public List<PaperCard> getAllCards() {
         return roAllCards;
     }
 
+    public String getName(final String cardName) {
+        if (alternateName.containsKey(cardName)) {
+            return alternateName.get(cardName);
+        }
+        return cardName;
+    }
+    
     @Override
     public List<PaperCard> getAllCards(String cardName) {
-        return allCardsByName.get(cardName);
+        return allCardsByName.get(getName(cardName));
     }
 
     /**  Returns a modifiable list of cards matching the given predicate */
@@ -469,7 +533,7 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
 
     @Override
     public boolean contains(String name) {
-        return allCardsByName.containsKey(name);
+        return allCardsByName.containsKey(getName(name));
     }
 
     @Override
@@ -490,8 +554,7 @@ public final class CardDb implements ICardDatabase, IDeckGenPool {
 
         @Override
         public boolean apply(final PaperCard subject) {
-            Collection<PaperCard> cc = allCardsByName.get(subject.getName());
-            for (PaperCard c : cc) {
+            for (PaperCard c : getAllCards(subject.getName())) {
                 if (sets.contains(c.getEdition())) {
                     return true;
                 }

@@ -162,11 +162,18 @@ public class ReplacementHandler {
 
         SpellAbility effectSA = null;
 
+        Card host = replacementEffect.getHostCard();
+        // AlternateState for OriginsPlaneswalker
+        // FaceDown for cards like Necropotence
+        if (host.hasAlternateState() || host.isFaceDown()) {
+            host = game.getCardState(host);
+        }
+
         if (mapParams.containsKey("ReplaceWith")) {
             final String effectSVar = mapParams.get("ReplaceWith");
-            final String effectAbString = replacementEffect.getHostCard().getSVar(effectSVar);
+            final String effectAbString = host.getSVar(effectSVar);
             // TODO: the source of replacement effect should be the source of the original effect 
-            effectSA = AbilityFactory.getAbility(effectAbString, replacementEffect.getHostCard());
+            effectSA = AbilityFactory.getAbility(effectAbString, host);
             effectSA.setTrigger(true);
 
             SpellAbility tailend = effectSA;
@@ -185,22 +192,26 @@ public class ReplacementHandler {
             } while(tailend != null);
         }
 
-        if (effectSA != null && replacementEffect.isIntrinsic()) {
-            effectSA.setIntrinsic(true);
-            effectSA.changeText();
-            effectSA.setReplacementAbility(true);
+        if (effectSA != null) {
+            effectSA.setLastStateBattlefield(game.getLastStateBattlefield());
+            effectSA.setLastStateGraveyard(game.getLastStateGraveyard());
+            if (replacementEffect.isIntrinsic()) {
+                effectSA.setIntrinsic(true);
+                effectSA.changeText();
+                effectSA.setReplacementAbility(true);
+            }
         }
 
         // Decider gets to choose whether or not to apply the replacement.
         if (replacementEffect.getMapParams().containsKey("Optional")) {
             Player optDecider = decider;
             if (mapParams.containsKey("OptionalDecider") && (effectSA != null)) {
-                effectSA.setActivatingPlayer(replacementEffect.getHostCard().getController());
-                optDecider = AbilityUtils.getDefinedPlayers(replacementEffect.getHostCard(),
+                effectSA.setActivatingPlayer(host.getController());
+                optDecider = AbilityUtils.getDefinedPlayers(host,
                         mapParams.get("OptionalDecider"), effectSA).get(0);
             }
 
-            Card cardForUi = replacementEffect.getHostCard().getCardForUi();
+            Card cardForUi = host.getCardForUi();
             String effectDesc = replacementEffect.toString().replace("CARDNAME", cardForUi.getName());
             final String question = replacementEffect instanceof ReplaceDiscard
                 ? String.format("Apply replacement effect of %s to %s?\r\n(%s)", cardForUi, runParams.get("Card").toString(), effectDesc)
@@ -217,14 +228,14 @@ public class ReplacementHandler {
             }
         }
 
-        Player player = replacementEffect.getHostCard().getController();
+        Player player = host.getController();
 
         if (mapParams.containsKey("ManaReplacement")) {
             final SpellAbility manaAb = (SpellAbility) runParams.get("AbilityMana");
             final Player player1 = (Player) runParams.get("Player");
             final String rep = (String) runParams.get("Mana");
             // Replaced mana type
-            final Card repHost = replacementEffect.getHostCard();
+            final Card repHost = host;
             String repType = repHost.getSVar(mapParams.get("ManaReplacement"));
             if (repType.contains("Chosen") && repHost.hasChosenColor()) {
                 repType = repType.replace("Chosen", MagicColor.toShortString(repHost.getChosenColor()));

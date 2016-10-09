@@ -20,7 +20,6 @@ package forge.game.trigger;
 import forge.game.ability.AbilityUtils;
 import forge.game.card.Card;
 import forge.game.card.CardFactoryUtil;
-import forge.game.cost.CostPayment;
 import forge.game.cost.IndividualCostPaymentInstance;
 import forge.game.spellability.SpellAbility;
 import forge.game.spellability.SpellAbilityStackInstance;
@@ -36,7 +35,7 @@ import java.util.Set;
  * </p>
  * 
  * @author Forge
- * @version $Id: TriggerChangesZone.java 31190 2016-05-03 17:25:13Z jje4th $
+ * @version $Id: TriggerChangesZone.java 31555 2016-07-17 18:41:00Z drdev $
  */
 public class TriggerChangesZone extends Trigger {
 

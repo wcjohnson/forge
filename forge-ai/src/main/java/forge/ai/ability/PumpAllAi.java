@@ -56,7 +56,13 @@ public class PumpAllAi extends PumpAiBase {
         if (tgt != null && sa.canTarget(opp) && sa.hasParam("IsCurse")) {
             sa.resetTargets();
             sa.getTargets().add(opp);
-            comp.clear();
+            return true;
+        }
+        
+        if (tgt != null && sa.canTarget(ai) && !sa.hasParam("IsCurse")) {
+            sa.resetTargets();
+            sa.getTargets().add(ai);
+            return true;
         }
 
         if (!game.getStack().isEmpty() && !sa.isCurse()) {
@@ -126,14 +132,6 @@ public class PumpAllAi extends PumpAiBase {
 
     @Override
     public boolean chkAIDrawback(SpellAbility sa, Player aiPlayer) {
-        return true;
-    }
-
-    /* (non-Javadoc)
-     * @see forge.card.abilityfactory.SpellAiLogic#doTriggerAINoCost(forge.game.player.Player, java.util.Map, forge.card.spellability.SpellAbility, boolean)
-     */
-    @Override
-    protected boolean doTriggerAINoCost(Player aiPlayer, SpellAbility sa, boolean mandatory) {
         return true;
     }
 

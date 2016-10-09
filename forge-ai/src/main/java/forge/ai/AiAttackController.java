@@ -35,6 +35,7 @@ import forge.game.card.CardLists;
 import forge.game.card.CounterType;
 import forge.game.combat.Combat;
 import forge.game.combat.CombatUtil;
+import forge.game.combat.GlobalAttackRestrictions;
 import forge.game.player.Player;
 import forge.game.spellability.SpellAbility;
 import forge.game.trigger.Trigger;
@@ -51,7 +52,7 @@ import forge.util.MyRandom;
  * </p>
  * 
  * @author Forge
- * @version $Id: AiAttackController.java 30871 2016-02-20 12:11:44Z Sloth $
+ * @version $Id: AiAttackController.java 32259 2016-10-03 12:30:46Z excessum $
  */
 public class AiAttackController {
 
@@ -113,7 +114,7 @@ public class AiAttackController {
         Predicate<Card> canAnimate = new Predicate<Card>() {
             @Override
             public boolean apply(Card c) {
-                return !c.isCreature() && !c.isPlaneswalker();
+                return !c.isTapped() && !c.isCreature() && !c.isPlaneswalker();
             }
         };
         for (Card c : CardLists.filter(defender.getCardsIn(ZoneType.Battlefield), canAnimate)) {
@@ -524,27 +525,41 @@ public class AiAttackController {
         // Determine who will be attacked
         GameEntity defender = this.chooseDefender(combat, bAssault);
         List<Card> attackersLeft = new ArrayList<Card>(this.attackers);
+
+        // TODO probably use AttackConstraints instead of only GlobalAttackRestrictions?
+        GlobalAttackRestrictions restrict = GlobalAttackRestrictions.getGlobalRestrictions(ai, combat.getDefenders());
+        final int attackMax = restrict.getMax();
+
+        if (attackMax == 0) {
+            //  can't attack anymore
+            return;
+        }
+
         // Attackers that don't really have a choice
         for (final Card attacker : this.attackers) {
             if (!CombatUtil.canAttack(attacker, defender)) {
+                attackersLeft.remove(attacker);
                 continue;
             }
             boolean mustAttack = false;
-            for (String s : attacker.getKeywords()) {
-                if (s.equals("CARDNAME attacks each turn if able.")
-                        || s.startsWith("CARDNAME attacks specific player each combat if able")
-                        || s.equals("CARDNAME attacks each combat if able.")) {
-                    mustAttack = true;
-                    break;
-                }
-                if (attacker.getSVar("EndOfTurnLeavePlay").equals("True")
-                        && isEffectiveAttacker(ai, attacker, combat)) {
-                    mustAttack = true;
-                    break;
+            if (attacker.isGoaded()) {
+                mustAttack = true;
+            } else if (attacker.getSVar("MustAttack").equals("True")) {
+                mustAttack = true;
+            } else if (attacker.getSVar("EndOfTurnLeavePlay").equals("True")
+                    && isEffectiveAttacker(ai, attacker, combat)) {
+                mustAttack = true;
+            } else {
+                for (String s : attacker.getKeywords()) {
+                    if (s.equals("CARDNAME attacks each turn if able.")
+                            || s.startsWith("CARDNAME attacks specific player each combat if able")
+                            || s.equals("CARDNAME attacks each combat if able.")) {
+                        mustAttack = true;
+                        break;
+                    }
                 }
             }
-            if (mustAttack || attacker.getController().getMustAttackEntity() != null
-                    || attacker.getSVar("MustAttack").equals("True")) {
+            if (mustAttack || attacker.getController().getMustAttackEntity() != null) {
                 combat.addAttacker(attacker, defender);
                 attackersLeft.remove(attacker);
             }
@@ -557,10 +572,15 @@ public class AiAttackController {
                 System.out.println("Assault");
             CardLists.sortByPowerDesc(attackersLeft);
             for (Card attacker : attackersLeft) {
+                // reached max, breakup
+                if (attackMax != -1 && combat.getAttackers().size() >= attackMax)
+                    return;
+
                 if (CombatUtil.canAttack(attacker, defender) && this.isEffectiveAttacker(ai, attacker, combat)) {
                     combat.addAttacker(attacker, defender);
                 }
             }
+            // no more creatures to attack
             return;
         }
 
@@ -610,6 +630,23 @@ public class AiAttackController {
                 }
             }
         }
+
+        if (attackMax != -1) {
+            // should attack with only max if able.
+            CardLists.sortByPowerDesc(this.attackers);
+            this.aiAggression = 6;
+            for (Card attacker : this.attackers) {
+                // reached max, breakup
+                if (attackMax != -1 && combat.getAttackers().size() >= attackMax)
+                    break;
+                if (CombatUtil.canAttack(attacker, defender) && this.shouldAttack(ai, attacker, this.blockers, combat)) {
+                    combat.addAttacker(attacker, defender);
+                }
+            }
+            // no more creatures to attack
+            return;
+        }
+        
 
         // *******************
         // Evaluate the creature forces

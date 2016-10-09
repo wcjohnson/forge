@@ -24,34 +24,7 @@ import forge.game.card.CardPredicates;
 import forge.game.card.CardPredicates.Presets;
 import forge.game.card.CardView;
 import forge.game.card.CounterType;
-import forge.game.cost.CostAddMana;
-import forge.game.cost.CostChooseCreatureType;
-import forge.game.cost.CostDamage;
-import forge.game.cost.CostDecisionMakerBase;
-import forge.game.cost.CostDiscard;
-import forge.game.cost.CostDraw;
-import forge.game.cost.CostExile;
-import forge.game.cost.CostExileFromStack;
-import forge.game.cost.CostExiledMoveToGrave;
-import forge.game.cost.CostFlipCoin;
-import forge.game.cost.CostGainControl;
-import forge.game.cost.CostGainLife;
-import forge.game.cost.CostMill;
-import forge.game.cost.CostPartMana;
-import forge.game.cost.CostPayLife;
-import forge.game.cost.CostPutCardToLib;
-import forge.game.cost.CostPutCounter;
-import forge.game.cost.CostRemoveAnyCounter;
-import forge.game.cost.CostRemoveCounter;
-import forge.game.cost.CostReturn;
-import forge.game.cost.CostReveal;
-import forge.game.cost.CostSacrifice;
-import forge.game.cost.CostTap;
-import forge.game.cost.CostTapType;
-import forge.game.cost.CostUnattach;
-import forge.game.cost.CostUntap;
-import forge.game.cost.CostUntapType;
-import forge.game.cost.PaymentDecision;
+import forge.game.cost.*;
 import forge.game.player.Player;
 import forge.game.player.PlayerView;
 import forge.game.spellability.SpellAbility;
@@ -591,6 +564,31 @@ public class HumanCostDecision extends CostDecisionMakerBase {
     }
 
     @Override
+    public PaymentDecision visit(final CostPayEnergy cost) {
+        final String amount = cost.getAmount();
+        final int energy = player.getCounters(CounterType.ENERGY);
+
+        Integer c = cost.convertAmount();
+        if (c == null) {
+            final String sVar = ability.getSVar(amount);
+            // Generalize this
+            if (sVar.startsWith("XChoice")) {
+                int limit = energy;
+                final int maxLifePayment = limit < energy ? limit : energy;
+                c = chooseXValue(maxLifePayment);
+            } else {
+                c = AbilityUtils.calculateAmount(source, amount, ability);
+            }
+        }
+
+        if (player.canPayEnergy(c) &&
+                player.getController().confirmPayment(cost, cost.toString() + "?\n(You have " + player.getCounters(CounterType.ENERGY) + "{E})")) {
+            return PaymentDecision.number(c);
+        }
+        return null;
+    }
+
+    @Override
     public PaymentDecision visit(final CostPartMana cost) {
         // only interactive payment possible for now =(
         return new PaymentDecision(0);
@@ -1024,9 +1022,6 @@ public class HumanCostDecision extends CostDecisionMakerBase {
 
         CardCollectionView list = CardLists.filter(player.getCardsIn(ZoneType.Battlefield), CardPredicates.canBeSacrificedBy(ability));
         list = CardLists.getValidCards(list, type.split(";"), player, source, ability);
-        if (player.hasKeyword("You can't sacrifice creatures to cast spells or activate abilities.")) {
-            list = CardLists.getNotType(list, "Creature");
-        }
 
         if (cost.payCostFromSource()) {
             if (source.getController() == ability.getActivatingPlayer() && source.isInPlay()) {
@@ -1099,6 +1094,11 @@ public class HumanCostDecision extends CostDecisionMakerBase {
         CardCollection typeList = CardLists.getValidCards(player.getCardsIn(ZoneType.Battlefield), type.split(";"), player,
                 source, ability);
         typeList = CardLists.filter(typeList, Presets.UNTAPPED);
+
+        if (ability.hasParam("Crew")) {
+            typeList = CardLists.getNotKeyword(typeList, "CARDNAME can't crew Vehicles.");
+        }
+
         if (c == null && !amount.equals("Any")) {
             final String sVar = ability.getSVar(amount);
             // Generalize this
@@ -1151,7 +1151,7 @@ public class HumanCostDecision extends CostDecisionMakerBase {
         if (totalPower) {
             final int i = Integer.parseInt(totalP);
             final InputSelectCardsFromList inp = new InputSelectCardsFromList(controller, 0, typeList.size(), typeList);
-            inp.setMessage("Select a card to tap.");
+            inp.setMessage("Select a creature to tap.");
             inp.setCancelAllowed(true);
             inp.showAndWait();
 

@@ -10,6 +10,7 @@ import forge.game.card.CardUtil;
 import forge.game.card.CardView;
 import forge.game.card.IHasCardView;
 import forge.game.player.Player;
+import forge.game.spellability.SpellAbility;
 import forge.game.zone.ZoneType;
 import forge.util.Expressions;
 
@@ -28,7 +29,7 @@ public abstract class CardTraitBase extends GameObject implements IHasCardView {
     protected Card hostCard;
 
     /** The map params. */
-    protected final Map<String, String> originalMapParams = Maps.newHashMap(),
+    protected Map<String, String> originalMapParams = Maps.newHashMap(),
             mapParams = Maps.newHashMap();
 
     /** The is intrinsic. */
@@ -79,7 +80,17 @@ public abstract class CardTraitBase extends GameObject implements IHasCardView {
     public final Map<String, String> getMapParams() {
         return this.mapParams;
     }
-
+    
+    /**
+     * <p>
+     * Getter for the field <code>mapParams</code>.
+     * </p>
+     *
+     * @return a {@link java.util.HashMap} object.
+     */
+    public final Map<String, String> getOriginalMapParams() {
+        return this.originalMapParams;
+    }
     /**
      * Checks if is intrinsic.
      *
@@ -114,6 +125,22 @@ public abstract class CardTraitBase extends GameObject implements IHasCardView {
      */
     public void setHostCard(final Card c) {
         this.hostCard = c;
+    }
+
+    /**
+     * <p>
+     * isSecondary.
+     * </p>
+     * 
+     * @return a boolean.
+     */
+    public final boolean isSecondary() {
+        if (this.mapParams.containsKey("Secondary")) {
+            if (this.mapParams.get("Secondary").equals("True")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -181,6 +208,20 @@ public abstract class CardTraitBase extends GameObject implements IHasCardView {
         if ("True".equalsIgnoreCase(params.get("Hellbent")) && !hostController.hasHellbent()) return false;
         if ("True".equalsIgnoreCase(params.get("Bloodthirst")) && !hostController.hasBloodthirst()) return false;
         if ("True".equalsIgnoreCase(params.get("FatefulHour")) && hostController.getLife() > 5) return false;
+
+        if (params.containsKey("Presence")) {
+            if (hostCard.getCastFrom() == null || hostCard.getCastSA() == null)
+                return false;
+
+            final String type = params.get("Presence");
+
+            int revealed = AbilityUtils.calculateAmount(hostCard, "Revealed$Valid " + type, hostCard.getCastSA());
+            int ctrl = AbilityUtils.calculateAmount(hostCard, "Count$LastStateBattlefield " + type + ".YouCtrl", hostCard.getCastSA());
+
+            if (revealed + ctrl == 0) {
+                return false;
+            }
+        }
 
         if (params.containsKey("LifeTotal")) {
             final String player = params.get("LifeTotal");
@@ -298,9 +339,11 @@ public abstract class CardTraitBase extends GameObject implements IHasCardView {
         }
 
         if (params.containsKey("CheckDefinedPlayer")) {
+            SpellAbility mockAbility = this.getHostCard().getFirstSpellAbility();
+            mockAbility.setActivatingPlayer(hostController);
             final String sIsPresent = params.get("CheckDefinedPlayer");
-            int playersize = AbilityUtils.getDefinedPlayers(game.getCardState(this.getHostCard()), sIsPresent, 
-                    this.getHostCard().getFirstSpellAbility()).size();
+            int playersize = AbilityUtils.getDefinedPlayers(game.getCardState(this.getHostCard()), sIsPresent,
+                    mockAbility).size();
             String comparator = "GE1";
             if (params.containsKey("DefinedPlayerCompare")) {
                 comparator = params.get("DefinedPlayerCompare");
@@ -348,9 +391,12 @@ public abstract class CardTraitBase extends GameObject implements IHasCardView {
         }
 
         if (params.containsKey("WerewolfUntransformCondition")) {
-            final List<Card> you = CardUtil.getLastTurnCast("Card.YouCtrl", this.getHostCard());
-            final List<Card> opp = CardUtil.getLastTurnCast("Card.YouDontCtrl", this.getHostCard());
-            if (!((you.size() > 1) || (opp.size() > 1))) {
+            List<Card> casted = game.getStack().getSpellsCastLastTurn();
+            boolean conditionMet = false;
+            for (Player p : game.getPlayers()) {
+                conditionMet |= CardLists.filterControlledBy(casted, p).size() > 1;
+            }
+            if (!conditionMet) {
                 return false;
             }
         }

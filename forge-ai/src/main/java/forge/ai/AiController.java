@@ -99,7 +99,7 @@ import forge.util.MyRandom;
  * </p>
  * 
  * @author Forge
- * @version $Id: AiController.java 31201 2016-05-08 09:43:20Z Hanmac $
+ * @version $Id: AiController.java 32263 2016-10-04 12:20:24Z excessum $
  */
 public class AiController {
     private final Player player;
@@ -394,7 +394,7 @@ public class AiController {
             if (!(crd.isLand() || (crd.isFaceDown() && crd.getState(CardStateName.Original).getType().isLand()))) {
                 continue;
             }
-            if (crd.hasKeyword("May be played") || crd.mayPlay(player) != null) {
+            if (!crd.mayPlay(player).isEmpty()) {
                 landList.add(crd);
             }
         }
@@ -654,13 +654,21 @@ public class AiController {
         else if (sa.getPayCosts() != null){
             Cost payCosts = sa.getPayCosts();
             ManaCost mana = payCosts.getTotalMana();
-            if (mana!= null && mana.countX() > 0) {
-                // Set PayX here to maximum value.
-                final int xPay = ComputerUtilMana.determineLeftoverMana(sa, player);
-                if (xPay <= 0) {
-                    return AiPlayDecision.CantAffordX;
+            if (mana != null) {
+                if(mana.countX() > 0) {
+                    // Set PayX here to maximum value.
+                    final int xPay = ComputerUtilMana.determineLeftoverMana(sa, player);
+                    if (xPay <= 0) {
+                        return AiPlayDecision.CantAffordX;
+                    }
+                    card.setSVar("PayX", Integer.toString(xPay));
+                } else if (mana.isZero()) {
+                    // if mana is zero, but card mana cost does have X, then something is wrong
+                    ManaCost cardCost = card.getManaCost(); 
+                    if (cardCost != null && cardCost.countX() > 0) {
+                        return AiPlayDecision.CantPlayAi;
+                    }
                 }
-                card.setSVar("PayX", Integer.toString(xPay));
             }
         }
         if (checkCurseEffects(sa)) {
@@ -690,6 +698,12 @@ public class AiController {
 	                    return AiPlayDecision.CantAffordX;
 	                }
 	                card.setSVar("PayX", Integer.toString(xPay));
+                }
+            } else if (mana.isZero()) {
+                // if mana is zero, but card mana cost does have X, then something is wrong
+                ManaCost cardCost = card.getManaCost(); 
+                if (cardCost != null && cardCost.countX() > 0) {
+                    return AiPlayDecision.CantPlayAi;
                 }
             }
             
@@ -883,8 +897,10 @@ public class AiController {
                 p -= 9;
             }
             // move snap-casted spells to front
-            if (source.isInZone(ZoneType.Graveyard) && source.hasKeyword("May be played")) {
-                p += 50;
+            if (source.isInZone(ZoneType.Graveyard)) {
+                if(sa.getMayPlay() != null && source.mayPlay(sa.getMayPlay()) != null) {
+                    p += 50;
+                }
             }
             // artifacts and enchantments with effects that do not stack
             if ("True".equals(source.getSVar("NonStackingEffect")) && ai.isCardInPlay(source.getName())) {
@@ -916,7 +932,12 @@ public class AiController {
     };
 
     public CardCollection getCardsToDiscard(final int numDiscard, final String[] uTypes, final SpellAbility sa) {
+        return getCardsToDiscard(numDiscard, uTypes, sa, CardCollection.EMPTY);
+    }
+
+    public CardCollection getCardsToDiscard(final int numDiscard, final String[] uTypes, final SpellAbility sa, final CardCollectionView exclude) {
         CardCollection hand = new CardCollection(player.getCardsIn(ZoneType.Hand));
+        hand.removeAll(exclude);
         if ((uTypes != null) && (sa != null)) {
             hand = CardLists.getValidCards(hand, uTypes, sa.getActivatingPlayer(), sa.getHostCard(), sa);
         }
@@ -1320,6 +1341,8 @@ public class AiController {
                 continue;
             }
             sa.setActivatingPlayer(player);
+            sa.setLastStateBattlefield(game.getLastStateBattlefield());
+            sa.setLastStateGraveyard(game.getLastStateGraveyard());
             
             AiPlayDecision opinion = canPlayAndPayFor(sa);
             // PhaseHandler ph = game.getPhaseHandler();
@@ -1383,6 +1406,10 @@ public class AiController {
      */
     public final boolean aiShouldRun(final ReplacementEffect effect, final SpellAbility sa) {
         Card hostCard = effect.getHostCard();
+        if (hostCard.hasAlternateState()) {
+            hostCard = game.getCardState(hostCard);
+    	}
+
         if (effect.getMapParams().containsKey("AICheckSVar")) {
             System.out.println("aiShouldRun?" + sa);
             final String svarToCheck = effect.getMapParams().get("AICheckSVar");
@@ -1466,6 +1493,7 @@ public class AiController {
     }
 
     public int chooseNumber(SpellAbility sa, String title, int min, int max) {
+        final Card source = sa.getHostCard();
         final String logic = sa.getParam("AILogic");
         if ("GainLife".equals(logic)) {
             if (player.getLife() < 5 || player.getCardsIn(ZoneType.Hand).size() >= player.getMaxHandSize()) {
@@ -1501,6 +1529,8 @@ public class AiController {
             return MyRandom.getRandom().nextInt(Math.min(player.getLife() / 3, player.getOpponent().getLife())) + 1;
         } else if ("HighestGetCounter".equals(logic)) {
             return MyRandom.getRandom().nextInt(3);
+        } else if (source.hasSVar("EnergyToPay")) {
+            return AbilityUtils.calculateAmount(source, source.getSVar("EnergyToPay"), sa);
         }
         return max;
     }

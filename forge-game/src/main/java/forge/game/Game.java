@@ -37,7 +37,6 @@ import forge.game.card.CardUtil;
 import forge.game.card.CardView;
 import forge.game.combat.Combat;
 import forge.game.cost.Cost;
-import forge.game.cost.IndividualCostPaymentInstance;
 import forge.game.event.Event;
 import forge.game.event.GameEventGameOutcome;
 import forge.game.phase.Phase;
@@ -70,6 +69,7 @@ public class Game {
     private final GameRules rules;
     private final FCollection<Player> allPlayers = new FCollection<Player>();
     private final FCollection<Player> ingamePlayers = new FCollection<Player>();
+    private final FCollection<Player> lostPlayers = new FCollection<Player>();
 
     private List<Card> activePlanes = null;
 
@@ -88,6 +88,12 @@ public class Game {
     private final GameLog gameLog = new GameLog();
 
     private final Zone stackZone = new Zone(ZoneType.Stack, this);
+    
+    private CardCollection lastStateBattlefield = new CardCollection();
+    private CardCollection lastStateGraveyard = new CardCollection();
+
+    private Player monarch = null;
+    private Player monarchBeginTurn = null;
 
     private Direction turnOrder = Direction.getDefaultDirection();
 
@@ -99,6 +105,38 @@ public class Game {
 
     private final GameView view; 
     private final Tracker tracker = new Tracker();
+
+    public Player getMonarch() {
+        return monarch;
+    }
+
+    public void setMonarch(final Player p) {
+        monarch = p;
+    }
+
+    public Player getMonarchBeginTurn() {
+        return monarchBeginTurn;
+    }
+
+    public void setMonarchBeginTurn(Player monarchBeginTurn) {
+        this.monarchBeginTurn = monarchBeginTurn;
+    }
+
+    public CardCollectionView getLastStateBattlefield() {
+        return lastStateBattlefield;
+    }
+    public CardCollectionView getLastStateGraveyard() {
+        return lastStateGraveyard;
+    }
+
+    public void copyLastState() {
+        lastStateBattlefield.clear();
+        lastStateGraveyard.clear();
+        for (final Player p : getPlayers()) {
+            lastStateBattlefield.addAll(p.getZone(ZoneType.Battlefield).getLKICopy());
+            lastStateGraveyard.addAll(p.getZone(ZoneType.Graveyard).getLKICopy());
+        }
+    }
 
     public final Ability PLAY_LAND_SURROGATE = new Ability(null, (Cost) null) {
         @Override
@@ -224,6 +262,10 @@ public class Game {
      */
     public final FCollectionView<Player> getPlayers() {
         return ingamePlayers;
+    }
+
+    public final FCollectionView<Player> getLostPlayers() {
+        return lostPlayers;
     }
 
     /**
@@ -576,10 +618,20 @@ public class Game {
             }
         }
 
+        if (p != null && p.equals(getMonarch())) {
+            // if the player who lost was the Monarch, someone else will be the monarch
+            if(p.equals(getPhaseHandler().getPlayerTurn())) {
+                getAction().becomeMonarch(getNextPlayerAfter(p));
+            } else {
+                getAction().becomeMonarch(getPhaseHandler().getPlayerTurn());
+            }
+        }
+
         // Remove leftover items from
         this.getStack().removeInstancesControlledBy(p);
 
         ingamePlayers.remove(p);
+        lostPlayers.add(p);
 
         final Map<String, Object> runParams = new TreeMap<String, Object>();
         runParams.put("Player", p);

@@ -41,11 +41,12 @@ import com.google.common.collect.Maps;
  * </p>
  * 
  * @author Forge
- * @version $Id: StaticEffect.java 29679 2015-06-19 07:27:24Z Agetian $
+ * @version $Id: StaticEffect.java 32218 2016-09-27 15:51:58Z Agetian $
  */
 public class StaticEffect {
 
     private final Card source;
+    private StaticAbility ability;
     private int keywordNumber = 0;
     private CardCollectionView affectedCards = new CardCollection();
     private List<Player> affectedPlayers = Lists.newArrayList();
@@ -83,8 +84,14 @@ public class StaticEffect {
         this.source = source;
     }
 
+    StaticEffect(final StaticAbility ability) {
+    	this(ability.getHostCard());
+        this.ability = ability;
+    }
+
     private StaticEffect makeMappedCopy(GameObjectMap map) {
         StaticEffect copy = new StaticEffect(map.map(this.source));
+        copy.ability = this.ability;
         copy.keywordNumber = this.keywordNumber;
         copy.affectedCards = map.mapCollection(this.affectedCards);
         copy.affectedPlayers  = map.mapList(this.affectedPlayers);
@@ -1046,9 +1053,9 @@ public class StaticEffect {
                 affectedCard.setMayLookAt(controller, false);
             }
             if (removeMayPlay) {
-                affectedCard.removeMayPlay(controller);
+                affectedCard.removeMayPlay(ability);
             }
-            affectedCard.updateStateForView();
+            //affectedCard.updateStateForView(); // FIXME: causes intolerable flickering for cards such as Thassa, God of the Sea or Wind Zendikon
         }
         return affectedCards;
     }

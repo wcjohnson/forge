@@ -18,6 +18,7 @@
 package forge.game.spellability;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 
 import forge.card.mana.ManaCost;
 import forge.game.CardTraitBase;
@@ -36,6 +37,7 @@ import forge.game.cost.CostPart;
 import forge.game.cost.CostPartMana;
 import forge.game.mana.Mana;
 import forge.game.player.Player;
+import forge.game.staticability.StaticAbility;
 import forge.game.trigger.TriggerType;
 import forge.game.trigger.WrappedAbility;
 import forge.util.Expressions;
@@ -53,7 +55,7 @@ import java.util.*;
  * </p>
  *
  * @author Forge
- * @version $Id: SpellAbility.java 31143 2016-04-20 17:47:28Z friarsol $
+ * @version $Id: SpellAbility.java 32295 2016-10-07 10:39:58Z Hanmac $
  */
 public abstract class SpellAbility extends CardTraitBase implements ISpellAbility, IIdentifiable, Comparable<SpellAbility> {
     private static int maxId = 0;
@@ -80,6 +82,7 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
     private boolean basicLandAbility; // granted by basic land type
 
     private Card grantorCard = null; // card which grants the ability (equipment or owner of static ability that gave this one)
+    private SpellAbility mayPlayOriginal = null;
 
     private CardCollection splicedCards = null;
 
@@ -95,6 +98,7 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
     private boolean delve = false;
     private boolean dash = false;
     private boolean offering = false;
+    private boolean emerge = false;
     private boolean morphup = false;
     private boolean manifestUp = false;
     private boolean cumulativeupkeep = false;
@@ -123,6 +127,7 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
     private List<AbilitySub> chosenList = null;
     private CardCollection tappedForConvoke = new CardCollection();
     private Card sacrificedAsOffering = null;
+    private Card sacrificedAsEmerge = null;
     private int conspireInstances = 0;
 
     private HashMap<String, String> sVars = new HashMap<String, String>();
@@ -138,6 +143,26 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
     private TargetChoices targetChosen = new TargetChoices();
 
     private SpellAbilityView view;
+
+    private StaticAbility mayPlay = null;
+
+    private CardCollection lastStateBattlefield = null;
+    private CardCollection lastStateGraveyard = null;
+
+    public CardCollection getLastStateBattlefield() {
+        return lastStateBattlefield;
+    }
+
+    public void setLastStateBattlefield(final CardCollectionView lastStateBattlefield) {
+        this.lastStateBattlefield = new CardCollection(lastStateBattlefield);
+    }
+    public CardCollection getLastStateGraveyard() {
+        return lastStateGraveyard;
+    }
+
+    public void setLastStateGraveyard(final CardCollectionView lastStateGraveyard) {
+        this.lastStateGraveyard = new CardCollection(lastStateGraveyard);
+    }
 
     protected SpellAbility(final Card iSourceCard, final Cost toPay) {
         this(iSourceCard, toPay, null);
@@ -212,7 +237,7 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
         manaPart = manaPart0;
     }
 
-    public final String getSvarWithFallback(final String name) {
+    public String getSvarWithFallback(final String name) {
         String var = sVars.get(name);
         if (var == null) {
             var = hostCard.getSVar(name);
@@ -220,7 +245,7 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
         return var;
     }
 
-    public final String getSVar(final String name) {
+    public String getSVar(final String name) {
         String var = sVars.get(name);
         if (var == null) {
             var = "";
@@ -228,7 +253,7 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
         return var;
     }
 
-    public final Integer getSVarInt(final String name) {
+    public Integer getSVarInt(final String name) {
         String var = sVars.get(name);
         if (var != null) {
             try {
@@ -316,6 +341,15 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
     }
     public void setOriginalHost(final Card c) {
         grantorCard = c;
+    }
+
+
+    public SpellAbility getMayPlayOriginal() {
+        return mayPlayOriginal;
+    }
+
+    public void setMayPlayOriginal(SpellAbility mayPlayOriginal) {
+        this.mayPlayOriginal = mayPlayOriginal;
     }
 
     public String getParamOrDefault(String key, String defaultValue) {
@@ -580,6 +614,13 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
         outlast = outlast0;
     }
 
+    public StaticAbility getMayPlay() {
+        return mayPlay;
+    }
+    public void setMayPlay(final StaticAbility sta) {
+        mayPlay = sta;
+    }
+
     public boolean isLeftSplit() {
         return splitSide == SplitSide.LEFT;
     }
@@ -605,6 +646,9 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
             if (clone.hostCard != null && clone.hostCard.getGame() != null) {
                 clone.hostCard.getGame().addSpellAbility(clone.id, clone);
             }
+            // need to clone the maps too so they can be changed
+            clone.originalMapParams = Maps.newHashMap(this.originalMapParams);
+            clone.mapParams = Maps.newHashMap(this.mapParams);
         } catch (final CloneNotSupportedException e) {
             System.err.println(e);
         }
@@ -776,6 +820,23 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
         if (tappedForConvoke != null) {
             tappedForConvoke.clear();
         }
+    }
+
+    public boolean isEmerge() {
+        return emerge;
+    }
+    public void setIsEmerge(final boolean bEmerge) {
+        emerge = bEmerge;
+    }
+
+    public Card getSacrificedAsEmerge() {
+        return sacrificedAsEmerge;
+    }
+    public void setSacrificedAsEmerge(final Card c) {
+        sacrificedAsEmerge = c;
+    }
+    public void resetSacrificedAsEmerge() {
+        sacrificedAsEmerge = null;
     }
 
     public boolean isOffering() {
@@ -1105,6 +1166,10 @@ public abstract class SpellAbility extends CardTraitBase implements ISpellAbilit
 
     public boolean canTargetSpellAbility(final SpellAbility topSA) {
         final TargetRestrictions tgt = getTargetRestrictions();
+
+        if (this.equals(topSA)) {
+            return false;
+        }
 
         if (hasParam("TargetType") && !topSA.isValid(getParam("TargetType").split(","), getActivatingPlayer(), getHostCard(), this)) {
             return false;

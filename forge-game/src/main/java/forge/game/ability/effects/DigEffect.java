@@ -153,7 +153,7 @@ public class DigEffect extends SpellAbilityEffect {
                 }
                 else if (!sa.hasParam("NoLooking")) {
                     // show the user the revealed cards
-                    delayedReveal = new DelayedReveal(top, srcZone, PlayerView.get(p));
+                    delayedReveal = new DelayedReveal(top, srcZone, PlayerView.get(p), host.getName() + " - Looking at cards in ");
 
                     if (noMove) {
                         // Let the activating player see the cards even if they're not moved
@@ -194,7 +194,7 @@ public class DigEffect extends SpellAbilityEffect {
                     }
                     else {
                         // If all the cards are valid choices, no need for a separate reveal dialog to the chooser.
-                        if (p == chooser) {
+                        if (p == chooser && destZone1ChangeNum > 1) {
                             delayedReveal = null;
                         }
                         valid = top;
@@ -204,6 +204,7 @@ public class DigEffect extends SpellAbilityEffect {
                     if (forceRevealToController) {
                         // Force revealing the card to the player activating the ability (e.g. Explorer's Scope)
                         game.getAction().revealTo(top, player);
+                        delayedReveal = null; // top is already seen by the player, do not reveal twice
                     }
 
                     // Optional abilities that use a dialog box to prompt the user to skip the ability (e.g. Explorer's Scope, Quest for Ula's Temple)
@@ -284,7 +285,7 @@ public class DigEffect extends SpellAbilityEffect {
                             }
                         }
 
-                        if (!changeValid.isEmpty()) {
+                        if (!changeValid.isEmpty() && !sa.hasParam("ExileFaceDown")) {
                             game.getAction().reveal(movedCards, chooser, true,
                                     chooser + " picked " + (movedCards.size() == 1 ? "this card" : "these cards") + " from ");
                         }
@@ -293,6 +294,11 @@ public class DigEffect extends SpellAbilityEffect {
                         host.clearRemembered();
                     }
                     Collections.reverse(movedCards);
+
+                    Card effectHost = sa.getOriginalHost();
+                    if (effectHost == null) {
+                        effectHost = sa.getHostCard();
+                    }
                     for (Card c : movedCards) {
                         final PlayerZone zone = c.getOwner().getZone(destZone1);
 
@@ -311,6 +317,8 @@ public class DigEffect extends SpellAbilityEffect {
                                 if (sa.hasParam("Tapped")) {
                                     c.setTapped(true);
                                 }
+                            } else if (destZone1.equals(ZoneType.Exile)) {
+                                c.setExiledWith(effectHost);
                             }
                         }
 
@@ -361,6 +369,8 @@ public class DigEffect extends SpellAbilityEffect {
                                 for (final String kw : keywords) {
                                     c.addExtrinsicKeyword(kw);
                                 }
+                            } else if (destZone2.equals(ZoneType.Exile)) {
+                                c.setExiledWith(effectHost);
                             }
                         }
                     }
@@ -369,6 +379,7 @@ public class DigEffect extends SpellAbilityEffect {
         }
     }
 
+    // TODO This should be somewhere else, maybe like CardUtil or something like that
     // returns a List<Card> that is a subset of list with cards that share a name
     // with a permanent on the battlefield
     private static CardCollection sharesNameWithCardOnBattlefield(final Game game, final List<Card> list) {

@@ -12,10 +12,13 @@ import forge.game.card.CardFactory;
 import forge.game.card.CardFactoryUtil;
 import forge.game.card.CardUtil;
 import forge.game.event.GameEventCardStatsChanged;
+import forge.game.replacement.ReplacementEffect;
 import forge.game.spellability.SpellAbility;
 import forge.game.spellability.TargetRestrictions;
+import forge.game.staticability.StaticAbility;
 import forge.game.trigger.Trigger;
 import forge.game.trigger.TriggerHandler;
+import forge.game.zone.ZoneType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,6 +90,12 @@ public class CloneEffect extends SpellAbilityEffect {
             game.getTriggerHandler().clearInstrinsicActiveTriggers(tgtCard, null);
         }
 
+        if (sa.hasParam("CloneZone")) {
+            if (!tgtCard.getZone().is(ZoneType.smartValueOf(sa.getParam("CloneZone")))) {
+                return;
+            }
+        }
+
         // determine the image to be used for the clone
         String imageFileName = cardToCopy.getGame().getRules().canCloneUseTargetsImage() ? tgtCard.getImageKey() : cardToCopy.getImageKey();
         if (sa.hasParam("ImageSource")) { // Allow the image to be stipulated by using a defined card source
@@ -99,7 +108,7 @@ public class CloneEffect extends SpellAbilityEffect {
         final boolean keepName = sa.hasParam("KeepName");
         final String originalName = tgtCard.getName();
         final boolean copyingSelf = (tgtCard == cardToCopy);
-        final boolean isTransformed = cardToCopy.getCurrentStateName() == CardStateName.Transformed;
+        final boolean isTransformed = cardToCopy.getCurrentStateName() == CardStateName.Transformed || cardToCopy.getCurrentStateName() == CardStateName.Meld;
         final CardStateName origState = isTransformed || cardToCopy.isFaceDown() ? CardStateName.Original : cardToCopy.getCurrentStateName();
 
         if (!copyingSelf) {
@@ -128,6 +137,20 @@ public class CloneEffect extends SpellAbilityEffect {
         
         // add extra abilities as granted by the copy effect
         addExtraCharacteristics(tgtCard, sa, origSVars);
+
+        // set the host card for copied replacement effects
+        // needed for copied xPaid ETB effects (for the copy, xPaid = 0)
+        for (final ReplacementEffect rep : tgtCard.getReplacementEffects()) {
+            final SpellAbility newSa = rep.getOverridingAbility();
+            if (newSa != null) {
+                newSa.setOriginalHost(cardToCopy);
+            }
+        }
+
+        // set the host card for copied spellabilities
+        for (final SpellAbility newSa : tgtCard.getSpellAbilities()) {
+            newSa.setHostCard(cardToCopy);
+        }
 
         // restore name if it should be unchanged
         if (keepName) {
@@ -243,12 +266,17 @@ public class CloneEffect extends SpellAbilityEffect {
             keywords.addAll(Arrays.asList(sa.getParam("AddKeywords").split(" & ")));
             // allow SVar substitution for keywords
             for (int i = 0; i < keywords.size(); i++) {
-                final String k = keywords.get(i);
+                String k = keywords.get(i);
                 if (origSVars.containsKey(k)) {
                     keywords.add("\"" + k + "\"");
                     keywords.remove(k);
                 }
-                tgtCard.addIntrinsicKeyword(keywords.get(i));
+                k = keywords.get(i);
+                tgtCard.addIntrinsicKeyword(k);
+
+                CardFactoryUtil.addTriggerAbility(k, tgtCard, null);
+                CardFactoryUtil.addReplacementEffect(k, tgtCard, null);
+                CardFactoryUtil.addSpellAbility(k, tgtCard, null);
             }
         }
 
@@ -260,11 +288,16 @@ public class CloneEffect extends SpellAbilityEffect {
         // set power of clone
         if (sa.hasParam("SetPower")) {
             String rhs = sa.getParam("SetPower");
-            int power = -1;
+            int power = Integer.MAX_VALUE;
             try {
                 power = Integer.parseInt(rhs);
             } catch (final NumberFormatException e) {
                 power = CardFactoryUtil.xCount(tgtCard, tgtCard.getSVar(rhs));
+            }
+            for (StaticAbility sta : tgtCard.getStaticAbilities()) {
+                Map<String, String> params = sta.getMapParams();
+                if (params.containsKey("CharacteristicDefining") && params.containsKey("SetPower"))
+                    tgtCard.removeStaticAbility(sta);
             }
             tgtCard.setBasePower(power);
         }
@@ -272,11 +305,16 @@ public class CloneEffect extends SpellAbilityEffect {
         // set toughness of clone
         if (sa.hasParam("SetToughness")) {
             String rhs = sa.getParam("SetToughness");
-            int toughness = -1;
+            int toughness = Integer.MAX_VALUE;
             try {
                 toughness = Integer.parseInt(rhs);
             } catch (final NumberFormatException e) {
                 toughness = CardFactoryUtil.xCount(tgtCard, tgtCard.getSVar(rhs));
+            }
+            for (StaticAbility sta : tgtCard.getStaticAbilities()) {
+                Map<String, String> params = sta.getMapParams();
+                if (params.containsKey("CharacteristicDefining") && params.containsKey("SetToughness"))
+                    tgtCard.removeStaticAbility(sta);
             }
             tgtCard.setBaseToughness(toughness);
         }

@@ -67,9 +67,15 @@ public class PumpEffect extends SpellAbilityEffect {
                     applyTo.addTempToughnessBoost(-1 * d);
 
                     if (keywords.size() > 0) {
+                        boolean redrawPT = false;
+
                         for (String kw : keywords) {
+                            redrawPT |= kw.contains("CARDNAME's power and toughness are switched");
                             if (kw.startsWith("HIDDEN")) {
                                 applyTo.removeHiddenExtrinsicKeyword(kw);
+                                if (redrawPT) {
+                                    applyTo.updatePowerToughnessView();
+                                }
                             }
                         }
                         applyTo.removeChangedCardKeywords(timestamp);
@@ -262,11 +268,7 @@ public class PumpEffect extends SpellAbilityEffect {
         }
 
         if (sa.hasParam("RememberObjects")) {
-            pumpRemembered = sa.getParam("RememberObjects");
-        }
-
-        if (pumpRemembered != null) {
-            for (final Object o : AbilityUtils.getDefinedObjects(host, pumpRemembered, sa)) {
+            for (final Object o : AbilityUtils.getDefinedObjects(host, sa.getParam("RememberObjects"), sa)) {
                 host.addRemembered(o);
             }
         }

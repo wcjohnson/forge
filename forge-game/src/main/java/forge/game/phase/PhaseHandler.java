@@ -22,11 +22,9 @@ import com.google.common.collect.Multimap;
 
 import forge.card.mana.ManaCost;
 import forge.game.*;
-import forge.game.ability.AbilityFactory;
 import forge.game.card.Card;
 import forge.game.card.CardCollection;
 import forge.game.card.CardCollectionView;
-import forge.game.card.CardFactoryUtil;
 import forge.game.card.CardLists;
 import forge.game.card.CardPredicates.Presets;
 import forge.game.combat.Combat;
@@ -356,6 +354,10 @@ public class PhaseHandler implements java.io.Serializable {
                         player.onCleanupPhase();
                         player.getController().autoPassCancel(); // autopass won't wrap to next turn
                     }
+                    for (Player player : game.getLostPlayers()) {
+                        player.clearAssignedDamage();
+                    }
+
                     playerTurn.removeKeyword("Skip all combat phases of this turn.");
                     game.getCleanup().executeUntil(getNextTurn());
                     nUpkeepsThisTurn = 0;
@@ -419,7 +421,7 @@ public class PhaseHandler implements java.io.Serializable {
                     c.getDamageHistory().setNotAttackedSinceLastUpkeepOf(playerTurn);
                     c.getDamageHistory().setNotBlockedSinceLastUpkeepOf(playerTurn);
                     c.getDamageHistory().setNotBeenBlockedSinceLastUpkeepOf(playerTurn);
-                    if (playerTurn.equals(c.getController())) {
+                    if (playerTurn.equals(c.getController()) && c.getTurnInZone() < game.getPhaseHandler().getTurn()) {
                         c.setCameUnderControlSinceLastUpkeep(false);
                     }
                 }
@@ -518,25 +520,6 @@ public class PhaseHandler implements java.io.Serializable {
             attackersMap.putAll(ge, combat.getAttackersOf(ge));
         }
         game.fireEvent(new GameEventAttackersDeclared(playerTurn, attackersMap));
-
-        // This Exalted handler should be converted to script
-        if (combat.getAttackers().size() == 1) {
-            final Player attackingPlayer = combat.getAttackingPlayer();
-            final Card attacker = combat.getAttackers().get(0);
-            for (Card card : attackingPlayer.getCardsIn(ZoneType.Battlefield)) {
-                int exaltedMagnitude = card.getAmountOfKeyword("Exalted");
-
-                for (int i = 0; i < exaltedMagnitude; i++) {
-                    String abScript = String.format("AB$ Pump | Cost$ 0 | Defined$ CardUID_%d | NumAtt$ +1 | NumDef$ +1 | StackDescription$ Exalted for attacker {c:CardUID_%d} (Whenever a creature you control attacks alone, that creature gets +1/+1 until end of turn).", attacker.getId(), attacker.getId());
-                    SpellAbility ability = AbilityFactory.getAbility(abScript, card);
-                    ability.setActivatingPlayer(card.getController());
-                    ability.setDescription(ability.getStackDescription());
-                    ability.setTrigger(true);
-
-                    game.getStack().addSimultaneousStackEntry(ability);
-                }
-            }
-        }
 
         // fire AttackersDeclared trigger
         if (!combat.getAttackers().isEmpty()) {
@@ -669,9 +652,6 @@ public class PhaseHandler implements java.io.Serializable {
             }
 
             if (!c1.getDamageHistory().getCreatureBlockedThisCombat()) {
-                for (final SpellAbility ab : CardFactoryUtil.getBushidoEffects(c1)) {
-                    game.getStack().add(ab);
-                }
                 // Run triggers
                 final HashMap<String, Object> runParams = new HashMap<String, Object>();
                 runParams.put("Blocker", c1);
@@ -702,23 +682,15 @@ public class PhaseHandler implements java.io.Serializable {
             
             // Run this trigger once for each blocker
             for (final Card b : blockers) {
+
+                b.addBlockedThisTurn(a);
+                a.addBlockedByThisTurn(b);
+
             	final HashMap<String, Object> runParams2 = new HashMap<String, Object>();
             	runParams2.put("Attacker", a);
             	runParams2.put("Blocker", b);
             	game.getTriggerHandler().runTrigger(TriggerType.AttackerBlockedByCreature, runParams2, false);
             }
-
-            if (!a.getDamageHistory().getCreatureGotBlockedThisCombat()) {
-                // Bushido
-                for (final SpellAbility ab : CardFactoryUtil.getBushidoEffects(a)) {
-                    game.getStack().add(ab);
-                }
-
-                // Rampage
-                CombatUtil.handleRampage(game, a, blockers);
-            }
-
-            CombatUtil.handleFlankingKeyword(game, a, blockers);
 
             a.getDamageHistory().setCreatureGotBlockedThisCombat(true);
         }
@@ -779,6 +751,8 @@ public class PhaseHandler implements java.io.Serializable {
         Player next = getNextActivePlayer();
 
         game.getTriggerHandler().handlePlayerDefinedDelTriggers(next);
+
+        game.setMonarchBeginTurn(game.getMonarch());
 
         if (game.getRules().hasAppliedVariant(GameType.Planechase)) {
             for (Card p :game.getActivePlanes()) {

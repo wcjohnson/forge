@@ -18,7 +18,11 @@
 package forge.game.cost;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.Lists;
 
@@ -38,7 +42,7 @@ import forge.util.TextUtil;
  * </p>
  * 
  * @author Forge
- * @version $Id: Cost.java 30540 2015-12-29 16:37:22Z friarsol $
+ * @version $Id: Cost.java 32249 2016-10-01 06:21:40Z Agetian $
  */
 public class Cost {
     private boolean isAbility = true;
@@ -55,7 +59,7 @@ public class Cost {
     }
 
     public final boolean hasManaCost() {
-    	return !this.hasNoManaCost();
+        return !this.hasNoManaCost();
     }
 
     /**
@@ -66,6 +70,22 @@ public class Cost {
     public final List<CostPart> getCostParts() {
         return this.costParts;
     }
+
+    public void sort() {
+        // Things that need to happen first should be 0-4 (Tap, PayMana)
+        // Things that happen that are generally undoable 5 (Pretty much everything)
+        // Things that are annoying to undo 6-10 (PayLife, GainControl)
+        // Things that are hard to undo 11+ (Zone Changing things)
+        // Things that are pretty much happen at the end (Untap) 16+
+        // Things that NEED to happen last 100+
+
+        Collections.sort(this.costParts, new Comparator<CostPart>() {
+            @Override
+            public int compare(CostPart o1, CostPart o2) {
+                return o1.paymentOrder() - o2.paymentOrder();
+            }
+        });
+    }
     
     /**
      * Get the cost parts, always including a mana cost part (which may be
@@ -75,13 +95,13 @@ public class Cost {
      * CostPartMana}.
      */
     public final List<CostPart> getCostPartsWithZeroMana() {
-    	if (this.hasManaCost()) {
-    		return this.costParts;
-    	}
-    	final List<CostPart> newCostParts = Lists.newArrayListWithCapacity(this.costParts.size() + 1);
-    	newCostParts.addAll(this.costParts);
-    	newCostParts.add(new CostPartMana(ManaCost.ZERO, null));
-    	return newCostParts;
+        if (this.hasManaCost()) {
+            return this.costParts;
+        }
+        final List<CostPart> newCostParts = Lists.newArrayListWithCapacity(this.costParts.size() + 1);
+        newCostParts.addAll(this.costParts);
+        newCostParts.add(new CostPartMana(ManaCost.ZERO, null));
+        return newCostParts;
     }
 
     /**
@@ -245,6 +265,12 @@ public class Cost {
             return new CostPayLife(splitStr[0]);
         }
 
+        if (parse.startsWith("PayEnergy<")) {
+            // Payenergy<EnergyCost>
+            final String[] splitStr = abCostParse(parse, 1);
+            return new CostPayEnergy(splitStr[0]);
+        }
+
         if (parse.startsWith("GainLife<")) {
             // PayLife<LifeCost>
             final String[] splitStr = abCostParse(parse, 3);
@@ -266,7 +292,7 @@ public class Cost {
         }
 
         if (parse.startsWith("ChooseCreatureType<")) {
-        	final String[] splitStr = abCostParse(parse, 1);
+            final String[] splitStr = abCostParse(parse, 1);
             return new CostChooseCreatureType(splitStr[0]);
         }
 
@@ -408,8 +434,6 @@ public class Cost {
      * </p>
      * 
      * @param parse
-     *            a {@link java.lang.String} object.
-     * @param subkey
      *            a {@link java.lang.String} object.
      * @param numParse
      *            a int.
@@ -729,19 +753,54 @@ public class Cost {
 
     public Cost add(Cost cost1) {
         CostPartMana costPart2 = this.getCostMana();
+        List<CostPart> toRemove = Lists.newArrayList();
         for (final CostPart part : cost1.getCostParts()) {
-            if (part instanceof CostPartMana && costPart2 != null) {
-                ManaCostBeingPaid oldManaCost = new ManaCostBeingPaid(((CostPartMana) part).getMana());
+            if (part instanceof CostPartMana && ((CostPartMana) part).getMana().isZero()) {
+                continue; // do not add Zero Mana
+            } else if (part instanceof CostPartMana && costPart2 != null) {
+                CostPartMana mPart = (CostPartMana) part;
+                ManaCostBeingPaid oldManaCost = new ManaCostBeingPaid(mPart.getMana());
                 oldManaCost.addManaCost(costPart2.getMana());
                 String r2 = costPart2.getRestiction();
-                String r1 = ((CostPartMana) part).getRestiction();
+                String r1 = mPart.getRestiction();
                 String r = r1 == null ? r2 : ( r2 == null ? r1 : r1 + "." + r2);
-                getCostParts().remove(costPart2);
-                getCostParts().add(0, new CostPartMana(oldManaCost.toManaCost(), r));
+                costParts.remove(costPart2);
+                if (r == null && (mPart.isExiledCreatureCost() || mPart.isEnchantedCreatureCost())) {
+                    // FIXME: something was amiss when trying to add the cost since the mana cost is either \EnchantedCost or \Exiled but the
+                    // restriction no longer marks it as such. Therefore, we need to explicitly copy the ExiledCreatureCost/EnchantedCreatureCost
+                    // to make cards like Merseine or Back from the Brink work.
+                    costParts.add(0, new CostPartMana(oldManaCost.toManaCost(), r, mPart.isExiledCreatureCost(), mPart.isEnchantedCreatureCost()));
+                } else {
+                    costParts.add(0, new CostPartMana(oldManaCost.toManaCost(), r));
+                }
+            } else if (part instanceof CostDiscard || part instanceof CostTapType) {
+                boolean alreadyAdded = false;
+                for (final CostPart other : costParts) {
+                    if (other.getClass().equals(part.getClass()) &&
+                            part.getType().equals(other.getType()) && 
+                            StringUtils.isNumeric(part.getAmount()) &&
+                            StringUtils.isNumeric(other.getAmount())) {
+                        final String amount = String.valueOf(Integer.parseInt(part.getAmount()) + Integer.parseInt(other.getAmount()));
+                        if (part instanceof CostDiscard) {
+                            costParts.add(new CostDiscard(amount, part.getType(), part.getTypeDescription()));
+                        } else if (part instanceof CostTapType) {
+                            CostTapType tappart = (CostTapType)part;
+                            costParts.add(new CostTapType(amount, part.getType(), part.getTypeDescription(), !tappart.canTapSource));
+                        }
+                        toRemove.add(other);
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
+                    costParts.add(part);
+                }
             } else {
-                getCostParts().add(part);
+                costParts.add(part);
             }
         }
+        costParts.removeAll(toRemove);
+        this.sort();
         return this;
     }
 

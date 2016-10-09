@@ -28,7 +28,6 @@ import forge.game.ability.AbilityUtils;
 import forge.game.ability.ApiType;
 import forge.game.card.Card;
 import forge.game.card.CardCollectionView;
-import forge.game.card.CardLists;
 import forge.game.card.CardPlayOption;
 import forge.game.card.CardPredicates;
 import forge.game.card.CardPlayOption.PayManaCost;
@@ -52,7 +51,7 @@ import java.util.Map;
  * </p>
  * 
  * @author Forge
- * @version $Id: GameActionUtil.java 30848 2016-02-09 00:31:28Z friarsol $
+ * @version $Id: GameActionUtil.java 31952 2016-08-12 06:54:00Z Hanmac $
  */
 public final class GameActionUtil {
     // Cache these instead of generating them on the fly, to avoid excessive allocations every time
@@ -74,55 +73,6 @@ public final class GameActionUtil {
     private GameActionUtil() {
         throw new AssertionError();
     }
-
-    // restricted to combat damage, restricted to players
-    /**
-     * <p>
-     * executeCombatDamageToPlayerEffects.
-     * </p>
-     * 
-     * @param player
-     *            a {@link forge.game.player.Player} object.
-     * @param c
-     *            a {@link forge.game.card.Card} object.
-     * @param damage
-     *            a int.
-     */
-    public static void executeCombatDamageToPlayerEffects(final Player player, final Card c, final int damage) {
-
-        if (damage <= 0) {
-            return;
-        }
-
-        for (final String key : c.getKeywords()) {
-            if (!key.startsWith("Poisonous ")) continue;
-            final String[] k = key.split(" ", 2);
-            final int poison = Integer.parseInt(k[1]);
-            // Now can be copied by Strionic Resonator
-            String effect = "AB$ Poison | Cost$ 0 | Defined$ PlayerNamed_" + player.getName() + " | Num$ " + k[1];
-            SpellAbility ability = AbilityFactory.getAbility(effect, c);
-
-            final StringBuilder sb = new StringBuilder();
-            sb.append(c);
-            sb.append(" - Poisonous: ");
-            sb.append(player);
-            sb.append(" gets ").append(poison).append(" poison counter");
-            if (poison != 1) {
-                sb.append("s");
-            }
-            sb.append(".");
-
-            ability.setActivatingPlayer(c.getController());
-            ability.setDescription(sb.toString());
-            ability.setStackDescription(sb.toString());
-            ability.setTrigger(true);
-
-            player.getGame().getStack().addSimultaneousStackEntry(ability);
-
-        }
-
-        c.getDamageHistory().registerCombatDamage(player);
-    } // executeCombatDamageToPlayerEffects
 
     /**
      * Gets the st land mana abilities.
@@ -172,33 +122,50 @@ public final class GameActionUtil {
      */
     public static final List<SpellAbility> getAlternativeCosts(final SpellAbility sa, final Player activator) {
         final List<SpellAbility> alternatives = new ArrayList<SpellAbility>();
-        if (!sa.isBasicSpell()) {
-            return alternatives;
-        }
 
         final Card source = sa.getHostCard();
-        final CardPlayOption playOption = source.mayPlay(activator);
-        if (sa.isSpell() && playOption != null) {
-            final PayManaCost payMana = playOption.getPayManaCost();
-            if (payMana == PayManaCost.YES || payMana == PayManaCost.MAYBE) {
+
+        if (sa.isSpell()) {
+            for (CardPlayOption o : source.mayPlay(activator)) {
+                // non basic are only allowed if PayManaCost is yes
+                if (!sa.isBasicSpell() && o.getPayManaCost() == PayManaCost.NO) {
+                    continue;
+                }
+                final Card host = o.getHost();
+
                 final SpellAbility newSA = sa.copy();
                 final SpellAbilityRestriction sar = new SpellAbilityRestriction();
                 sar.setVariables(sa.getRestrictions());
+                if (o.isWithFlash()) {
+                	sar.setInstantSpeed(true);
+                }
                 sar.setZone(null);
                 newSA.setRestrictions(sar);
-                alternatives.add(newSA); 
+                newSA.setMayPlay(o.getAbility());
+                newSA.setMayPlayOriginal(sa);
+                if (o.getPayManaCost() == PayManaCost.NO) {
+                    newSA.setBasicSpell(false);
+                    newSA.setPayCosts(newSA.getPayCosts().copyWithNoMana());
+                }
+
+                final StringBuilder sb = new StringBuilder(sa.getDescription());
+                if (!source.equals(host)) {
+                    sb.append(" by ");
+                    if ((host.isEmblem() || host.getType().hasSubtype("Effect"))
+                            && host.getEffectSource() != null) {
+                        sb.append(host.getEffectSource());
+                    } else {
+                        sb.append(host);
+                    }
+                }
+                sb.append(o.toString(false));
+                newSA.setDescription(sb.toString());
+                alternatives.add(newSA);
             }
-            if (payMana == PayManaCost.NO || payMana == PayManaCost.MAYBE) {
-                final SpellAbility newSA = sa.copy();
-                final SpellAbilityRestriction sar = new SpellAbilityRestriction();
-                sar.setVariables(sa.getRestrictions());
-                sar.setZone(null);
-                newSA.setRestrictions(sar);
-                newSA.setBasicSpell(false);
-                newSA.setPayCosts(newSA.getPayCosts().copyWithNoMana());
-                newSA.setDescription(sa.getDescription() + " (without paying its mana cost)");
-                alternatives.add(newSA); 
-            }
+        }
+
+        if (!sa.isBasicSpell()) {
+            return alternatives;
         }
 
         for (final String keyword : source.getKeywords()) {
@@ -216,41 +183,6 @@ public final class GameActionUtil {
                 }
                 alternatives.add(flashback);
             }
-            if (sa.isSpell() && keyword.equals("May be played without paying its mana cost")) {
-                final SpellAbility newSA = sa.copy();
-                SpellAbilityRestriction sar = new SpellAbilityRestriction();
-                sar.setVariables(sa.getRestrictions());
-                sar.setZone(null);
-                newSA.setRestrictions(sar);
-                newSA.setBasicSpell(false);
-                newSA.setPayCosts(newSA.getPayCosts().copyWithNoMana());
-                newSA.setDescription(sa.getDescription() + " (without paying its mana cost)");
-                alternatives.add(newSA);
-            }
-            if (sa.isSpell() && keyword.startsWith("May be played without paying its mana cost and as though it has flash")) {
-                final SpellAbility newSA = sa.copy();
-                SpellAbilityRestriction sar = new SpellAbilityRestriction();
-                sar.setVariables(sa.getRestrictions());
-                sar.setInstantSpeed(true);
-                newSA.setRestrictions(sar);
-                newSA.setBasicSpell(false);
-                newSA.setPayCosts(newSA.getPayCosts().copyWithNoMana());
-                newSA.setDescription(sa.getDescription() + " (without paying its mana cost and as though it has flash)");
-                alternatives.add(newSA);
-            }
-            if (sa.isSpell() && keyword.startsWith("Alternative Cost")) {
-                final SpellAbility newSA = sa.copy();
-                newSA.setBasicSpell(false);
-                String kw = keyword;
-                if (keyword.contains("ConvertedManaCost")) {
-                    final String cmc = Integer.toString(sa.getHostCard().getCMC());
-                    kw = keyword.replace("ConvertedManaCost", cmc);
-                }
-                final Cost cost = new Cost(kw.substring(17), false).add(newSA.getPayCosts().copyWithNoMana());
-                newSA.setPayCosts(cost);
-                newSA.setDescription(sa.getDescription() + " (by paying " + cost.toSimpleString() + " instead of its mana cost)");
-                alternatives.add(newSA);
-            }
             if (sa.isSpell() && keyword.equals("You may cast CARDNAME as though it had flash if you pay 2 more to cast it.")) {
                 final SpellAbility newSA = sa.copy();
                 newSA.setBasicSpell(false);
@@ -264,26 +196,6 @@ public final class GameActionUtil {
                 newSA.setRestrictions(sar);
                 newSA.setDescription(sa.getDescription() + " (by paying " + actualcost.toSimpleString() + " instead of its mana cost)");
                 alternatives.add(newSA);
-            }
-            if (sa.isSpell() && keyword.endsWith(" offering")) {
-                final String offeringType = keyword.split(" ")[0];
-                List<Card> canOffer = CardLists.filter(sa.getHostCard().getController().getCardsIn(ZoneType.Battlefield),
-                        CardPredicates.isType(offeringType));
-                if (source.getController().hasKeyword("You can't sacrifice creatures to cast spells or activate abilities.")) {
-                    canOffer = CardLists.getNotType(canOffer, "Creature");
-                }
-                if (!canOffer.isEmpty()) {
-                    final SpellAbility newSA = sa.copy();
-                    SpellAbilityRestriction sar = new SpellAbilityRestriction();
-                    sar.setVariables(sa.getRestrictions());
-                    sar.setInstantSpeed(true);
-                    newSA.setRestrictions(sar);
-                    newSA.setBasicSpell(false);
-                    newSA.setIsOffering(true);
-                    newSA.setPayCosts(sa.getPayCosts());
-                    newSA.setDescription(sa.getDescription() + " (" + offeringType + " offering)");
-                    alternatives.add(newSA);
-                }
             }
             if (sa.hasParam("Equip") && sa instanceof AbilityActivated && keyword.equals("EquipInstantSpeed")) {
                 final SpellAbility newSA = ((AbilityActivated) sa).getCopy();

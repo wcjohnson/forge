@@ -18,6 +18,7 @@
 package forge.game.ability;
 
 import forge.card.CardStateName;
+import forge.game.ability.effects.CharmEffect;
 import forge.game.card.Card;
 import forge.game.cost.Cost;
 import forge.game.spellability.*;
@@ -34,7 +35,7 @@ import java.util.Map;
  * </p>
  * 
  * @author Forge
- * @version $Id: AbilityFactory.java 30074 2015-09-21 16:34:53Z Agetian $
+ * @version $Id: AbilityFactory.java 31732 2016-07-27 06:35:46Z Hanmac $
  */
 public final class AbilityFactory {
 
@@ -108,6 +109,15 @@ public final class AbilityFactory {
         return getAbility(mapParams, type, hostCard);
     }
     
+    public static final SpellAbility getAbility(final Card hostCard, final String svar) {
+        if (!hostCard.hasSVar(svar)) {
+            String source = hostCard.getName();
+            throw new RuntimeException("AbilityFactory : getAbility -- " + source +  " has no SVar: " + svar);
+        } else {
+            return getAbility(hostCard.getSVar(svar), hostCard);
+        }
+    }
+    
     public static final SpellAbility getAbility(final Map<String, String> mapParams, AbilityRecordType type, final Card hostCard) {
         return getAbility(type, type.getApiTypeOf(mapParams), mapParams, parseAbilityCost(hostCard, mapParams, type), hostCard);
     }
@@ -179,7 +189,7 @@ public final class AbilityFactory {
         }
 
         if (mapParams.containsKey("SubAbility")) {
-            spellAbility.setSubAbility(getSubAbility(hostCard, hostCard.getSVar(mapParams.get("SubAbility"))));
+            spellAbility.setSubAbility(getSubAbility(hostCard, mapParams.get("SubAbility")));
         }
 
         if (spellAbility instanceof SpellApiBased && hostCard.isPermanent()) {
@@ -202,6 +212,8 @@ public final class AbilityFactory {
             sb.append(mapParams.get("SpellDescription"));
 
             spellAbility.setDescription(sb.toString());
+        } else if (api == ApiType.Charm) {
+        	spellAbility.setDescription(CharmEffect.makeSpellDescription(spellAbility));
         } else {
             spellAbility.setDescription("");
         }
@@ -336,10 +348,10 @@ public final class AbilityFactory {
      */
     private static final AbilitySub getSubAbility(Card hostCard, String sSub) {
 
-        if (!sSub.equals("")) {
-            return (AbilitySub) AbilityFactory.getAbility(sSub, hostCard);
+        if (hostCard.hasSVar(sSub)) {
+            return (AbilitySub) AbilityFactory.getAbility(hostCard, sSub);
         }
-        System.out.println("SubAbility not found for: " + hostCard);
+        System.out.println("SubAbility '"+ sSub +"' not found for: " + hostCard);
 
         return null;
     }

@@ -3,7 +3,6 @@ package forge.ai;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,6 +15,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 
 import forge.card.CardType;
 import forge.card.ColorSet;
@@ -405,6 +405,21 @@ public class ComputerUtilCard {
     public static int evaluateCreatureList(final CardCollectionView list) {
         return Aggregates.sum(list, creatureEvaluator);
     }
+    
+    public static Map<String, Integer> evaluateCreatureListByName(final CardCollectionView list) {
+        // Compute value for each possible target
+        Map<String, Integer> values = Maps.newHashMap();
+        for (Card c : list) {
+            String name = c.getName();
+            int val = evaluateCreature(c);
+            if (values.containsKey(name)) {
+                values.put(name, values.get(name) + val);
+            } else {
+                values.put(name, val);
+            }
+        }
+        return values;
+    }
 
     public static boolean doesCreatureAttackAI(final Player ai, final Card card) {
         AiAttackController aiAtk = new AiAttackController(ai);
@@ -547,7 +562,7 @@ public class ComputerUtilCard {
             return "";
         }
     
-        final Map<String, Integer> map = new HashMap<String, Integer>();
+        final Map<String, Integer> map = Maps.newHashMap();
     
         for (final Card c : list) {
             final String name = c.getName();
@@ -570,6 +585,10 @@ public class ComputerUtilCard {
         return maxName;
     }
 
+    public static String getMostProminentBasicLandType(final CardCollectionView list) {
+        return getMostProminentType(list, CardType.getBasicTypes());
+    }
+
     /**
      * <p>
      * getMostProminentCreatureType.
@@ -579,15 +598,19 @@ public class ComputerUtilCard {
      * @return a {@link java.lang.String} object.
      */
     public static String getMostProminentCreatureType(final CardCollectionView list) {
+        return getMostProminentType(list, CardType.getAllCreatureTypes());
+    }
+
+    public static String getMostProminentType(final CardCollectionView list, final List<String> valid) {
         if (list.size() == 0) {
             return "";
         }
 
-        final Map<String, Integer> map = new HashMap<String, Integer>();
+        final Map<String, Integer> map = Maps.newHashMap();
 
         for (final Card c : list) {
             for (final String var : c.getType()) {
-                if (CardType.isACreatureType(var)) {
+                if (valid.contains(var)) {
                     if (!map.containsKey(var)) {
                         map.put(var, 1);
                     } else {
@@ -596,14 +619,14 @@ public class ComputerUtilCard {
                 }
             }
         } // for
-    
+
         int max = 0;
         String maxType = "";
     
         for (final Entry<String, Integer> entry : map.entrySet()) {
             final String type = entry.getKey();
             // Log.debug(type + " - " + entry.getValue());
-    
+
             if (max < entry.getValue()) {
                 max = entry.getValue();
                 maxType = type;
@@ -942,6 +965,9 @@ public class ComputerUtilCard {
         }
         if (c.isLand()) {
             valueTempo += 0.5f / opp.getLandsInPlay().size();   //set back opponent's mana
+            if ("Land".equals(sa.getParam("ValidTgts")) && ph.getPhase().isAfter(PhaseType.COMBAT_END)) {
+            	valueTempo += 0.5; // especially when nothing else can be targeted
+            }
         }
         if (!ph.isPlayerTurn(ai) && ph.getPhase().equals(PhaseType.END_OF_TURN)) {
             valueTempo *= 2;    //prefer to cast at opponent EOT
@@ -1181,6 +1207,30 @@ public class ComputerUtilCard {
                 }
                 if (pumpedDmg >= opp.getLife()) {
                     return true;
+                }
+                // try to determine if pumping a creature for more power will give lethal on board
+                // considering all unblocked creatures after the blockers are already declared
+                if (phase.is(PhaseType.COMBAT_DECLARE_BLOCKERS) && pumpedDmg > dmg) {
+                    int totalPowerUnblocked = 0;
+                    for (Card atk : combat.getAttackers()) {
+                        if (combat.isBlocked(atk) && !atk.hasKeyword("Trample")) {
+                            continue;
+                        }
+                        if (atk == c) {
+                            totalPowerUnblocked += pumpedDmg; // this accounts for Trample by now
+                        } else {
+                            totalPowerUnblocked += ComputerUtilCombat.damageIfUnblocked(atk, opp, combat, true);
+                            if (combat.isBlocked(atk)) {
+                                // consider Trample damage properly for a blocked creature
+                                for (Card blk : combat.getBlockers(atk)) {
+                                    totalPowerUnblocked -= ComputerUtilCombat.getDamageToKill(blk);
+                                }
+                            }
+                        }
+                    }
+                    if (totalPowerUnblocked >= opp.getLife()) {
+                        return true;
+                    }
                 }
                 float value = 1.0f * (pumpedDmg - dmg);
                 if (c == sa.getHostCard() && power > 0) {

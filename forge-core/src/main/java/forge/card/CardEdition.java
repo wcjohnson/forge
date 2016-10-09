@@ -120,8 +120,11 @@ public final class CardEdition implements Comparable<CardEdition> { // immutable
     private FoilType foilType = FoilType.NOT_SUPPORTED;
     private double foilChanceInBooster = 0;
     private boolean foilAlwaysInCommonSlot = false;
+    private double chanceReplaceCommonWith = 0;
+    private String slotReplaceCommonWith = "Common";
     private String additionalSheetForFoils = "";
     private String additionalUnlockSet = "";
+    private boolean smallSetOverride = false;
     private final CardInSet[] cards;
 
     private int boosterArts = 1;
@@ -176,8 +179,11 @@ public final class CardEdition implements Comparable<CardEdition> { // immutable
     public FoilType getFoilType() { return foilType; }
     public double getFoilChanceInBooster() { return foilChanceInBooster; }
     public boolean getFoilAlwaysInCommonSlot() { return foilAlwaysInCommonSlot; }
+    public double getChanceReplaceCommonWith() { return chanceReplaceCommonWith; }
+    public String getSlotReplaceCommonWith() { return slotReplaceCommonWith; }
     public String getAdditionalSheetForFoils() { return additionalSheetForFoils; }
     public String getAdditionalUnlockSet() { return additionalUnlockSet; }
+    public boolean getSmallSetOverride() { return smallSetOverride; }
     public CardInSet[] getCards() { return cards; }
 
     public static final Function<CardEdition, String> FN_GET_CODE = new Function<CardEdition, String>() {
@@ -226,7 +232,7 @@ public final class CardEdition implements Comparable<CardEdition> { // immutable
     }
 
     public boolean isLargeSet() {
-        return cards.length > 200;
+        return cards.length > 200 && !smallSetOverride;
     }
 
     public int getCntBoosterPictures() {
@@ -251,24 +257,26 @@ public final class CardEdition implements Comparable<CardEdition> { // immutable
             final Map<String, List<String>> contents = FileSection.parseSections(FileUtil.readFile(file));
 
             List<CardEdition.CardInSet> processedCards = new ArrayList<>();
-            for(String line : contents.get("cards")) {
-                if (StringUtils.isBlank(line))
-                    continue;
+            if (contents.containsKey("cards")) {
+                for(String line : contents.get("cards")) {
+                    if (StringUtils.isBlank(line))
+                        continue;
 
-                // Optional collector number at the start.
-                String[] split = line.split(" ", 2);
-                int collectorNumber = -1;
-                if (split.length >= 2 && StringUtils.isNumeric(split[0])) {
-                    collectorNumber = Integer.parseInt(split[0]);
-                    line = split[1];
+                    // Optional collector number at the start.
+                    String[] split = line.split(" ", 2);
+                    int collectorNumber = -1;
+                    if (split.length >= 2 && StringUtils.isNumeric(split[0])) {
+                        collectorNumber = Integer.parseInt(split[0]);
+                        line = split[1];
+                    }
+
+                    // You may omit rarity for early development
+                    CardRarity r = CardRarity.smartValueOf(line.substring(0, 1));
+                    boolean hadRarity = r != CardRarity.Unknown && line.charAt(1) == ' ';
+                    String cardName = hadRarity ? line.substring(2) : line;
+                    CardInSet cis = new CardInSet(cardName, collectorNumber, r);
+                    processedCards.add(cis);
                 }
-
-                // You may omit rarity for early development
-                CardRarity r = CardRarity.smartValueOf(line.substring(0, 1));
-                boolean hadRarity = r != CardRarity.Unknown && line.charAt(1) == ' ';
-                String cardName = hadRarity ? line.substring(2) : line;
-                CardInSet cis = new CardInSet(cardName, collectorNumber, r);
-                processedCards.add(cis);
             }
 
             CardEdition res = new CardEdition(processedCards.toArray(new CardInSet[processedCards.size()]));
@@ -320,11 +328,18 @@ public final class CardEdition implements Comparable<CardEdition> { // immutable
                     res.foilType = FoilType.NOT_SUPPORTED;
                     break;
             }
+            String[] replaceCommon = section.get("ChanceReplaceCommonWith", "0F Common").split(" ", 2);
+            res.chanceReplaceCommonWith = Double.parseDouble(replaceCommon[0]);
+            res.slotReplaceCommonWith = replaceCommon[1];
+
             res.foilChanceInBooster = section.getDouble("FoilChanceInBooster", 21.43F) / 100.0F;
+
             res.foilAlwaysInCommonSlot = section.getBoolean("FoilAlwaysInCommonSlot", true);
             res.additionalSheetForFoils = section.get("AdditionalSheetForFoils", "");
 
             res.additionalUnlockSet = section.get("AdditionalSetUnlockedInQuest", ""); // e.g. Time Spiral Timeshifted (TSB) for Time Spiral
+
+            res.smallSetOverride = section.getBoolean("TreatAsSmallSet", false); // for "small" sets with over 200 cards (e.g. Eldritch Moon)
 
             return res;
         }

@@ -1,11 +1,16 @@
 package forge.ai;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+
+import forge.ai.ability.AnimateAi;
 import forge.card.ColorSet;
 import forge.game.GameActionUtil;
 import forge.game.ability.AbilityUtils;
+import forge.game.ability.ApiType;
 import forge.game.card.Card;
 import forge.game.card.CardCollection;
+import forge.game.card.CardFactory;
 import forge.game.card.CardLists;
 import forge.game.card.CardPredicates.Presets;
 import forge.game.card.CounterType;
@@ -100,6 +105,9 @@ public class ComputerUtilCost {
         if (cost == null) {
             return true;
         }
+
+        CardCollection hand = new CardCollection(ai.getCardsIn(ZoneType.Hand));
+
         for (final CostPart part : cost.getCostParts()) {
             if (part instanceof CostDiscard) {
                 final CostDiscard disc = (CostDiscard) part;
@@ -108,7 +116,7 @@ public class ComputerUtilCost {
                 if (type.equals("CARDNAME") && source.getAbilityText().contains("Bloodrush")) {
                     continue;
                 }
-                final CardCollection typeList = CardLists.getValidCards(ai.getCardsIn(ZoneType.Hand), type.split(","), source.getController(), source, null);
+                final CardCollection typeList = CardLists.getValidCards(hand, type.split(","), source.getController(), source, null);
                 if (typeList.size() > ai.getMaxHandSize()) {
                     continue;
                 }
@@ -119,6 +127,7 @@ public class ComputerUtilCost {
                         return false;
                     } else {
                         typeList.remove(pref);
+                        hand.remove(pref);
                     }
                 }
             }
@@ -256,8 +265,7 @@ public class ComputerUtilCost {
                     }
                     continue;
                 }
-    
-                final CardCollection typeList = CardLists.getValidCards(ai.getCardsIn(ZoneType.Battlefield), type.split(","), source.getController(), source, null);
+                final CardCollection typeList = CardLists.getValidCards(ai.getCardsIn(ZoneType.Battlefield), type.split(";"), source.getController(), source, null);
                 if (ComputerUtil.getCardPreference(ai, source, "SacCost", typeList) == null) {
                     return false;
                 }
@@ -293,8 +301,39 @@ public class ComputerUtilCost {
         if (cost == null) {
             return true;
         }
+        boolean isVehicle = source.hasStartOfKeyword("Crew");
         for (final CostPart part : cost.getCostParts()) {
             if (part instanceof CostTapType) {
+                /*
+                 * Only crew with creatures weaker than vehicle
+                 * 
+                 * Possible improvements:
+                 * - block against evasive (flyers, intimidate, etc.)
+                 * - break board stall by racing with evasive vehicle
+                 */
+                if (isVehicle) {
+                    for (SpellAbility sa : source.getSpellAbilities()) {
+                        if (sa.getApi() == ApiType.Animate) {
+                            Card vehicle = CardFactory.copyCard(sa.getHostCard(), true);
+                            AnimateAi.becomeAnimated(vehicle, false, sa);
+                            final int vehicleValue = ComputerUtilCard.evaluateCreature(vehicle);
+                            String type = part.getType();
+                            String totalP = type.split("withTotalPowerGE")[1];
+                            type = type.replace("+withTotalPowerGE" + totalP, "");
+                            CardCollection exclude = CardLists.getValidCards(
+                                    new CardCollection(ai.getCardsIn(ZoneType.Battlefield)), type.split(";"),
+                                    source.getController(), source, sa);
+                            exclude = CardLists.filter(exclude, new Predicate<Card>() {
+                                @Override
+                                public boolean apply(final Card c) {
+                                    return ComputerUtilCard.evaluateCreature(c) >= vehicleValue;
+                                }
+                            }); // exclude creatures >= vehicle
+                            return ComputerUtil.chooseTapTypeAccumulatePower(ai, type, sa, true,
+                                    Integer.parseInt(totalP), exclude) != null;
+                        }
+                    }
+                }
             	return false;
             }
         }
@@ -363,9 +402,13 @@ public class ComputerUtilCost {
         // Check for stuff like Nether Void
         int extraManaNeeded = 0;
         if (sa instanceof Spell) {
+        	final boolean cannotBeCountered = sa.getHostCard().hasKeyword("CARDNAME can't be countered.");
             for (Card c : player.getGame().getCardsIn(ZoneType.Battlefield)) {
                 final String snem = c.getSVar("AI_SpellsNeedExtraMana");
                 if (!StringUtils.isBlank(snem)) {
+                	if (cannotBeCountered && c.getName().equals("Nether Void")) {
+                		continue;
+                	}
                     String[] parts = TextUtil.split(snem, ' ');
                     boolean meetsRestriction = parts.length == 1 || player.isValid(parts[1], c.getController(), c, sa);
                     if(!meetsRestriction)
@@ -379,6 +422,9 @@ public class ComputerUtilCost {
                 }
             }
             for (Card c : player.getCardsIn(ZoneType.Command)) {
+            	if (cannotBeCountered) {
+            		continue;
+            	}
                 final String snem = c.getSVar("SpellsNeedExtraManaEffect");
                 if (!StringUtils.isBlank(snem)) {
                     try {
@@ -399,6 +445,14 @@ public class ComputerUtilCost {
                     if (player.getOpponent().getCreaturesInPlay().isEmpty() || MyRandom.getRandom().nextFloat() < .5f) {
                         return false;
                     }
+                }
+            }
+        }
+        // KLD vehicle
+        if (sa.hasParam("Crew")) {  // put under checkTapTypeCost?
+            for (final CostPart part : sa.getPayCosts().getCostParts()) {
+                if (part instanceof CostTapType && part.getType().contains("+withTotalPowerGE")) {
+                    return new AiCostDecision(player, sa).visit((CostTapType)part) != null;
                 }
             }
         }
@@ -459,8 +513,11 @@ public class ComputerUtilCost {
             if (payerCreatures > sourceCreatures + 1) {
                 return false;
             }
-        } else if ("LifeLE2".equals(aiLogic)) {
-            if (payer.getLife() < 3) {
+        } else if (aiLogic != null && aiLogic.startsWith("LifeLE")) {
+        	// if payer can't lose life its no need to pay unless
+        	if (!payer.canLoseLife())
+        		return false;
+        	else if (payer.getLife() <= Integer.valueOf(aiLogic.substring(6))) {
                 return true;
             }
         } else if ("WillAttack".equals(aiLogic)) {

@@ -69,6 +69,12 @@ public class QuestEventChallenge extends QuestEvent {
     /** The ai extra cards. */
     private List<String> aiExtraCards = new ArrayList<String>();
 
+    /** If persistent, the challenge does not disappear if the player fails it. */
+    private boolean persistent = false;
+
+    /** a text message that appears when the player wins the challenge match. */
+    private String winMessage = "";
+
     private Deck humanDeck = null;
 
     /**
@@ -209,6 +215,25 @@ public class QuestEventChallenge extends QuestEvent {
     }
 
     /**
+     * Checks if is persistent.
+     * 
+     * @return the persistent
+     */
+    public boolean isPersistent() {
+        return this.persistent;
+    }
+
+    /**
+     * Sets the persistent.
+     * 
+     * @param persistent0
+     *            the repeatable to set
+     */
+    public void setPersistent(final boolean persistent0) {
+        this.persistent = persistent0;
+    }
+
+    /**
      * Gets the ai life.
      * 
      * @return the aiLife
@@ -297,6 +322,25 @@ public class QuestEventChallenge extends QuestEvent {
      */
     public void setForceAnte(Boolean forceAnte) {
         this.forceAnte = forceAnte;
+    }
+
+    /**
+     * Gets the win message.
+     * 
+     * @return the winMessage
+     */
+    public String getWinMessage() {
+        return this.winMessage;
+    }
+
+    /**
+     * Sets the win message
+     * 
+     * @param winMessage0
+     *            the winMessage to set
+     */
+    public void setWinMessage(final String winMessage0) {
+        this.winMessage = winMessage0;
     }
 
     /**

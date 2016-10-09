@@ -6,6 +6,7 @@ import forge.game.ability.AbilityUtils;
 import forge.game.card.Card;
 import forge.game.card.CardCollection;
 import forge.game.card.CardLists;
+import forge.game.card.CounterType;
 import forge.game.card.CardPredicates.Presets;
 import forge.game.cost.Cost;
 import forge.game.cost.CostPart;
@@ -36,86 +37,69 @@ public class PumpAi extends PumpAiBase {
         }
         return false;
     }
-
     
-    /* (non-Javadoc)
-         * @see forge.card.abilityfactory.SpellAiLogic#canPlayAI(forge.game.player.Player, java.util.Map, forge.card.spellability.SpellAbility)
-         */
     @Override
-    protected boolean canPlayAI(Player ai, SpellAbility sa) {
-        final Cost cost = sa.getPayCosts();
+    protected boolean checkAiLogic(final Player ai, final SpellAbility sa, final String aiLogic) {
+        if ("FellTheMighty".equals(aiLogic)) {
+            CardCollection aiList = ai.getCreaturesInPlay();
+            if (aiList.isEmpty()) {
+                return false;
+            }
+            CardLists.sortByPowerAsc(aiList);
+            if (!sa.canTarget(aiList.get(0))) {
+                return false;
+            }
+        }
+        return super.checkAiLogic(ai, sa, aiLogic);
+    }
+    
+    @Override
+    protected boolean checkPhaseRestrictions(final Player ai, final SpellAbility sa, final PhaseHandler ph) {
         final Game game = ai.getGame();
-        final PhaseHandler ph = game.getPhaseHandler();
-        final List<String> keywords = sa.hasParam("KW") ? Arrays.asList(sa.getParam("KW").split(" & ")) : new ArrayList<String>();
-        final String numDefense = sa.hasParam("NumDef") ? sa.getParam("NumDef") : "";
-        final String numAttack = sa.hasParam("NumAtt") ? sa.getParam("NumAtt") : "";
-        final boolean isFight = "Fight".equals(sa.getParam("AILogic")) || "PowerDmg".equals(sa.getParam("AILogic"));
-
-        if (!ComputerUtilCost.checkLifeCost(ai, cost, sa.getHostCard(), 4, null)) {
-            return false;
-        }
-
-        if (!ComputerUtilCost.checkDiscardCost(ai, cost, sa.getHostCard())) {
-            return false;
-        }
-
-        if (!ComputerUtilCost.checkCreatureSacrificeCost(ai, cost, sa.getHostCard())) {
-            return false;
-        }
-
-        if (!ComputerUtilCost.checkRemoveCounterCost(cost, sa.getHostCard())) {
-            return false;
-        }
-
-        if (!ComputerUtilCost.checkTapTypeCost(ai, cost, sa.getHostCard())) {
-            return false;
-        }
-
-        if (game.getStack().isEmpty() && hasTapCost(cost, sa.getHostCard())) {
-                if (ph.getPhase().isBefore(PhaseType.COMBAT_DECLARE_ATTACKERS) && ph.isPlayerTurn(ai)) {
-                    return false;
-                }
-                if (ph.getPhase().isBefore(PhaseType.COMBAT_DECLARE_BLOCKERS) && ph.isPlayerTurn(ai.getOpponent())) {
-                    return false;
-                }
-        }
-        
-        if (sa.hasParam("AILogic")) {
-            if (sa.getParam("AILogic").equals("Never")) {
-            	return false;
+        if (game.getStack().isEmpty() && hasTapCost(sa.getPayCosts(), sa.getHostCard())) {
+            if (ph.getPhase().isBefore(PhaseType.COMBAT_DECLARE_ATTACKERS) && ph.isPlayerTurn(ai)) {
+                return false;
             }
-            if (sa.getParam("AILogic").equals("FellTheMighty")) {
-            	CardCollection aiList = ai.getCreaturesInPlay();
-            	if (aiList.isEmpty()) {
-            		return false;
-            	}
-            	CardLists.sortByPowerAsc(aiList);
-            	Card lowest = aiList.get(0);
-            	if (!sa.canTarget(lowest)) {
-            		return false;
-            	}
-            	CardCollection oppList = ai.getOpponent().getCreaturesInPlay();
-            	oppList = CardLists.filterPower(oppList, lowest.getNetPower()+1);
-            	if (ComputerUtilCard.evaluateCreatureList(oppList) > 200) {
-            		sa.resetTargets();
-            		sa.getTargets().add(lowest);
-            		return true;
-            	}
+            if (ph.getPhase().isBefore(PhaseType.COMBAT_DECLARE_BLOCKERS) && ph.isPlayerTurn(ai.getOpponent())) {
+                return false;
             }
         }
-        
-        if (ComputerUtil.preventRunAwayActivations(sa)) {
-            return false;
-        }
-
-        // Phase Restrictions
         if (game.getStack().isEmpty() && ph.getPhase().isBefore(PhaseType.COMBAT_BEGIN)) {
             // Instant-speed pumps should not be cast outside of combat when the
             // stack is empty
             if (!sa.isCurse() && !SpellAbilityAi.isSorcerySpeed(sa)) {
                 return false;
             }
-        } else if (!game.getStack().isEmpty() && !sa.isCurse() && !isFight) {
+        }
+        return true;
+    }
+    
+    @Override
+    protected boolean checkApiLogic(Player ai, SpellAbility sa) {
+        final Game game = ai.getGame();
+        final List<String> keywords = sa.hasParam("KW") ? Arrays.asList(sa.getParam("KW").split(" & ")) : new ArrayList<String>();
+        final String numDefense = sa.hasParam("NumDef") ? sa.getParam("NumDef") : "";
+        final String numAttack = sa.hasParam("NumAtt") ? sa.getParam("NumAtt") : "";
+        final boolean isFight = "Fight".equals(sa.getParam("AILogic")) || "PowerDmg".equals(sa.getParam("AILogic"));
+
+        if ("FellTheMighty".equals(sa.getParam("AILogic"))) {
+        	CardCollection aiList = ai.getCreaturesInPlay();
+        	CardLists.sortByPowerAsc(aiList);
+        	Card lowest = aiList.get(0);
+        	CardCollection oppList = ai.getOpponent().getCreaturesInPlay();
+        	oppList = CardLists.filterPower(oppList, lowest.getNetPower()+1);
+        	if (ComputerUtilCard.evaluateCreatureList(oppList) > 200) {
+        		sa.resetTargets();
+        		sa.getTargets().add(lowest);
+        		return true;
+        	}
+        }
+        
+        if (ComputerUtil.preventRunAwayActivations(sa)) {
+            return false;
+        }
+
+        if (!game.getStack().isEmpty() && !sa.isCurse() && !isFight) {
             return ComputerUtilCard.canPumpAgainstRemoval(ai, sa);
         }
 
@@ -477,6 +461,28 @@ public class PumpAi extends PumpAiBase {
         final String numDefense = sa.hasParam("NumDef") ? sa.getParam("NumDef") : "";
         final String numAttack = sa.hasParam("NumAtt") ? sa.getParam("NumAtt") : "";
 
+        if (numDefense.equals("-X") && sa.getSVar("X").equals("Count$ChosenNumber")) {
+            int energy = ai.getCounters(CounterType.ENERGY);
+            for (SpellAbility s : source.getSpellAbilities()) {
+                if ("PayEnergy".equals(s.getParam("AILogic"))) {
+                    energy += AbilityUtils.calculateAmount(source, s.getParam("CounterNum"), sa);
+                    break;
+                }
+            }
+            int minus = 0;
+            for (; energy > 0; energy--) {
+                if (pumpTgtAI(ai, sa, -energy, -energy, false, true)) {
+                    minus = sa.getTargetCard().getNetToughness();
+                    if (minus > energy || minus < 1) {
+                        continue; // in case the calculation gets messed up somewhere
+                    }
+                    source.setSVar("EnergyToPay", "Number$" + minus);
+                    return true;
+                }
+            }
+            return false;
+        }
+        
         int defense;
         if (numDefense.contains("X") && source.getSVar("X").equals("Count$xPaid")) {
             defense = Integer.parseInt(source.getSVar("PayX"));

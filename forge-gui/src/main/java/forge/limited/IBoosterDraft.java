@@ -28,51 +28,18 @@ import forge.item.PaperCard;
  * </p>
  *
  * @author Forge
- * @version $Id: IBoosterDraft.java 30780 2016-02-01 07:30:13Z Agetian $
+ * @version $Id: IBoosterDraft.java 32013 2016-08-18 20:22:10Z friarsol $
  */
 public interface IBoosterDraft {
-    /**
-     * <p>
-     * nextChoice.
-     * </p>
-     *
-     * @return a {@link CardPool} object.
-     */
+
     CardPool nextChoice();
-
-    /**
-     * <p>
-     * setChoice.
-     * </p>
-     *
-     * @param c
-     *            a {@link forge.game.card.Card} object.
-     */
     void setChoice(PaperCard c);
-
-    /**
-     * <p>
-     * hasNextChoice.
-     * </p>
-     *
-     * @return a boolean.
-     */
     boolean hasNextChoice();
-
-    /**
-     * <p>
-     * getDecks.
-     * </p>
-     *
-     * @return an array of {@link forge.deck.Deck} objects.
-     */
+    boolean isRoundOver();
     Deck[] getDecks(); // size 7, all the computers decks
 
-    /** Constant <code>LandSetCode="{}"</code>. */
     CardEdition[] LAND_SET_CODE = { null };
-
     String[] CUSTOM_RANKINGS_FILE = { null };
-
     boolean isPileDraft();
 
 }

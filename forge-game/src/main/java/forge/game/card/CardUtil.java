@@ -26,6 +26,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import forge.ImageKeys;
 import forge.card.CardStateName;
@@ -56,11 +57,11 @@ public final class CardUtil {
     public static final ImmutableList<String> modifiableKeywords = ImmutableList.<String>builder().add(
             "Enchant", "Protection", "Cumulative upkeep", "Equip", "Buyback",
             "Cycling", "Echo", "Kicker", "Flashback", "Madness", "Morph",
-            "Affinity", "Entwine", "Splice", "Ninjutsu",
+            "Affinity", "Entwine", "Splice", "Ninjutsu", "Presence",
             "Transmute", "Replicate", "Recover", "Suspend", "Aura swap",
             "Fortify", "Transfigure", "Champion", "Evoke", "Prowl",
             "Reinforce", "Unearth", "Level up", "Miracle", "Overload",
-            "Scavenge", "Bestow", "Outlast", "Dash", "Renown", "Surge").build();
+            "Scavenge", "Bestow", "Outlast", "Dash", "Renown", "Surge", "Emerge").build();
     /** List of keyword endings of keywords that could be modified by text changes. */
     public static final ImmutableList<String> modifiableKeywordEndings = ImmutableList.<String>builder().add(
             "walk", "cycling", "offering").build();
@@ -70,11 +71,23 @@ public final class CardUtil {
      * So Clerics maps to Cleric, Demons to Demon, etc.
      */
     public static final ImmutableBiMap<String, String> singularTypes = ImmutableBiMap.<String, String>builder()
-            .put("Clerics", "Cleric")
+    		.put("Beasts", "Beast")
+    		.put("Clerics", "Cleric")
             .put("Demons", "Demon")
             .put("Dragons", "Dragon")
+            .put("Elves", "Elf")
             .put("Goblins", "Goblin")
             .put("Gorgons", "Gorgon")
+            .put("Vampires", "Vampire")
+            .put("Werewolves", "Werewolf")
+            .put("Zombies", "Zombie")
+
+            // Land Types
+            .put("Mountains", "Mountain")
+            .put("Forests", "Forest")
+            .put("Islands", "Island")
+            .put("Swamps", "Swamp")
+
             .build();
     /**
      * Map of singular type names to the corresponding plural form.
@@ -251,7 +264,9 @@ public final class CardUtil {
         newCopy.getCurrentState().copyFrom(in, in.getState(in.getCurrentStateName()));
         if (in.isCloned()) {
             newCopy.addAlternateState(CardStateName.Cloner, false);
+            newCopy.getState(CardStateName.Cloner).copyFrom(in, in.getState(CardStateName.Cloner));
         }
+
         newCopy.setType(new CardType(in.getType()));
         newCopy.setToken(in.isToken());
         newCopy.setTriggers(in.getTriggers(), false);
@@ -264,7 +279,7 @@ public final class CardUtil {
         newCopy.setBasePower(in.getCurrentPower() + in.getTempPowerBoost() + in.getSemiPermanentPowerBoost());
         newCopy.setBaseToughness(in.getCurrentToughness() + in.getTempToughnessBoost() + in.getSemiPermanentToughnessBoost());
 
-        newCopy.setCounters(in.getCounters());
+        newCopy.setCounters(Maps.newEnumMap(in.getCounters()));
         newCopy.setExtrinsicKeyword(in.getExtrinsicKeyword());
 
         newCopy.setColor(in.determineColor().getColor());
@@ -288,9 +303,13 @@ public final class CardUtil {
             newCopy.addImprintedCard(o);
         }
 
+        newCopy.setUnearthed(in.isUnearthed());
+
         newCopy.setChangedCardColors(in.getChangedCardColors());
         newCopy.setChangedCardKeywords(in.getChangedCardKeywords());
         newCopy.setChangedCardTypes(in.getChangedCardTypes());
+
+        newCopy.setMeldedWith(in.getMeldedWith());
 
         return newCopy;
     }
@@ -460,8 +479,7 @@ public final class CardUtil {
             }
         }
 
-        // TODO Sol Remove production of "1" Generic Mana
-        if (maxChoices == 6 && (ab.canProduce("1") || ab.canProduce("C"))) {
+        if (maxChoices == 6 && ab.canProduce("C")) {
             colors.add(MagicColor.Constant.COLORLESS);
         }
 

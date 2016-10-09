@@ -1,7 +1,6 @@
 package forge.card;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -176,8 +175,17 @@ public class CardDetailUtil {
             return "";
         }
         final StringBuilder ptText = new StringBuilder();
-        if (card.isCreature()) {
+        boolean vehicle = card.getType().hasSubtype("Vehicle");
+        if (vehicle && !card.isCreature()) {
+            ptText.append("{");
+        }
+
+        if (card.isCreature() || vehicle) {
             ptText.append(card.getPower()).append(" / ").append(card.getToughness());
+        }
+
+        if (vehicle && !card.isCreature()) {
+            ptText.append("}");
         }
 
         if (card.isPlaneswalker()) {
@@ -205,7 +213,7 @@ public class CardDetailUtil {
         String curColors = "";
 
         // do not show current colors for temp effect cards, emblems and the like
-        if (state.getType().hasSubtype("Effect")) {
+        if (state.getType().isEmblem() || state.getType().hasSubtype("Effect")) {
             return "";
         }
 
@@ -388,6 +396,16 @@ public class CardDetailUtil {
             area.append(")");
         }
 
+        // chosen cards
+        if (card.getChosenCards() != null) {
+            if (area.length() != 0) {
+                area.append("\n");
+            }
+            area.append("(chosen cards: ");
+            area.append(Lang.joinHomogenous(card.getChosenCards()));
+            area.append(")");
+        }
+
         // chosen player
         if (card.getChosenPlayer() != null) {
             if (area.length() != 0) {
@@ -422,12 +440,7 @@ public class CardDetailUtil {
                 area.append("\n");
             }
             area.append("=Equipped by ");
-            for (final Iterator<CardView> it = card.getEquippedBy().iterator(); it.hasNext();) {
-                area.append(it.next());
-                if (it.hasNext()) {
-                    area.append(", ");
-                }
-            }
+            area.append(StringUtils.join(card.getEquippedBy(), ", "));
             area.append("=");
         }
 
@@ -451,12 +464,7 @@ public class CardDetailUtil {
                 area.append("\n");
             }
             area.append("*Enchanted by ");
-            for (final Iterator<CardView> it = card.getEnchantedBy().iterator(); it.hasNext();) {
-                area.append(it.next());
-                if (it.hasNext()) {
-                    area.append(", ");
-                }
-            }
+            area.append(StringUtils.join(card.getEnchantedBy(), ", "));
             area.append("*");
         }
 
@@ -466,12 +474,7 @@ public class CardDetailUtil {
                 area.append("\n");
             }
             area.append("+Controlling: ");
-            for (final Iterator<CardView> it = card.getGainControlTargets().iterator(); it.hasNext();) {
-                area.append(it.next());
-                if (it.hasNext()) {
-                    area.append(", ");
-                }
-            }
+            area.append(StringUtils.join(card.getGainControlTargets(), ", "));
             area.append("+");
         }
 
@@ -491,12 +494,7 @@ public class CardDetailUtil {
                 area.append("\n");
             }
             area.append("Imprinting: ");
-            for (final Iterator<CardView> it = card.getImprintedCards().iterator(); it.hasNext();) {
-                area.append(it.next());
-                if (it.hasNext()) {
-                    area.append(", ");
-                }
-            }
+            area.append(StringUtils.join(card.getImprintedCards(), ", "));
         }
 
         // Haunt
@@ -505,12 +503,7 @@ public class CardDetailUtil {
                 area.append("\n");
             }
             area.append("Haunted by: ");
-            for (final Iterator<CardView> it = card.getHauntedBy().iterator(); it.hasNext();) {
-                area.append(it.next());
-                if (it.hasNext()) {
-                    area.append(", ");
-                }
-            }
+            area.append(StringUtils.join(card.getHauntedBy(), ", "));
         }
         if (card.getHaunting() != null) {
             if (area.length() != 0) {

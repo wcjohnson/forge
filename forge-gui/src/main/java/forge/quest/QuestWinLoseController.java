@@ -187,12 +187,14 @@ public class QuestWinLoseController {
         }
 
         if (qEvent instanceof QuestEventChallenge) {
-            final String id = ((QuestEventChallenge) qEvent).getId();
-            qData.getAchievements().getCurrentChallenges().remove(id);
-            qData.getAchievements().addLockedChallenge(id);
+            if (wonMatch || (!((QuestEventChallenge)qEvent).isPersistent())) {
+                final String id = ((QuestEventChallenge) qEvent).getId();
+                qData.getAchievements().getCurrentChallenges().remove(id);
+                qData.getAchievements().addLockedChallenge(id);
 
-            // Increment challenge counter to limit challenges available
-            qData.getAchievements().addChallengesPlayed();
+                // Increment challenge counter to limit challenges available
+                qData.getAchievements().addChallengesPlayed();
+            }
         }
 
         qData.setCurrentEvent(null);
@@ -602,6 +604,11 @@ public class QuestWinLoseController {
         final StringBuilder sb = new StringBuilder();
         sb.append("Challenge completed.\n\n");
         sb.append("Challenge bounty: ").append(questRewardCredits).append(" credits.");
+
+        String winMessage = ((QuestEventChallenge)qEvent).getWinMessage();
+        if (!winMessage.isEmpty()) {
+            view.showMessage(winMessage.replace("\\n", "\n"), "Congratulations", FSkinProp.ICO_QUEST_NOTES);
+        }
 
         qData.getAssets().addCredits(questRewardCredits);
 

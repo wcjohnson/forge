@@ -82,7 +82,7 @@ import java.util.Set;
  * Methods for common actions performed during a game.
  * 
  * @author Forge
- * @version $Id: GameAction.java 31231 2016-05-19 08:00:15Z Hanmac $
+ * @version $Id: GameAction.java 32220 2016-09-27 17:01:05Z Agetian $
  */
 public class GameAction {
     private final Game game;
@@ -233,6 +233,7 @@ public class GameAction {
 
             if (c.isUnearthed() && (zoneTo.is(ZoneType.Graveyard) || zoneTo.is(ZoneType.Hand) || zoneTo.is(ZoneType.Library))) {
                 zoneTo = c.getOwner().getZone(ZoneType.Exile);
+                lastKnownInfo = CardUtil.getLKICopy(c);
                 c.setUnearthed(false);
             }
         }
@@ -259,6 +260,9 @@ public class GameAction {
                 position--;
             }
             zoneFrom.remove(c);
+            if (!zoneTo.is(ZoneType.Exile) && !zoneTo.is(ZoneType.Stack)) {
+                c.setExiledWith(null);
+            }
         }
 
         // "enter the battlefield as a copy" - apply code here
@@ -338,6 +342,19 @@ public class GameAction {
                     c.setPairedWith(null);
                 }
             }
+            // Spin off Melded card
+            if (c.getMeldedWith() != null) {
+                // Other melded card needs to go "above" or "below" if Library or Graveyard
+                Card unmeld = c.getMeldedWith();
+                //c.setMeldedWith(null);
+                ((PlayerZoneBattlefield)zoneFrom).removeFromMelded(unmeld);
+                Integer unmeldPosition = position;
+                if (unmeldPosition != null && (zoneTo.equals(ZoneType.Library) || zoneTo.equals(ZoneType.Graveyard))) {
+                    // Ask controller if it wants to be on top or bottom of other meld.
+                    unmeldPosition++;
+                }
+                changeZone(null, zoneTo, unmeld, position);
+            }
             // Reveal if face-down
             if (c.isFaceDown()) {
             	c.setState(CardStateName.Original, true);
@@ -350,7 +367,7 @@ public class GameAction {
             // reset timestamp in changezone effects so they have same timestamp if ETB simutaneously 
             copied.setTimestamp(game.getNextTimestamp());
             for (String s : copied.getKeywords()) {
-                if (s.startsWith("May be played") || s.startsWith("You may look at this card.")
+                if (s.startsWith("You may look at this card.")
                         || s.startsWith("Your opponent may look at this card.")) {
                     copied.removeAllExtrinsicKeyword(s);
                     copied.removeHiddenExtrinsicKeyword(s);
@@ -365,10 +382,13 @@ public class GameAction {
                 // fizzle all "damage done" triggers for cards returning to battlefield from graveyard
                 game.getStack().fizzleTriggersOnStackTargeting(copied, TriggerType.DamageDone);
             }
-        } else if (zoneTo.is(ZoneType.Graveyard) || zoneTo.is(ZoneType.Hand) || zoneTo.is(ZoneType.Library)) {
+        } else if (zoneTo.is(ZoneType.Graveyard)
+        		|| zoneTo.is(ZoneType.Hand)
+        		|| zoneTo.is(ZoneType.Library)
+        		|| zoneTo.is(ZoneType.Exile)) {
             copied.setTimestamp(game.getNextTimestamp());
             for (String s : copied.getKeywords()) {
-                if (s.startsWith("May be played") || s.startsWith("You may look at this card.")
+                if (s.startsWith("You may look at this card.")
                         || s.startsWith("Your opponent may look at this card.")) {
                     copied.removeAllExtrinsicKeyword(s);
                     copied.removeHiddenExtrinsicKeyword(s);
@@ -452,10 +472,12 @@ public class GameAction {
 
         if (zoneFrom == null) {
             c.setCastFrom(null);
+            c.setCastSA(null);
         } else if (zoneTo.is(ZoneType.Stack)) {
             c.setCastFrom(zoneFrom.getZoneType());
         } else if (!(zoneTo.is(ZoneType.Battlefield) && zoneFrom.is(ZoneType.Stack))) {
             c.setCastFrom(null);
+            c.setCastSA(null);
         }
 
         if (c.isAura() && zoneTo.is(ZoneType.Battlefield) && ((zoneFrom == null) || !zoneFrom.is(ZoneType.Stack))
@@ -521,6 +543,7 @@ public class GameAction {
         final PlayerZone exile = owner.getZone(ZoneType.Exile);
 
         if (c.hasKeyword("If CARDNAME would be put into a graveyard, exile it instead.")) {
+            c.removeAllExtrinsicKeyword("If CARDNAME would be put into a graveyard, exile it instead.");
             return moveTo(exile, c);
         }
 
@@ -623,6 +646,7 @@ public class GameAction {
 
         for (final Player p : game.getPlayers()) {
             p.getManaPool().restoreColorReplacements();
+            p.clearStaticAbilities();
         }
 
         // search for cards with static abilities
@@ -844,7 +868,6 @@ public class GameAction {
                 }
             }
             setHoldCheckingStaticAbilities(false);
-            checkStaticAbilities();
 
             if (game.getTriggerHandler().runWaitingTriggers()) {
                 checkAgain = true;
@@ -1217,15 +1240,7 @@ public class GameAction {
             return null;
         }
 
-        // Play the Sacrifice sound
-        game.fireEvent(new GameEventCardSacrificed());
-
-        // Run triggers
-        final HashMap<String, Object> runParams = new HashMap<String, Object>();
-        // use a copy that preserves last known information about the card (e.g. for Savra, Queen of the Golgari + Painter's Servant)
-        runParams.put("Card", CardFactory.copyCardWithChangedStats(c, false)); 
-        runParams.put("Cause", source);
-        game.getTriggerHandler().runTrigger(TriggerType.Sacrificed, runParams, false);
+        c.getController().addSacrificedThisTurn(c, source);
 
         return sacrificeDestroy(c);
     }
@@ -1340,47 +1355,8 @@ public class GameAction {
             return null;
         }
 
-        boolean persist = (c.hasKeyword("Persist") && c.getCounters(CounterType.M1M1) == 0) && !c.isToken();
-        boolean undying = (c.hasKeyword("Undying") && c.getCounters(CounterType.P1P1) == 0) && !c.isToken();
-
         final Card newCard = moveToGraveyard(c);
 
-        // don't trigger persist/undying if the dying has been replaced
-        if (newCard == null || !newCard.isInZone(ZoneType.Graveyard)) {
-            persist = false;
-            undying = false;
-        }
-
-        // System.out.println("Card " + c.getName() +
-        // " is getting sent to GY, and this turn it got damaged by: ");
-
-        if (persist) {
-            final Card persistCard = newCard;
-            String effect = String.format("AB$ ChangeZone | Cost$ 0 | Defined$ CardUID_%d" +
-            		" | Origin$ Graveyard | Destination$ Battlefield | WithCounters$ M1M1_1",
-                    persistCard.getId());
-            SpellAbility persistAb = AbilityFactory.getAbility(effect, c);
-            persistAb.setTrigger(true);
-            persistAb.setStackDescription(newCard.getName() + " - Returning from Persist");
-            persistAb.setDescription(newCard.getName() + " - Returning from Persist");
-            persistAb.setActivatingPlayer(c.getController());
-
-            game.getStack().addSimultaneousStackEntry(persistAb);
-        }
-
-        if (undying) {
-            final Card undyingCard = newCard;
-            String effect = String.format("AB$ ChangeZone | Cost$ 0 | Defined$ CardUID_%d |" +
-            		" Origin$ Graveyard | Destination$ Battlefield | WithCounters$ P1P1_1",
-            		undyingCard.getId());
-            SpellAbility undyingAb = AbilityFactory.getAbility(effect, c);
-            undyingAb.setTrigger(true);
-            undyingAb.setStackDescription(newCard.getName() + " - Returning from Undying");
-            undyingAb.setDescription(newCard.getName() + " - Returning from Undying");
-            undyingAb.setActivatingPlayer(c.getController());
-
-            game.getStack().addSimultaneousStackEntry(undyingAb);
-        }
         return newCard;
     }
 
@@ -1458,7 +1434,12 @@ public class GameAction {
             game.setAge(GameStage.Mulligan);
             for (final Player p1 : game.getPlayers()) {
                 p1.drawCards(p1.getMaxHandSize());
+
+                // If pl has Backup Plan as a Conspiracy draw that many extra hands
+
             }
+
+            // Choose starting hand for each player with multiple hands
 
             performMulligans(first, game.getRules().hasAppliedVariant(GameType.Commander));
             if (game.isGameOver()) { break; } // conceded during "mulligan" prompt
@@ -1686,4 +1667,20 @@ public class GameAction {
         }
     }
 
+    public void becomeMonarch(final Player p) {
+        final Player previous = game.getMonarch();
+        if (p == null || p.equals(previous))
+            return;
+
+        if (previous != null)
+            previous.removeMonarchEffect();
+
+        p.createMonarchEffect();
+        game.setMonarch(p);
+
+        // Run triggers
+        final HashMap<String, Object> runParams = new HashMap<String, Object>();
+        runParams.put("Player", p);
+        game.getTriggerHandler().runTrigger(TriggerType.BecomeMonarch, runParams, false);
+    }
 }

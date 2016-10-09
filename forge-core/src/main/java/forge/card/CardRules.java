@@ -38,12 +38,14 @@ public final class CardRules implements ICardCharacteristics {
     private ICardFace otherPart;
     private CardAiHints aiHints;
     private ColorSet colorIdentity;
+    private String meldWith;
 
     private CardRules(ICardFace[] faces, CardSplitType altMode, CardAiHints cah) {
         splitType = altMode;
         mainPart = faces[0];
         otherPart = faces[1];
         aiHints = cah;
+        meldWith = "";
 
         //calculate color identity
         byte colMask = calculateColorIdentity(mainPart);
@@ -63,6 +65,7 @@ public final class CardRules implements ICardCharacteristics {
         otherPart = newRules.otherPart;
         aiHints = newRules.aiHints;
         colorIdentity = newRules.colorIdentity;
+        meldWith = newRules.meldWith;
     }
 
     private static byte calculateColorIdentity(final ICardFace face) {
@@ -195,6 +198,10 @@ public final class CardRules implements ICardCharacteristics {
         return mainPart.getOracleText().contains("can be your commander");
     }
 
+    public String getMeldWith() {
+        return meldWith;
+    }
+
 //    public Set<String> getSets() { return this.setsPrinted.keySet(); }
 //    public CardInSet getEditionInfo(final String setCode) {
 //        final CardInSet result = this.setsPrinted.get(setCode);
@@ -242,6 +249,7 @@ public final class CardRules implements ICardCharacteristics {
         private String[] pictureUrl = new String[] { null, null };
         private int curFace = 0;
         private CardSplitType altMode = CardSplitType.None;
+        private String meldWith = "";
         private String handLife = null;
 
         // fields to build CardAiHints
@@ -249,6 +257,7 @@ public final class CardRules implements ICardCharacteristics {
         private boolean removedFromRandomDecks = false;
         private DeckHints hints = null;
         private DeckHints needs = null;
+        private DeckHints has = null;
 
         /**
          * Reset all fields to parse next card (to avoid allocating new CardRulesReader N times)
@@ -267,6 +276,7 @@ public final class CardRules implements ICardCharacteristics {
             this.removedFromRandomDecks = false;
             this.needs = null;
             this.hints = null;
+            this.has = null;
         }
 
         /**
@@ -275,10 +285,11 @@ public final class CardRules implements ICardCharacteristics {
          * @return the card
          */
         public final CardRules getCard() {
-            CardAiHints cah = new CardAiHints(removedFromAIDecks, removedFromRandomDecks, hints, needs );
+            CardAiHints cah = new CardAiHints(removedFromAIDecks, removedFromRandomDecks, hints, needs, has);
             faces[0].assignMissingFields();
             if (null != faces[1]) faces[1].assignMissingFields();
             final CardRules result = new CardRules(faces, altMode, cah);
+            result.meldWith = this.meldWith;
             result.setDlUrls(pictureUrl);
             if (StringUtils.isNotBlank(handLife))
                 result.setVanguardProperties(handLife);
@@ -316,6 +327,8 @@ public final class CardRules implements ICardCharacteristics {
                         this.altMode = CardSplitType.smartValueOf(value);
                     } else if ("ALTERNATE".equals(key)) {
                         this.curFace = 1;
+                    } else if ("AltName".equals(key)) {
+                        this.faces[curFace].setAltName(value);
                     }
                 break;
 
@@ -333,6 +346,8 @@ public final class CardRules implements ICardCharacteristics {
                         hints = new DeckHints(value);
                     } else if ("DeckNeeds".equals(key)) {
                         needs = new DeckHints(value);
+                    } else if ("DeckHas".equals(key)) {
+                        has = new DeckHints(value);
                     }
                     break;
 
@@ -358,6 +373,8 @@ public final class CardRules implements ICardCharacteristics {
                     if ("ManaCost".equals(key)) {
                         this.faces[this.curFace].setManaCost("no cost".equals(value) ? ManaCost.NO_COST
                                 : new ManaCost(new ManaCostParser(value)));
+                    } else if ("MeldPair".equals(key)) {
+                        this.meldWith = value;
                     }
                     break;
 
@@ -483,7 +500,7 @@ public final class CardRules implements ICardCharacteristics {
     }
 
     public static CardRules getUnsupportedCardNamed(String name) {
-        CardAiHints cah = new CardAiHints(true, true, null, null);
+        CardAiHints cah = new CardAiHints(true, true, null, null, null);
         CardFace[] faces = { new CardFace(name), null};
         faces[0].setColor(ColorSet.fromMask(0));
         faces[0].setType(CardType.parse(""));

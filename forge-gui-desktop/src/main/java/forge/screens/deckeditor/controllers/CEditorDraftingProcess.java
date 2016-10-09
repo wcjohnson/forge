@@ -37,6 +37,8 @@ import forge.screens.home.sanctioned.CSubmenuDraft;
 import forge.screens.match.controllers.CDetailPicture;
 import forge.toolbox.FOptionPane;
 import forge.util.ItemPool;
+
+import java.util.HashSet;
 import java.util.Map.Entry;
 
 /**
@@ -102,8 +104,15 @@ public class CEditorDraftingProcess extends ACEditorBase<PaperCard, DeckGroup> {
         // get next booster pack
         this.boosterDraft.setChoice(card);
 
-        if (this.boosterDraft.hasNextChoice()) {
-            this.showChoices(this.boosterDraft.nextChoice());
+        boolean nextChoice = this.boosterDraft.hasNextChoice();
+        ItemPool<PaperCard> pool = null;
+        if (nextChoice) {
+            pool = this.boosterDraft.nextChoice();
+            nextChoice = pool != null && !pool.isEmpty();
+        }
+
+        if (nextChoice) {
+            this.showChoices(pool);
         }
         else {
             this.saveDraft();
@@ -155,27 +164,6 @@ public class CEditorDraftingProcess extends ACEditorBase<PaperCard, DeckGroup> {
         // add sideboard to deck
         deck.getOrCreate(DeckSection.Sideboard).addAll(this.getDeckManager().getPool());
 
-        //no need to add basic lands now that Add Basic Lands button exists
-        /*final String landSet = IBoosterDraft.LAND_SET_CODE[0].getCode();
-        final boolean isZendikarSet = landSet.equals("ZEN"); // we want to generate one kind of Zendikar lands at a time only
-        final boolean zendikarSetMode = MyRandom.getRandom().nextBoolean();
-
-        final int landsCount = 10;
-
-        for(String landName : MagicColor.Constant.BASIC_LANDS) {
-            int numArt = FModel.getMagicDb().getCommonCards().getArtCount(landName, landSet);
-            int minArtIndex = isZendikarSet ? (zendikarSetMode ? 1 : 5) : 1;
-            int maxArtIndex = isZendikarSet ? minArtIndex + 3 : numArt;
-
-            if (FModel.getPreferences().getPrefBoolean(FPref.UI_RANDOM_ART_IN_POOLS)) {
-                for (int i = minArtIndex; i <= maxArtIndex; i++) {
-                    deck.get(DeckSection.Sideboard).add(landName, landSet, i, numArt > 1 ? landsCount : 30);
-                }
-            } else {
-                deck.get(DeckSection.Sideboard).add(landName, landSet, 30);
-            }
-        }*/
-
         return deck;
     } // getPlayersDeck()
 
@@ -185,29 +173,33 @@ public class CEditorDraftingProcess extends ACEditorBase<PaperCard, DeckGroup> {
      * </p>
      */
     private void saveDraft() {
-        String s = FOptionPane.showInputDialog("Save this draft as:", "Save Draft", FOptionPane.QUESTION_ICON);
+        String s;
+        HashSet<String> names = new HashSet<>();
 
-        // Cancel button will be null; OK will return string.
-        // Must check for null value first, then string length.
-        // Recurse, if either null or empty string.
-        if (s == null || s.isEmpty()) {
-            saveDraft();
-            return;
-        }
-
-        // Check for overwrite case
         for (DeckGroup d : FModel.getDecks().getDraft()) {
-            if (s.equalsIgnoreCase(d.getName())) {
-                if (!FOptionPane.showConfirmDialog(
-                        "There is already a deck named '" + s + "'. Overwrite?",
-                        "Overwrite Deck?", false)) {
-                    // If no overwrite, recurse.
-                    saveDraft();
-                    return;
-                }
-                break;
-            }
+            names.add(d.getName());
         }
+
+        do{
+            // Cancel button will be null; OK will return string.
+            // Must check for null value first, then string length.
+            s = FOptionPane.showInputDialog("Save this draft as:", "Save Draft", FOptionPane.QUESTION_ICON);
+
+            if (s == null && FOptionPane.showConfirmDialog(
+                        "Quit without saving?",
+                        "Quit Draft?", false)) {
+                FScreen.DRAFTING_PROCESS.close();
+                return;
+            }
+
+            // Overwrite same name?
+            else if (names.contains(s) && !FOptionPane.showConfirmDialog(
+                    "There is already a deck named '" + s + "'. Overwrite?",
+                    "Overwrite Deck?", false)) {
+                s = "";
+            }
+
+        } while(s == null || s.isEmpty());
 
         saved = true;
 

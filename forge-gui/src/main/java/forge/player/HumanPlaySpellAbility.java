@@ -18,10 +18,12 @@
 package forge.player;
 
 import java.util.Collections;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 
 import forge.card.CardStateName;
 import forge.card.CardType;
@@ -31,11 +33,14 @@ import forge.game.GameObject;
 import forge.game.ability.AbilityUtils;
 import forge.game.card.Card;
 import forge.game.card.CardPlayOption;
+import forge.game.cost.Cost;
+import forge.game.cost.CostPart;
 import forge.game.cost.CostPartMana;
 import forge.game.cost.CostPayment;
 import forge.game.mana.ManaPool;
 import forge.game.player.Player;
 import forge.game.player.PlayerController;
+import forge.game.spellability.AbilityActivated;
 import forge.game.spellability.AbilitySub;
 import forge.game.spellability.Spell;
 import forge.game.spellability.SpellAbility;
@@ -73,13 +78,14 @@ public class HumanPlaySpellAbility {
         final ManaPool manapool = human.getManaPool();
 
         final Card c = ability.getHostCard();
-        final CardPlayOption option = c.mayPlay(human);
+        final CardPlayOption option = c.mayPlay(ability.getMayPlay());
 
         final boolean manaConversion = (ability.isSpell() && (c.hasKeyword("May spend mana as though it were mana of any color to cast CARDNAME")
                 || (option != null && option.isIgnoreManaCostColor())));
         final boolean playerManaConversion = human.hasManaConversion()
                 && human.getController().confirmAction(ability, null, "Do you want to spend mana as though it were mana of any color to pay the cost?");
 
+        boolean keywordColor = false;
         // freeze Stack. No abilities should go onto the stack while I'm filling requirements.
         game.getStack().freezeStack();
 
@@ -94,6 +100,9 @@ public class HumanPlaySpellAbility {
             if (ability instanceof Spell && !((Spell) ability).isCastFaceDown() && fromState == CardStateName.FaceDown) {
                 c.turnFaceUp();
             }
+            c.setCastSA(ability);
+            ability.setLastStateBattlefield(game.getLastStateBattlefield());
+            ability.setLastStateGraveyard(game.getLastStateGraveyard());
             ability.setHostCard(game.getAction().moveToStack(c));
         }
 
@@ -106,6 +115,24 @@ public class HumanPlaySpellAbility {
             AbilityUtils.applyManaColorConversion(human, MagicColor.Constant.ANY_MANA_CONVERSION);
             human.incNumManaConversion();
         }
+        
+        if (ability.isAbility() && ability instanceof AbilityActivated) {
+        	final Map<String, String> params = Maps.newHashMap();
+        	params.put("ManaColorConversion", "Additive");
+
+            for (String keyword : c.getKeywords()) {
+                if (keyword.startsWith("ManaConvert")) {
+                    final String[] k = keyword.split(":");
+                    params.put(k[1] + "Conversion", k[2]);
+                    keywordColor = true;
+                }
+            }
+
+            if (keywordColor) {
+                AbilityUtils.applyManaColorConversion(human, params);
+            }
+        }
+
         // This line makes use of short-circuit evaluation of boolean values, that is each subsequent argument
         // is only executed or evaluated if the first argument does not suffice to determine the value of the expression
         final boolean prerequisitesMet = announceValuesLikeX()
@@ -124,7 +151,7 @@ public class HumanPlaySpellAbility {
                     ability.getHostCard().unanimateBestow();
                 }
             }
-            if (manaConversion) {
+            if (manaConversion || keywordColor) {
                 manapool.restoreColorReplacements();
             }
             if (playerManaConversion) {
@@ -150,7 +177,7 @@ public class HumanPlaySpellAbility {
             if (mayChooseTargets) {
                 clearTargets(ability);
             }
-            if (manaConversion) {
+            if (manaConversion || keywordColor) {
                 manapool.restoreColorReplacements();
             }
         }
@@ -221,7 +248,8 @@ public class HumanPlaySpellAbility {
 
         boolean needX = true;
         final boolean allowZero = !ability.hasParam("XCantBe0");
-        final CostPartMana manaCost = ability.getPayCosts().getCostMana();
+        final Cost cost = ability.getPayCosts();
+        final CostPartMana manaCost = cost.getCostMana();
         final PlayerController controller = ability.getActivatingPlayer().getController();
         final Card card = ability.getHostCard();
 
@@ -252,14 +280,27 @@ public class HumanPlaySpellAbility {
             }
         }
 
-        if (needX && manaCost != null && manaCost.getAmountOfX() > 0) {
-            final String sVar = ability.getSVar("X"); //only prompt for new X value if card doesn't determine it another way
-            if ("Count$xPaid".equals(sVar) || sVar.isEmpty()) {
-                final Integer value = controller.announceRequirements(ability, "X", allowZero && manaCost.canXbe0());
-                if (value == null) {
-                    return false;
+        if (needX && manaCost != null) {
+            boolean xInCost = manaCost.getAmountOfX() > 0;
+            if (!xInCost) {
+                for (final CostPart part : cost.getCostParts()) {
+                    if (part.getAmount().equals("X")) {
+                        xInCost = true;
+                        break;
+                    }
                 }
-                card.setXManaCostPaid(value);
+            }
+            if (xInCost) {
+                final String sVar = ability.getSVar("X"); //only prompt for new X value if card doesn't determine it another way
+                if ("Count$xPaid".equals(sVar) || sVar.isEmpty()) {
+                    final Integer value = controller.announceRequirements(ability, "X", allowZero && manaCost.canXbe0());
+                    if (value == null) {
+                        return false;
+                    }
+                    card.setXManaCostPaid(value);
+                }
+            } else if (manaCost.getMana().isZero() && ability.isSpell()) {
+                card.setXManaCostPaid(0);
             }
         }
         return true;
